@@ -1,19 +1,53 @@
 #! /bin/tcsh -f
 
 set HEADNAME = "output"
-set VREF     =  0.0 # VREF value [mV]
-set TPCHG    =  11.52 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 set CHIP     = 0 # 0-3
+set VREF     = 0.0 # VREF value [mV]
+set TPCHG    = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+
 
 set CH_LIST = 123 
 #set CH_LIST = `seq 122 124`
 #set CH_LIST = `seq 0 127`
 
-#set CTRL_DAC_LIST = `seq -31 31`
-set CTRL_DAC_LIST = `seq 28 31`
+set CTRL_DAC_LIST = `seq -31 31`
+#set CTRL_DAC_LIST = `seq 28 31`
 #set CTRL_DAC_LIST = 31
 
 ###########################################
+
+(cd decoder; make;)
+
+# BEGIN (TREATMENT FOR OTHER CHIP)
+echo -n "Suppress All Chip : "
+foreach ICHIP( 0 1 2 3 )
+    echo -n "${ICHIP} "
+    if( ${ICHIP} == 0 ) then
+	set CTRL_CHIP = "0000000"
+    else if( ${ICHIP} == 1 ) then
+	set CTRL_CHIP = "0000001"
+    else if( ${ICHIP} == 2 ) then
+	set CTRL_CHIP = "0000010"
+    else if( ${ICHIP} == 3 ) then
+	set CTRL_CHIP = "0000011"
+    else
+	echo "Wrong CHIP-ID : ${CHIP}"
+	exit
+    endif
+    cd slow_control;
+    ./make_control.sh ${CTRL_CHIP} 0 LLLLLLLLLLLLLLLL LLLLLLLLLLLLLLLL # other DAC = 0 # default
+    while (1)
+       ./slit128sc control.dat 192.168.10.16;
+       if( $? == 0 ) then
+       break
+       endif
+    end
+    #./slit128sc -d control.dat 192.168.10.16;
+    cd ../
+    echo ""
+end
+# END (TREATMENT FOR OTHER CHIP)
+####################################################################################################
 
 if( ${CHIP} == 0 ) then
     set CTRL_CHIP = "0000000"
@@ -28,10 +62,8 @@ else
     exit
 endif
 
-(cd decoder; make;)
-
 foreach CH( ${CH_LIST} )
-   echo "Channel : $CH"
+   echo "START S-Curve scan for Channel $CH"
    set CNT=0
    foreach CTRL_DAC( ${CTRL_DAC_LIST} )
       set TMP = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`

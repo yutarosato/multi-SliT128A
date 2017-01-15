@@ -70,6 +70,6 @@ cd ../
 
 # <Plot>
 cd ana;
-./qc_allch ../test.root ${CHIP}
-#./qc_onech ../test.root ${CHIP} ${CH} ${CH} ${CTRL_DAC}
+#./qc_allch ../test.root ${CHIP}
+./qc_onech ../test.root ${CHIP} ${CH} ${CH} ${CTRL_DAC}
 

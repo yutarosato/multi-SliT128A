@@ -86,6 +86,16 @@ def SUPPRESS_SCK(rbcp, ip_address):
     data = struct.pack('>B', 0x00)
     rbcp.write_registers(ip_address, address = 0x80000007, length = len(data), id = 15, data = data)
 
+def ZERO_SUPPRESS(rbcp, ip_address):
+    data = struct.pack('>B', 0xFF)
+    rbcp.write_registers(ip_address, address = 0x80000008, length = len(data), id = 16, data = data)
+
+def UNIT_ENABLE(rbcp, ip_address):
+    data = struct.pack('>B', 0xFF) # chip(1[unit(3,2,1,0)]), chip(0[unit(3,2,1,0)]) # tmppppp
+    rbcp.write_registers(ip_address, address = 0x80000005, length = len(data), id = 17, data = data)
+    data = struct.pack('>B', 0x00) # chip(3[unit(3,2,1,0)]), chip(2[unit(3,2,1,0)]) # tmppppp
+    rbcp.write_registers(ip_address, address = 0x80000006, length = len(data), id = 18, data = data)
+
 def hl2digit(s):
     return int(s.replace('L', '0').replace('H', '1'), 2)
 
@@ -157,7 +167,6 @@ def main():
 
     rbcp = SitcpRbcp.SitcpRbcp()
     START_SCK(rbcp, ip_address)
-    time.sleep(0.001)
 
     send_prepare_packet(rbcp, ip_address, base_addr)
 
@@ -166,7 +175,11 @@ def main():
 
     send_final_packet(rbcp, ip_address, base_addr)
     
-    SUPPRESS_SCK(rbcp, ip_address)
-    time.sleep(0.001)
+    SUPPRESS_SCK (rbcp, ip_address)
+    ZERO_SUPPRESS(rbcp, ip_address)
+    UNIT_ENABLE  (rbcp, ip_address) # tmppppp
+
+    
+
 if __name__ == '__main__':
     main()

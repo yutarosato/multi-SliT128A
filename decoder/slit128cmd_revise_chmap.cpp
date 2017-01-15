@@ -19,8 +19,8 @@
 #include <TGraph.h>
 
 
-
 const int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
+//const bool ck_data_size = true; // obsolete
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
@@ -49,6 +49,9 @@ float t_vref  = -999;
 float t_tpchg = -999;
 int   t_selch = -999;
 int   t_dac   = -999;
+
+int prev_event = -999;
+int prev_ndata = 0;
 
 int read_4_bytes( FILE *fp, unsigned char *buf ){ // -1(fread err), 0(end file), +n(correctly read n-byte)
   int n;
@@ -158,18 +161,39 @@ int bit_flip( bool bit ){
   else      return true;
 }
 
+
+
 int decode( unsigned char *buf, int length ){
   unsigned short* event_number = (unsigned short*)&buf[2];
+  int new_event = ntohs(*event_number);
+
+  if( prev_event != new_event && prev_event != -999 ){
+    if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", prev_event, prev_ndata );
+    tree->Fill();
+    t_event = new_event;
+    cnt_data += t_time_v.size();
+    nevt_success++;
+    
+    init_tree();
+    for( int ichip=0; ichip<n_chip; ichip++ ){
+      for( int iunit=0; iunit<n_unit; iunit++ ){
+	fl_unit[ichip][iunit] = 0;
+      }
+    }
+  }else if( prev_event == -999 ){
+    t_event = new_event;
+  }
+  prev_event = t_event;
+
   int ndata = (length-4)/8;
   if( fl_message > 0 ) printf( "       [ Event#=%d : #Data=%d : ", ntohs(*event_number), ndata );
-  //t_event = ntohs(*event_number);
 
   for( int idata=0; idata<ndata; idata++ ){
     unsigned char   chip_id   = buf[8*idata+4]; chip_id = ( chip_id & 0x7f );
     unsigned char   unit_id   = buf[8*idata+5];
     unsigned short* time_info = (unsigned short*)&buf[8*idata+6];
     unsigned long*  data      = (unsigned long* )&buf[8*idata+8];
-    if( idata==0 && (int)unit_id==0 ) t_event = ntohs(*event_number);
+    //if( idata==0 && (int)unit_id==0 ) t_event = ntohs(*event_number);
     if( idata==0 && fl_message > 0 ) printf( "Chip-ID=%d : Unit-ID=%d ] \n", (int)chip_id, (int)unit_id );
     if( fl_message > 1 ) printf( "%3d : (Chip-ID=%d, Unit-ID=%d) : (time=%d, data=%x)\n", idata, (int)chip_id, (int)unit_id, ntohs(*time_info), ntohl(*data) );
 
@@ -217,33 +241,38 @@ int decode( unsigned char *buf, int length ){
     //if( t_unit!=3 ) continue;
     fl_unit[t_chip][t_unit]++;
   }
-    {
-      int tmp_fl = 1;
+
+  prev_ndata = ndata;
+  return 0;
+  /*
+  {
+    int tmp_fl = 1;
+    for( int ichip=0; ichip<n_chip; ichip++ ){
+      for( int iunit=0; iunit<n_unit; iunit++ ){
+	tmp_fl *= (int)((bool)fl_unit[ichip][iunit]);
+      }
+    }
+    if( tmp_fl==1 ){
+      if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", t_event, ndata );
+      if( ck_data_size && ndata!=131057 ){ // 8192*16 = 131057+15
+	printf( "=>[ Event#=%d : #Data=%d+15 ] * lost data event : not saved int tree\n", t_event, ndata );
+	nevt_fail++;
+      }else{
+	tree->Fill();
+	cnt_data += t_time_v.size();
+	nevt_success++;
+      }
+      
+      init_tree();
       for( int ichip=0; ichip<n_chip; ichip++ ){
 	for( int iunit=0; iunit<n_unit; iunit++ ){
-	tmp_fl *= (int)((bool)fl_unit[ichip][iunit]);
-	}
-      }
-      if( tmp_fl==1 ){
-        if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", t_event, ndata );
-	if( ndata!=131057 ){ // 8192*16 = 131057+15
-	  printf( "=>[ Event#=%d : #Data=%d+15 ] * lost data event : not saved int tree\n", t_event, ndata );
-	  nevt_fail++;
-	}else{
-	  tree->Fill();
-	  cnt_data += t_time_v.size();
-	  nevt_success++;
-	}
-	
-	init_tree();
-	for( int ichip=0; ichip<n_chip; ichip++ ){
-	  for( int iunit=0; iunit<n_unit; iunit++ ){
-	    fl_unit[ichip][iunit] = 0;
-	  }
+	  fl_unit[ichip][iunit] = 0;
 	}
       }
     }
-     
+  }
+  */
+  
   return 0;
 }
 
@@ -293,8 +322,24 @@ int main( int argc, char *argv[] ){
   
   while(1){
     n = fill_event_buf( fp, event_buf ); // read one event
+
     if( n < 0 ) break;
     else decode( event_buf, n ); // save it in tree
+    /*
+    if( n < 0 ){
+      tree->Fill();
+      cnt_data += t_time_v.size();
+      nevt_success++;
+      init_tree();
+      for( int ichip=0; ichip<n_chip; ichip++ ){
+	for( int iunit=0; iunit<n_unit; iunit++ ){
+	  fl_unit[ichip][iunit] = 0;
+	}
+      }
+      prev_event = t_event;
+      break;
+    }else decode( event_buf, n ); // save it in tree
+    */
   }
 
   std::cout << "#event (success/fail) = "
