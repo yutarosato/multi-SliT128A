@@ -14,10 +14,9 @@ Int_t main( Int_t argc, Char_t** argv ){
   sty->SetTitleOffset(1.2,"y");
   unsigned int seed = time(NULL);
   //TRandom rnd(seed);
-  //TRandom rnd(2000);
   TRandom rnd(3000);
 
-  if( !(app.Argc()==4) )
+  if( !(app.Argc()==3) )
     std::cerr << "Wrong input" << std::endl
 	      << "Usage : " << app.Argv(0) << " (char*)infilename (int)ch" << std::endl
 	      << std::endl, abort();

@@ -203,7 +203,7 @@ Int_t main( Int_t argc, Char_t** argv ){
   sty->SetPadGridX(0);
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  if( !(app.Argc()==5) )
+  if( !(app.Argc()==6) )
     std::cerr << "Wrong input" << std::endl
 	      << "Usage : " << app.Argv(0)
 	      << " (char*)infilename (int)chip_id (int)obs_ch (int)tp_ch (int)dac" << std::endl

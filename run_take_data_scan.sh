@@ -15,7 +15,6 @@ set CTRL_DAC_LIST = `seq -31 31`
 #set CTRL_DAC_LIST = 31
 
 ###########################################
-
 (cd decoder; make;)
 
 # BEGIN (TREATMENT FOR OTHER CHIP)
@@ -101,8 +100,8 @@ foreach CH( ${CH_LIST} )
       mkdir -p binary_data
       nc -d 192.168.10.16 24 > binary_data/${OUTNAME}.dat &
       #sleep 3
-      #sleep 4
-      sleep 5
+      sleep 4
+      #sleep 5
       #sleep 6
       #sleep 16
       #sleep 32
@@ -133,9 +132,8 @@ foreach CH( ${CH_LIST} )
       cd ../
 
    end # DAC LOOP
-   exit
-   ./run_offset_noise.sh 123 0
+   ./run_offset_noise.sh ${CHIP} 123 0
 end # CHANNEL LOOP
 
-hadd -f root_data/${HEADNAME}_${VREF}_${TPCHG}.root root_data/${HEADNAME}_${VREF}_${TPCHG}_*.root && mv root_data/${HEADNAME}_${VREF}_${TPCHG}_*.root root_data/tmp/.
+hadd -f root_data/${HEADNAME}_${VREF}_${TPCHG}_${CHIP}.root root_data/${HEADNAME}_${VREF}_${TPCHG}_${CHIP}_*.root && mv root_data/${HEADNAME}_${VREF}_${TPCHG}_${CHIP}_*.root root_data/tmp/.
 

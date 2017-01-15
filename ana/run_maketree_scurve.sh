@@ -1,18 +1,11 @@
 #! /bin/tcsh -f
 
 set INFILE = `ls dat_scurve/output*.dat` # default
-#set INFILE = `ls ../store/20161006_wire/comparison_dat_scurve/output[0124]*.dat`
 #set INFILE = `ls ../store/20161006_wire/dat_scurve/output*.dat`
 
-
 #set CH_LIST = `seq 0 127`
-#set CH_LIST = `seq 120 124`
-#set CH_LIST = "46"
-set CH_LIST = "123"
-#set CH_LIST = "124"
-#set CH_LIST = "122"
-#set CH_LIST = "71"
-#set CH_LIST = "98"
+set CH_LIST = `seq 122 124`
+#set CH_LIST = "123"
 
 ################################################
 
