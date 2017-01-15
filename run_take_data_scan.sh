@@ -3,15 +3,31 @@
 set HEADNAME = "output"
 set VREF     =  0.0 # VREF value [mV]
 set TPCHG    =  11.52 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+set CHIP     = 0 # 0-3
 
-#set CH_LIST = 123 
+set CH_LIST = 123 
 #set CH_LIST = `seq 122 124`
-set CH_LIST = `seq 0 127`
+#set CH_LIST = `seq 0 127`
 
-set CTRL_DAC_LIST = `seq -31 31`
+#set CTRL_DAC_LIST = `seq -31 31`
+set CTRL_DAC_LIST = `seq 28 31`
 #set CTRL_DAC_LIST = 31
 
 ###########################################
+
+if( ${CHIP} == 0 ) then
+    set CTRL_CHIP = "0000000"
+else if( ${CHIP} == 1 ) then
+    set CTRL_CHIP = "0000001"
+else if( ${CHIP} == 2 ) then
+    set CTRL_CHIP = "0000010"
+else if( ${CHIP} == 3 ) then
+    set CTRL_CHIP = "0000011"
+else
+    echo "Wrong CHIP-ID : ${CHIP}"
+    exit
+endif
+
 (cd decoder; make;)
 
 foreach CH( ${CH_LIST})
@@ -29,13 +45,13 @@ foreach CH( ${CH_LIST})
       # <Slow Control>
       pwd
       cd slow_control;
-      #./make_control.sh 1111111 $CH LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL
-      #./make_control.sh 1111111 $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL
-      ./make_control.sh 1111111 $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLLLLLLLLLL # other DAC = 0 # default
-      #./make_control.sh 1111111 $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLHHHHHHLLLLL # other DAC = +31
-      #./make_control.sh 1111111 $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLHHHHHLLLLL # other DAC = -31
-      #./make_control.sh 1111111 $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLHLHHHHLLLLL # other DAC = +15
-      #./make_control.sh 1111111 $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLHHHHLLLLL # other DAC = -15
+      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL
+      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL
+      ./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLLLLLLLLLL # other DAC = 0 # default
+      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLHHHHHHLLLLL # other DAC = +31
+      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLHHHHHLLLLL # other DAC = -31
+      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLHLHHHHLLLLL # other DAC = +15
+      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLHHHHLLLLL # other DAC = -15
 
       while (1)
          ./slit128sc control.dat 192.168.10.16;
@@ -46,15 +62,15 @@ foreach CH( ${CH_LIST})
       #./slit128sc -d control.dat 192.168.10.16;
       #exit
 
-      set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${CH}_${CTRL_DAC}"
+      set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${CHIP}_${CH}_${CTRL_DAC}"
 
       # <Take Data>
       cd ../;
       mkdir -p binary_data
       nc -d 192.168.10.16 24 > binary_data/${OUTNAME}.dat &
-      sleep 3
+      #sleep 3
       #sleep 4
-      #sleep 5
+      sleep 5
       #sleep 6
       #sleep 16
       #sleep 32
@@ -85,6 +101,7 @@ foreach CH( ${CH_LIST})
       cd ../
 
    end # DAC LOOP
+   exit
    ./run_offset_noise.sh 123 0
 end # CHANNEL LOOP
 
