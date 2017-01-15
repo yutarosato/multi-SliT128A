@@ -50,6 +50,7 @@ foreach ICHIP( 0 1 2 3 )
      endif
     end
     #./slit128sc -d control.dat 192.168.10.16;
+    sleep 0.1
     cd ../
     echo $ICHIP
 end

@@ -78,6 +78,14 @@ def send_prepare_packet(rbcp, ip_address, base_addr):
 
     wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
+def START_SCK(rbcp, ip_address):
+    data = struct.pack('>B', 0xFF)
+    rbcp.write_registers(ip_address, address = 0x80000007, length = len(data), id = 9, data = data)
+
+def SUPPRESS_SCK(rbcp, ip_address):
+    data = struct.pack('>B', 0x00)
+    rbcp.write_registers(ip_address, address = 0x80000007, length = len(data), id = 15, data = data)
+
 def hl2digit(s):
     return int(s.replace('L', '0').replace('H', '1'), 2)
 
@@ -127,7 +135,7 @@ def main():
     has_read_dipswitch_line = False
     values = {} # line storage.  Use dictionary because data origin file has channel number data
                 # channel number may interchange.
-
+    
     for line in f:
         line = line.partition('#')[0]
         line = line.strip()
@@ -148,6 +156,8 @@ def main():
             print ch, values[ch]
 
     rbcp = SitcpRbcp.SitcpRbcp()
+    START_SCK(rbcp, ip_address)
+    time.sleep(0.001)
 
     send_prepare_packet(rbcp, ip_address, base_addr)
 
@@ -155,6 +165,8 @@ def main():
         send_value_packet(rbcp, ip_address, base_addr, ch, values[ch])
 
     send_final_packet(rbcp, ip_address, base_addr)
-
+    
+    SUPPRESS_SCK(rbcp, ip_address)
+    time.sleep(0.001)
 if __name__ == '__main__':
     main()

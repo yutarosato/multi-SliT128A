@@ -165,15 +165,12 @@ Int_t main( Int_t argc, Char_t** argv ){
   for( Int_t ievt=0; ievt<chain->GetEntries(); ievt++ ){
     chain->GetEntry(ievt);
     hist_1ch  ->Reset();
-    std::cout << "ievt = " << ievt << std::endl;
     for( Int_t idiv=0; idiv<ndiv; idiv++ ) hist_1ch_div[idiv]->Reset();
     if( dac    != t_dac   ) continue; // dac value
     if( tp_ch  != t_selch ) continue; // test puse channel
-    std::cout << "size = " << t_unit_v->size() << std::endl;
     for( Int_t ivec=0; ivec<t_unit_v->size(); ivec++ ){
-      if( chip_id!=t_chip_v->at(ivec) ) continue; // temporal testtttttttmpppppppp
+      if( chip_id!=t_chip_v->at(ivec) ) continue;
       if( obs_ch != ch_map(t_unit_v->at(ivec),t_bit_v->at(ivec)) ) continue; // observed channel
-      std::cout << "TTTTT" << std::endl;
       hist_1ch->Fill( t_time_v->at(ivec) );
       for( Int_t idiv=0; idiv<ndiv; idiv++ ) hist_1ch_div[idiv]->Fill( t_time_v->at(ivec) );
     }

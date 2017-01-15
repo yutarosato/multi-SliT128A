@@ -33,7 +33,6 @@
 #include <TFitResultPtr.h>
 
 Int_t t_event;
-Int_t t_chip;
 
 
 const Int_t n_dac = 64;
@@ -164,8 +163,6 @@ TStyle* Style(){
 
 Int_t set_readbranch( TChain* tree ){
   tree->SetBranchAddress("event", &t_event  );
-  //tree->SetBranchAddress("chip",  &t_chip   ); // obsolete ???
-  //tree->SetBranchAddress("data",  t_data    ); // obsolete
   tree->SetBranchAddress("chip",  &t_chip_v  );
   tree->SetBranchAddress("unit",  &t_unit_v  );
   tree->SetBranchAddress("bit",   &t_bit_v   );
@@ -176,8 +173,6 @@ Int_t set_readbranch( TChain* tree ){
 
 Int_t set_readbranch( TTree* tree ){
   tree->SetBranchAddress("event", &t_event  );
-  //tree->SetBranchAddress("chip",  &t_chip   ); // obsolete ???
-  //tree->SetBranchAddress("data",  t_data    ); // obsolete
   tree->SetBranchAddress("chip",  &t_chip_v  );
   tree->SetBranchAddress("unit",  &t_unit_v  );
   tree->SetBranchAddress("bit",   &t_bit_v   );

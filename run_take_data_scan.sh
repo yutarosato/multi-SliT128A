@@ -30,7 +30,7 @@ endif
 
 (cd decoder; make;)
 
-foreach CH( ${CH_LIST})
+foreach CH( ${CH_LIST} )
    echo "Channel : $CH"
    set CNT=0
    foreach CTRL_DAC( ${CTRL_DAC_LIST} )
