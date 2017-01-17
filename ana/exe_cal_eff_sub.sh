@@ -1,13 +1,14 @@
 #! /bin/tcsh -f
 
 set FILE    = $1
-set CH1     = $2
-set CH2     = $3
-set OUTNAME = $4
-set NAME    = $5
+set CHIP    = $2
+set CH1     = $3
+set CH2     = $4
+set OUTNAME = $5
+set NAME    = $6
 
 foreach DAC( `seq -31 31` )
-  ./cal_eff ${FILE} ${CH1} ${CH2} ${DAC} | tee -a ${OUTNAME}
+  ./cal_eff ${FILE} ${CHIP} ${CH1} ${CH2} ${DAC} | tee -a ${OUTNAME}
 end
 
 set CH1 = `printf "%03d" ${CH1}`

@@ -1,13 +1,13 @@
 #! /bin/tcsh -f
 
-set LOCAL = "1" # "0" if you use batch ques in KEKCC, 
+set LOCAL = "0" # "0" if you use batch ques in KEKCC, 
 set CHIP  = "0" # 0-3
 
 set FILE_LIST = `ls ../root_data/output*.root` # default
 #set FILE_LIST = `ls ../store/20161017_bias/root_data/output*.root`
 
-#set CH_LIST   = `seq 0 127`
-set CH_LIST   = `seq 122 124`
+set CH_LIST   = `seq 0 127`
+#set CH_LIST   = `seq 122 124`
 #set CH_LIST   = "1 10 100"
 #set CH_LIST   = "123"
 
@@ -36,8 +36,8 @@ foreach FILE( ${FILE_LIST} )
          (cat pic/${NAME}_obsch${CH_NAME}_tpch${CH_NAME}_dac*_can2.ps > pic/${NAME}_obsch${CH_NAME}_tpch${CH_NAME}_can2.ps) && ps2pdf pic/${NAME}_obsch${CH_NAME}_tpch${CH_NAME}_can2.ps pic/${NAME}_obsch${CH_NAME}_tpch${CH_NAME}_can2.pdf  && rm -f pic/${NAME}_obsch${CH_NAME}_tpch${CH_NAME}_*can2.ps
          (ls pic/${NAME}_obsch${CH_NAME}_tpch${CH_NAME}_dac*.root | xargs hadd pic/${NAME}_obsch${CH_NAME}_tpch${CH_NAME}.root) && rm -f pic/${NAME}_obsch${CH_NAME}_tpch${CH_NAME}_dac*.root
       else
-         bsub -q s ./exe_cal_eff_sub.sh ${FILE} ${CHIP} ${CH} ${CH} ${OUTNAME} ${NAME}
-         #echo "./exe_cal_eff_sub.sh ${FILE} ${CH} ${CH} ${OUTNAME} ${NAME}" >> tmp.list
+         #bsub -q s ./exe_cal_eff_sub.sh ${FILE} ${CHIP} ${CH} ${CH} ${OUTNAME} ${NAME}
+         echo "./exe_cal_eff_sub.sh ${FILE} ${CHIP} ${CH} ${CH} ${OUTNAME} ${NAME}" >> tmp.list
       endif
 
    end # CH LOOP

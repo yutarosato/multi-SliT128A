@@ -3,9 +3,9 @@
 set INFILE = `ls dat_scurve/output*.dat` # default
 #set INFILE = `ls ../store/20161006_wire/dat_scurve/output*.dat`
 
-#set CH_LIST = `seq 0 127`
-set CH_LIST = `seq 122 124`
-#set CH_LIST = "123"
+set CH_LIST = `seq 0 127`
+#set CH_LIST = `seq 122 124`
+#set CH_LIST = "60"
 
 ################################################
 

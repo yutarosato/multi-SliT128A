@@ -1,6 +1,6 @@
 #include "setting.h"
 
-const Bool_t fl_batch = !true;
+const Bool_t fl_batch = true;
 const Bool_t fl_plot  = !true;
 // true (one plot per parameter point) for reproducibility check or one-channel scan
 // false(one plot per channel) for all-channel scan
@@ -501,9 +501,20 @@ Int_t main( Int_t argc, Char_t** argv ){
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
   TTree* tree = new TTree( "ch", "ch" );
-  Int_t t_ch = ch;
-  tree->Branch( "ch",  &t_ch,  "ch/I" );
-  tree->Fill();  
+  Int_t    t_ch;
+  Double_t t_vref;
+  Double_t t_tpchg;
+  tree->Branch( "ch",    &t_ch,    "ch/I"    );
+  tree->Branch( "vref",  &t_vref,  "vref/D"  );
+  tree->Branch( "tpchg", &t_tpchg, "tpchg/D" );
+
+  for( Int_t itab=0; itab<ntab; itab++ ){
+    t_ch    = ch;
+    t_vref  = vref_tab[itab];
+    t_tpchg = tpchg_tab[itab];
+    tree->Fill();
+  }
+
     
   TFile outfile( Form("pic/%s.root",basename.c_str()), "RECREATE" );
   tree->Write();
