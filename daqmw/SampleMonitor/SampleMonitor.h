@@ -100,7 +100,8 @@ private:
   // external parameters
   int      m_monitor_update_rate;
   int      m_obs_ch;
-  const static unsigned int DATA_BUF_SIZE = (8192*8+4)*4+1024; // 262160 + 1024; 1024 is spare
+  //const static unsigned int DATA_BUF_SIZE = (8192*8+4)* 4+1024;  // 262160 + 1024; 1024 is spare // for 1 ASIC
+  const static unsigned int DATA_BUF_SIZE = (8192*8+4)*16+1024; // 1048640 + 1024; 1024 is spare // for 4 ASIC
   unsigned char m_recv_data[DATA_BUF_SIZE];
   unsigned int  m_event_byte_size;
 

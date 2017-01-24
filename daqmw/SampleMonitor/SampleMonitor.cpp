@@ -276,6 +276,8 @@ int SampleMonitor::fill_data(const unsigned char* mydata, const int size)
   for( Int_t ivec=0; ivec<m_tree->getnhit(); ivec++ ){ // read 1 event data
     int obs_ch = m_tree->ch_map(m_tree->get_unit().at(ivec),m_tree->get_bit().at(ivec));
     int time   = m_tree->get_time().at(ivec);
+    int chip   = m_tree->get_chip().at(ivec);
+    std::cout << "obs_ch = " << obs_ch << ", chip = " << chip << ", time = " << time << std::endl;
 
     m_hist_bit_allch_1evt->Fill( time, obs_ch );
     m_hist_bit_allch_evts->Fill( time, obs_ch );

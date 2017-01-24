@@ -198,8 +198,10 @@ int SampleReader::read_data_from_detectors()
   static bool first_read = true;
   static unsigned char tmpbuf[12];
   int event_data_len = 0;
+  unsigned short* event_number_short;
+  unsigned short* current_event_number_short;
   int event_number;
-  int prev_event_number = -999;
+  static int current_event_number;
   //unsigned short* event_number = (unsigned short*)&mydata[2];
   
   if( first_read ){ // first time: read from file. after second time stored in tmpbuf
@@ -212,7 +214,9 @@ int SampleReader::read_data_from_detectors()
       fatal_error_report(USER_DEFINED_ERROR2, "SOCKET TIMEOUT");
     }else{
       event_data_len += 3*DATA_STEP;
-      prev_event_number = ntohs(*((unsigned short*)&m_data[2]));
+      current_event_number_short = (unsigned short*)&m_data[2];
+      current_event_number       = ntohs(*current_event_number_short);
+      event_number               = current_event_number;
     }
     first_read = false;
   }else{
@@ -230,9 +234,10 @@ int SampleReader::read_data_from_detectors()
       std::cerr << "### Timeout: m_sock->readAll" << std::endl;
       fatal_error_report(USER_DEFINED_ERROR2, "SOCKET TIMEOUT");
     }
-    event_number = ntohs(*((unsigned short*)&m_data[event_data_len+2]));
     
     if( (m_data[event_data_len] & 0x80) == 0x00 ){ // read more 4 byte, because it is 12 byte header.
+      event_number_short   = (unsigned short*)&m_data[event_data_len+2];
+      event_number         = ntohs(*event_number_short);
       int status = m_sock->readAll(&m_data[event_data_len], DATA_STEP);
       if( status == DAQMW::Sock::ERROR_FATAL ){
 	std::cerr << "### ERROR: m_sock->readAll" << std::endl;
@@ -242,18 +247,15 @@ int SampleReader::read_data_from_detectors()
 	fatal_error_report(USER_DEFINED_ERROR2, "SOCKET TIMEOUT");
       }
       
-      if( event_number!=prev_event_number ){ // end of the event
+      if( event_number!=current_event_number ){ // end of the event
 	memcpy( tmpbuf, &m_data[event_data_len], 3*DATA_STEP );
+	current_event_number = event_number;
 	return event_data_len;	  
       }else{ // continue the event
 	event_data_len += 3*DATA_STEP;
       }
-    }else{ // continue the event
-      if( event_number!=prev_event_number ){ // ERROR
-	std::cerr << "[ERROR] event number is slipped : " << event_number << " -> " << prev_event_number << std::endl;
-      }else{ // normal
-	event_data_len += 2*DATA_STEP;
-      }
+    }else{ // continue the eventn
+      event_data_len += 2*DATA_STEP;
     }
   }
 }

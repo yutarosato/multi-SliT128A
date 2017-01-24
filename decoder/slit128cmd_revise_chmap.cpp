@@ -20,7 +20,6 @@
 
 
 const int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
-//const bool ck_data_size = true; // obsolete
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
