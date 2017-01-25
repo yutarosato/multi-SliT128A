@@ -105,7 +105,7 @@ private:
   unsigned int  m_event_byte_size;
 
   const static int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
-  const static int n_chip =     1; // temporal setting
+  const static int n_chip =     4;
   const static int n_unit =     4;
   const static int n_bit  =    32;
   const static int n_time =  8192; // pow(2,13)
