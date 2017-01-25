@@ -70,8 +70,8 @@
                <outPorts/>
                <params>
                         <param pid="monitorUpdateRate">200</param>
-                        <param pid="sel1ch">123</param>
                         <param pid="sel1chip">0</param>
+                        <param pid="sel1ch">123</param>
                         <param pid="signal_width">10</param>
                         <param pid="signal_span">50</param>
                </params>

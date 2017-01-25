@@ -193,7 +193,7 @@ int SampleMonitor::daq_start()
   if( m_tree ){ delete m_tree; m_tree = 0; }
 
   m_tree   = new MTree();
-  m_canvas = new TCanvas("c1", "histos", 0, 0, 1800, 800);
+  m_canvas = new TCanvas("c1", "histos", 0, 0, 1800, 900);
   m_canvas->Divide(4,3);
   
   int    m_hist_xbin = 8192;

@@ -162,11 +162,13 @@ int bit_flip( bool bit ){
 
 int decode( unsigned char *buf, int length ){
   unsigned short* event_number = (unsigned short*)&buf[2];
-  int new_event = ntohs(*event_number);
+  //int new_event = ntohs(*event_number);
+  unsigned short tmp_number = ( *event_number & 0xff7f ); // RF state bit is omitted.
+  int new_event = ntohs(tmp_number);
 
   if( prev_event != new_event && prev_event != -999 ){
     if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", prev_event, prev_ndata );
-    if( prev_event - new_event > 0 )printf( "[ERROR] Event number is shifted\n" );
+    if( prev_event - new_event > 0 )printf( "[ERROR] Event number is shifted : %d and %d\n",prev_event, new_event );
     tree->Fill();
     t_event = new_event;
     cnt_data += t_time_v.size();

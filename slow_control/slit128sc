@@ -229,6 +229,7 @@ def main():
     UNIT_ENABLE   (rbcp, ip_address)
     SET_ZERO_EVENT_NO(rbcp, ip_address, 1000)
     READ_SLOW_CONTROL(rbcp, ip_address)
+    time.sleep(0.01)
     G_UNIT_ENABLE (rbcp, ip_address)
 
 
