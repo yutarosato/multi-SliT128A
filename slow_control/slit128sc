@@ -93,8 +93,19 @@ def ZERO_SUPPRESS(rbcp, ip_address):
 def UNIT_ENABLE(rbcp, ip_address):
     data = struct.pack('>B', 0xFF) # chip(1[unit(3,2,1,0)]), chip(0[unit(3,2,1,0)]) # tmppppp
     rbcp.write_registers(ip_address, address = 0x80000005, length = len(data), id = 17, data = data)
-    data = struct.pack('>B', 0x00) # chip(3[unit(3,2,1,0)]), chip(2[unit(3,2,1,0)]) # tmppppp
+    data = struct.pack('>B', 0xFF) # chip(3[unit(3,2,1,0)]), chip(2[unit(3,2,1,0)]) # tmppppp
     rbcp.write_registers(ip_address, address = 0x80000006, length = len(data), id = 18, data = data)
+
+
+def G_UNIT_DISABLE(rbcp, ip_address):
+    data = struct.pack('>B', 0x00) # RST_EVTNO, G_UNIT_ENB
+    rbcp.write_registers(ip_address, address = 0x80000009, length = len(data), id = 17, data = data)
+
+def G_UNIT_ENABLE(rbcp, ip_address):
+    #data = struct.pack('>B', 0x03) # RST_EVTNO, G_UNIT_ENB
+    #rbcp.write_registers(ip_address, address = 0x80000009, length = len(data), id = 18, data = data) # RESET EVTNO
+    data = struct.pack('>B', 0x01) # RST_EVTNO, G_UNIT_ENB
+    rbcp.write_registers(ip_address, address = 0x80000009, length = len(data), id = 19, data = data)
 
 def hl2digit(s):
     return int(s.replace('L', '0').replace('H', '1'), 2)
@@ -174,12 +185,12 @@ def main():
         send_value_packet(rbcp, ip_address, base_addr, ch, values[ch])
 
     send_final_packet(rbcp, ip_address, base_addr)
-    
-    SUPPRESS_SCK (rbcp, ip_address)
-    ZERO_SUPPRESS(rbcp, ip_address)
-    UNIT_ENABLE  (rbcp, ip_address) # tmppppp
 
-    
+    G_UNIT_DISABLE(rbcp, ip_address)    
+    SUPPRESS_SCK  (rbcp, ip_address)
+    ZERO_SUPPRESS (rbcp, ip_address)
+    UNIT_ENABLE   (rbcp, ip_address)
+    G_UNIT_ENABLE (rbcp, ip_address)
 
 if __name__ == '__main__':
     main()
