@@ -17,10 +17,6 @@ MTree::~MTree(){
   t2_time_v = 0;
 }
 
-int MTree::ch_map( int unit, int bit ){
-  return n_bit*unit + bit;
-}
-
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 int MTree::bit_flip( bool bit ){
@@ -71,28 +67,28 @@ int MTree::decode_data(const unsigned char* mydata, int length)
 {
   init_tree();
   unsigned short* event_number = (unsigned short*)&mydata[2];
-
-  int ndata = (length-16)/8;
-  if( fl_message > 1 ) printf( "       [ Event#=%d : #Data=%d]\n", ntohs(*event_number), ndata );
-  //t_event = ntohs(*event_number);
+  t_event = ntohs(*event_number);
+  
+  if( fl_message > 1 ) printf( "       [ Event#=%d : #Length=%d]\n", ntohs(*event_number), length );
   int adjust = 0;
-  for( int idata=0; idata<ndata; idata++ ){
-    unsigned char   chip_id   = mydata[8*idata+adjust+4]; chip_id = ( chip_id & 0x7f );
-    unsigned char   unit_id   = mydata[8*idata+adjust+5];
-    unsigned short* time_info = (unsigned short*)&mydata[8*idata+adjust+6];
-    unsigned long*  data      = (unsigned long* )&mydata[8*idata+adjust+8];
-    if( idata<4  && (int)unit_id==0 ) t_event = ntohs(*event_number);
-    if( fl_message > 1 ) printf( "%3d : (Chip-ID=%d, Unit-ID=%d) : (time=%d, data=%x)\n", idata, (int)chip_id, (int)unit_id, ntohs(*time_info), ntohl(*data) );
-
+  int idata  = 0;
+  
+  while(1){
+    if( mydata[8*idata+adjust] & 0x00 ) adjust += 4;
+    unsigned char   chip_id   = mydata[8*idata+adjust+0]; chip_id = ( chip_id & 0x7f );
+    unsigned char   unit_id   = mydata[8*idata+adjust+1];
+    unsigned short* time_info = (unsigned short*)&mydata[8*idata+adjust+2];
+    unsigned long*  data      = (unsigned long* )&mydata[8*idata+adjust+4];
+    
+    if( fl_message > 1 ) printf( "%4d : (Chip-ID=%d, Unit-ID=%d) : (time=%d, data=%x)\n", idata, (int)chip_id, (int)unit_id, ntohs(*time_info), ntohl(*data) );
+    
     int tmp_chip  = chip_id;
     int tmp_unit  = unit_id;
-    int tmp_time = ntohs(*time_info);
+    int tmp_time  = ntohs(*time_info);
     int tmp_data[n_bit];
-
-    //tmp_unit = unit_id_mapping( tmp_unit ); // unit-ID correction // unit-ID correction // removed for ch-map correction@20161004
-
+    
     for( int ibyte=0; ibyte<4; ibyte++ ){
-      unsigned char byte_data = mydata[8*idata+adjust+8+ibyte];
+      unsigned char byte_data = mydata[8*idata+adjust+4+ibyte];
       if( fl_message > 1 ) std::cout << "("
 				     << (int )((unsigned char)(byte_data)) << " : "
 				     << (bool)((unsigned char)(byte_data & 0x80)) << " "
@@ -104,7 +100,7 @@ int MTree::decode_data(const unsigned char* mydata, int length)
 				     << (bool)((unsigned char)(byte_data & 0x02)) << " "
 				     << (bool)((unsigned char)(byte_data & 0x01)) << ") ";
       if( fl_message > 1 && ibyte==3 ) std::cout << std::endl;
-
+      
       tmp_data[7+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x80)) ); // bit-flip correction // modified for ch-map correction @20161004
       tmp_data[6+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x40)) ); // bit-flip correction // modified for ch-map correction @20161004
       tmp_data[5+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x20)) ); // bit-flip correction // modified for ch-map correction @20161004
@@ -123,11 +119,11 @@ int MTree::decode_data(const unsigned char* mydata, int length)
 	}
       }
     } // End of ibyte
-
-    if( idata < 3) adjust += 4;
+    idata++;
+    if( 8*idata+adjust >= length ) break;
   } // End of idata
   
-  if( fl_message ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", t_event, ndata );
+  if( fl_message ) printf( "=>[ Event#=%d : #Data=%d (including %d headers) ]\n", t_event, idata, adjust/4 );
   m_tree->Fill();
   m_tree->GetEntry(m_tree->GetEntries()-1);
 

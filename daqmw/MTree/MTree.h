@@ -39,7 +39,11 @@ class MTree{
  public:
   //int unit_id_mapping( int unit );
   int bit_flip( bool bit );
-  int ch_map  ( int unit, int bit );
+  int ch_map         (           int unit, int bit ){ return n_bit*unit + bit; } // return Channel-No. (0-127)
+  int multi_ch_map   ( int chip, int unit, int bit ){ return chip*n_unit*n_bit + n_bit*unit + bit; } // return Global Channel-No. (0-511 for 4ASIC)
+  int rev_ch_map_chip( int gch ){ return (gch/(n_bit*n_unit)); } // return chip-No    from global Channel-No.
+  int rev_ch_map_ch  ( int gch ){ return (gch%(n_bit*n_unit)); } // return channel-No from global Channel-No.
+  
 
  public:
   int set_readbranch();

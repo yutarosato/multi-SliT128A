@@ -19,7 +19,7 @@
 #include <TGraph.h>
 
 
-const int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
+const int fl_message = 2; // 0(simple message), 1(normal message), 2(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
@@ -189,11 +189,9 @@ int decode( unsigned char *buf, int length ){
     if( idata==0 && fl_message > 0 ) printf( "Chip-ID=%d : Unit-ID=%d ] \n", (int)chip_id, (int)unit_id );
     if( fl_message > 1 ) printf( "%3d : (Chip-ID=%d, Unit-ID=%d) : (time=%d, data=%x)\n", idata, (int)chip_id, (int)unit_id, ntohs(*time_info), ntohl(*data) );
 
-    t_chip  = chip_id;
-    t_unit  = unit_id;
+    t_chip = chip_id;
+    t_unit = unit_id;
     t_time = ntohs(*time_info);
-
-    //t_unit = unit_id_mapping( t_unit ); // unit-ID correction // removed for ch-map correction@20161004
 
     for( int ibyte=0; ibyte<4; ibyte++ ){ // for-loop from large ch number to small ch number
       unsigned char byte_data = buf[8*idata+8+ibyte];

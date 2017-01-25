@@ -80,14 +80,10 @@ private:
   TCanvas* m_canvas;
   TH1I*    m_hist_bit_1ch_1evt;
   TH1I*    m_hist_hit_1ch_1evt;
-  TH1I*    m_hist_bit_1ch_evts;
-  TH1I*    m_hist_hit_1ch_evts;
   TH1I*    m_hist_bit_1ch_int;
   TH1I*    m_hist_hit_1ch_int;
   TH2I*    m_hist_bit_allch_1evt;
   TH2I*    m_hist_hit_allch_1evt;
-  TH2I*    m_hist_bit_allch_evts;
-  TH2I*    m_hist_hit_allch_evts;
   TH2I*    m_hist_bit_allch_int;
   TH2I*    m_hist_hit_allch_int;
 
@@ -99,7 +95,10 @@ private:
   
   // external parameters
   int      m_monitor_update_rate;
+  int      m_obs_chip;
   int      m_obs_ch;
+  int      th_width; // bin
+  int      th_span;  // bin
   //const static unsigned int DATA_BUF_SIZE = (8192*8+4)* 4+1024;  // 262160 + 1024; 1024 is spare // for 1 ASIC
   const static unsigned int DATA_BUF_SIZE = (8192*8+4)*16+1024; // 1048640 + 1024; 1024 is spare // for 4 ASIC
   unsigned char m_recv_data[DATA_BUF_SIZE];
@@ -111,10 +110,6 @@ private:
   const static int n_bit  =    32;
   const static int n_time =  8192; // pow(2,13)
 
-  // signal definition
-  const static int th_width = 10; // bin
-  const static int th_span  = 50; // bin
-  
   MTree* m_tree;
   int    m_nevt_success;
   int    m_nevt_fail;
