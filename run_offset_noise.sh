@@ -44,12 +44,12 @@ foreach ICHIP( 0 1 2 3 )
     endif
 
     while (1)
-     ./slit128sc control.dat 192.168.10.16;
+     ./slit128sc control_${CTRL_CHIP}.dat 192.168.10.16;
      if( $? == 0 ) then
         break
      endif
     end
-    #./slit128sc -d control.dat 192.168.10.16;
+    #./slit128sc -d control_${CTRL_CHIP}.dat 192.168.10.16;
     sleep 0.1
     cd ../
     echo $ICHIP

@@ -44,7 +44,7 @@ foreach ICHIP( 0 1 2 3 )
     endif
 
     while (1)
-	./slit128sc control.dat 192.168.10.16;
+	./slit128sc control_${CTRL_CHIP}.dat 192.168.10.16;
 	if( $? == 0 ) then
 	    break
 	endif
@@ -70,6 +70,6 @@ cd ../
 
 # <Plot>
 cd ana;
-#./qc_allch ../test.root ${CHIP}
-./qc_onech ../test.root ${CHIP} ${CH} ${CH} ${CTRL_DAC}
+./qc_allch ../test.root ${CHIP}
+#./qc_onech ../test.root ${CHIP} ${CH} ${CH} ${CTRL_DAC}
 

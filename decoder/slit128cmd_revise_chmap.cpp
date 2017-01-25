@@ -19,7 +19,7 @@
 #include <TGraph.h>
 
 
-const int fl_message = 2; // 0(simple message), 1(normal message), 2(detailed message)
+const int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
@@ -166,6 +166,7 @@ int decode( unsigned char *buf, int length ){
 
   if( prev_event != new_event && prev_event != -999 ){
     if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", prev_event, prev_ndata );
+    if( prev_event - new_event > 0 )printf( "[ERROR] Event number is shifted\n" );
     tree->Fill();
     t_event = new_event;
     cnt_data += t_time_v.size();

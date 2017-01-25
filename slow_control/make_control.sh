@@ -10,10 +10,11 @@ if( $#argv < 3 )then
     exit 1
 endif
 
-set OUTFILE       = "control.dat"
+
 set CHIP_NO       = $1
 set CHANNEL_NO    = $2
 set COMMAND       = $3
+set OUTFILE       = "control_${CHIP_NO}.dat"
 if( $#argv > 3 )then
    set COMMAND_OTHER = $4
 else
