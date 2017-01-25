@@ -28,8 +28,6 @@ const int n_time =  8192; // pow(2,13)
 //const int chip_id[n_chip] = {0,1,2,4};
 
 int nevt_success = 0;
-int nevt_fail    = 0;
-int fl_unit[1000][n_unit] = {0};
 
 int t_chip;
 int t_unit;
@@ -175,11 +173,6 @@ int decode( unsigned char *buf, int length ){
     nevt_success++;
     
     init_tree();
-    for( int ichip=0; ichip<n_chip; ichip++ ){
-      for( int iunit=0; iunit<n_unit; iunit++ ){
-	fl_unit[ichip][iunit] = 0;
-      }
-    }
   }else if( prev_event == -999 ){
     t_event = new_event;
   }
@@ -236,42 +229,9 @@ int decode( unsigned char *buf, int length ){
 	}
       }
     }
-
-    //if( idata%5000==0 ) std::cout << idata << std::endl;
-    //if( t_unit!=3 ) continue;
-    fl_unit[t_chip][t_unit]++;
   }
 
   prev_ndata = ndata;
-  return 0;
-  /*
-  {
-    int tmp_fl = 1;
-    for( int ichip=0; ichip<n_chip; ichip++ ){
-      for( int iunit=0; iunit<n_unit; iunit++ ){
-	tmp_fl *= (int)((bool)fl_unit[ichip][iunit]);
-      }
-    }
-    if( tmp_fl==1 ){
-      if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", t_event, ndata );
-      if( ck_data_size && ndata!=131057 ){ // 8192*16 = 131057+15
-	printf( "=>[ Event#=%d : #Data=%d+15 ] * lost data event : not saved int tree\n", t_event, ndata );
-	nevt_fail++;
-      }else{
-	tree->Fill();
-	cnt_data += t_time_v.size();
-	nevt_success++;
-      }
-      
-      init_tree();
-      for( int ichip=0; ichip<n_chip; ichip++ ){
-	for( int iunit=0; iunit<n_unit; iunit++ ){
-	  fl_unit[ichip][iunit] = 0;
-	}
-      }
-    }
-  }
-  */
   
   return 0;
 }
@@ -284,16 +244,6 @@ int main( int argc, char *argv[] ){
   char *data_filename;
   char *out_filename;
 
-  /*
-  if( argc == 1 ) fp = stdin;
-  else{
-    data_filename = argv[1];
-    fp = fopen( data_filename, "r" );
-    if( fp == NULL ){
-      err( EXIT_FAILURE, "fopen" );
-    }
-  }
-  */
   if( argc<2 ){
     std::cerr << "Usage : "
 	      << argv[0] << "  "
@@ -325,26 +275,9 @@ int main( int argc, char *argv[] ){
 
     if( n < 0 ) break;
     else decode( event_buf, n ); // save it in tree
-    /*
-    if( n < 0 ){
-      tree->Fill();
-      cnt_data += t_time_v.size();
-      nevt_success++;
-      init_tree();
-      for( int ichip=0; ichip<n_chip; ichip++ ){
-	for( int iunit=0; iunit<n_unit; iunit++ ){
-	  fl_unit[ichip][iunit] = 0;
-	}
-      }
-      prev_event = t_event;
-      break;
-    }else decode( event_buf, n ); // save it in tree
-    */
   }
 
-  std::cout << "#event (success/fail) = "
-	    << nevt_success << "/"
-	    << nevt_fail    << ", "
+  std::cout << "#event = "  << nevt_success << ", "
 	    << "#hit = "    << cnt_data
 	    << std::endl;
   std::ofstream outlog("tmp.log");

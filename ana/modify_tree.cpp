@@ -30,9 +30,9 @@ Int_t main( Int_t argc, Char_t** argv ){
     chain->GetEntry(ievt);
 
     // BEGIN MODIFICATION
-    t_tpchg = 5.0;
+    //t_tpchg = 5.0;
     // END MODIFICATION
-
+    
     newtree->Fill();
   }
 
@@ -44,5 +44,6 @@ Int_t main( Int_t argc, Char_t** argv ){
   delete chain;
   delete newtree;
   delete rootf;
+
   return 0;
 }
