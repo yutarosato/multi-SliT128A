@@ -35,7 +35,7 @@ foreach ICHIP( 0 1 2 3 )
     cd slow_control;
     ./make_control.sh ${CTRL_CHIP} 0 LLLLLLLLLLLLLLLL LLLLLLLLLLLLLLLL # other DAC = 0 # default
     while (1)
-       ./slit128sc control_{CTRL_CHIP}.dat 192.168.10.16;
+       ./slit128sc control_${CTRL_CHIP}.dat 192.168.10.16;
        if( $? == 0 ) then
          break
        endif
