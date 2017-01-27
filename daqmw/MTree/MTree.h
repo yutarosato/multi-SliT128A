@@ -26,6 +26,7 @@ class MTree{
 
   // branches  
   int t_event;
+  int t_rf;
   std::vector<int> t_chip_v; // for write
   std::vector<int> t_unit_v;
   std::vector<int> t_bit_v;
@@ -58,6 +59,7 @@ class MTree{
 
   int getnhit (){ return t_chip_v.size(); }
   int getevtno(){ return t_event;         }
+  int getrf   (){ return t_rf;            }
   std::vector<int> get_chip(){ return t_chip_v; }
   std::vector<int> get_unit(){ return t_unit_v; }
   std::vector<int> get_bit (){ return t_bit_v;  }

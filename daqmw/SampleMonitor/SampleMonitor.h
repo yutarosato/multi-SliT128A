@@ -65,8 +65,7 @@ private:
   int reset_InPort();
   int delete_obj();
   int draw_obj();
-  int reset_obj_per_monitor_update();
-  int reset_obj_per_events();
+  int reset_obj();
   
   unsigned int read_InPort();
   //int online_analyze();
@@ -78,16 +77,21 @@ private:
   
   ////////// ROOT Histogram //////////
   TCanvas* m_canvas;
-  TH1I*    m_hist_bit_1ch_1evt;
-  TH1I*    m_hist_hit_1ch_1evt;
-  TH1I*    m_hist_bit_1ch_int;
-  TH1I*    m_hist_hit_1ch_int;
-  TH2I*    m_hist_bit_allch_1evt;
-  TH2I*    m_hist_hit_allch_1evt;
-  TH2I*    m_hist_bit_allch_int;
-  TH2I*    m_hist_hit_allch_int;
 
-  TH1I*          m_hist_width;
+  TH1I* m_hist_bit_1ch_1evt;
+  TH1I* m_hist_hit_1ch_1evt;
+  TH1I* m_hist_bit_1ch_int;
+  TH1I* m_hist_hit_1ch_int;
+  TH2I* m_hist_bit_allch_1evt;
+  TH2I* m_hist_hit_allch_1evt;
+  TH2I* m_hist_bit_allch_int;
+  TH2I* m_hist_hit_allch_int;
+
+  TH1I* m_hist_nbit;
+  TH1I* m_hist_nhit;
+  TH1I* m_hist_width;
+  TH1I* m_hist_time;
+
   TGraph*        m_graph_nbit;
   TGraphErrors*  m_graph_nhit;
   TGraphErrors*  m_graph_width;
@@ -95,6 +99,7 @@ private:
   
   // external parameters
   int      m_monitor_update_rate;
+  int      m_monitor_sampling_rate;
   int      m_obs_chip;
   int      m_obs_ch;
   int      th_width; // bin

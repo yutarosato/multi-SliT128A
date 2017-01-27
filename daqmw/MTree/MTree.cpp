@@ -29,6 +29,7 @@ int MTree::bit_flip( bool bit ){
 
 int MTree::set_readbranch(){
   m_tree->SetBranchAddress("event", &t_event    );
+  m_tree->SetBranchAddress("rd",    &t_rf       );
   m_tree->SetBranchAddress("chip",  &t2_chip_v  );
   m_tree->SetBranchAddress("unit",  &t2_unit_v  );
   m_tree->SetBranchAddress("bit",   &t2_bit_v   );
@@ -44,6 +45,7 @@ int MTree::set_readbranch(){
 
 int MTree::set_writebranch(){
   m_tree->Branch( "event",  &t_event,  "event/I" );
+  m_tree->Branch( "rf",     &t_rf,     "rf/I"    );
   m_tree->Branch( "chip",   &t_chip_v );
   m_tree->Branch( "unit",   &t_unit_v );
   m_tree->Branch( "bit",    &t_bit_v  );
@@ -67,8 +69,15 @@ int MTree::decode_data(const unsigned char* mydata, int length)
 {
   init_tree();
   unsigned short* event_number = (unsigned short*)&mydata[2];
-  t_event = ntohs(*event_number);
+  //t_event = ntohs(*event_number);
+  unsigned short tmp_number = ( *event_number & 0xff7f ); // RF state bit is omitted.
+  t_event = ntohs(tmp_number);
   
+  unsigned char rf = mydata[2];
+  rf = ( rf & 0x80 );
+  rf = ( rf >> 7 );
+  t_rf = rf;
+    
   if( fl_message > 1 ) printf( "       [ Event#=%d : #Length=%d]\n", ntohs(*event_number), length );
   int adjust = 0;
   int idata  = 0;

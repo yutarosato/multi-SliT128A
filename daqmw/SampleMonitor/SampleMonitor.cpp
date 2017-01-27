@@ -46,11 +46,15 @@ SampleMonitor::SampleMonitor(RTC::Manager* manager)
       m_hist_hit_allch_1evt(0),
       m_hist_bit_allch_int (0),
       m_hist_hit_allch_int (0),
+      m_hist_nbit          (0),
+      m_hist_nhit          (0),
       m_hist_width         (0),
-      m_graph_nbit     (0),
-      m_graph_nhit     (0),
-      m_graph_width    (0),
+      m_hist_time          (0),
+      m_graph_nbit         (0),
+      m_graph_nhit         (0),
+      m_graph_width        (0),
       m_monitor_update_rate(100),
+      m_monitor_sampling_rate(25),
       m_obs_chip(0),
       m_obs_ch(0),
       th_width(10),
@@ -142,6 +146,13 @@ int SampleMonitor::parse_params(::NVList* list)
       m_monitor_update_rate = (int)strtol(svalue.c_str(), &offset, 10);
     }
     // If you have more param in config.xml, write here
+    if( sname == "monitorSamplingRate" ){
+      if( m_debug ){
+	std::cerr << "monitor sampling rate: " << svalue << std::endl;
+      }
+      char* offset;
+      m_monitor_sampling_rate = (int)strtol(svalue.c_str(), &offset, 10);
+    }
     if( sname == "sel1ch" ){
       if( m_debug ){
 	std::cerr << "selected channel: " << svalue << std::endl;
@@ -194,7 +205,7 @@ int SampleMonitor::daq_start()
 
   m_tree   = new MTree();
   m_canvas = new TCanvas("c1", "histos", 0, 0, 1800, 900);
-  m_canvas->Divide(4,3);
+  m_canvas->Divide(4,4);
   
   int    m_hist_xbin = 8192;
   double m_hist_xmin = 0.0;
@@ -213,7 +224,10 @@ int SampleMonitor::daq_start()
   m_hist_bit_allch_int  = new TH2I( "hist_bit_allch_int",  "hist_bit_allch_int",  m_hist_xbin, m_hist_xmin, m_hist_xmax, m_hist_ybin, m_hist_ymin, m_hist_ymax );
   m_hist_hit_allch_int  = new TH2I( "hist_hit_allch_int",  "hist_hit_allch_int",  m_hist_xbin, m_hist_xmin, m_hist_xmax, m_hist_ybin, m_hist_ymin, m_hist_ymax );
 
-  m_hist_width          = new TH1I( "hist_width",          "hist_width",          200, 0, 200 );
+  m_hist_nbit  = new TH1I( "hist_nbit",  "hist_nbit;Nbit;",               10000,         0.0,     10000.0 );
+  m_hist_nhit  = new TH1I( "hist_nhit",  "hist_nhit;Nhit;",                1000,         0.0,      1000.0 );
+  m_hist_width = new TH1I( "hist_width", "hist_width;Width [bit];",         200,         0.0,       200.0 );
+  m_hist_time  = new TH1I( "hist_time",  "hist_time;Time [bit];",   m_hist_xbin, m_hist_xmin, m_hist_xmax );
 
   m_graph_nbit  = new TGraph();
   m_graph_nhit  = new TGraphErrors();
@@ -221,21 +235,23 @@ int SampleMonitor::daq_start()
   m_graph_nbit ->SetTitle( "N_{bit};events;Bits/events"     );
   m_graph_nhit ->SetTitle( "N_{hit};events;Hits/events"     );
   m_graph_width->SetTitle( "Signal Width;events;Width [ns]" );
+  /*
   m_graph_nbit ->SetMarkerColor(2);
   m_graph_nhit ->SetMarkerColor(2);
   m_graph_width->SetMarkerColor(2);
   m_graph_nbit ->SetLineColor  (2);
   m_graph_nhit ->SetLineColor  (2);
   m_graph_width->SetLineColor  (2);
-  m_graph_nbit ->SetMinimum(0.0);
-  m_graph_nhit ->SetMinimum(0.0);
-  m_graph_width->SetMinimum(0.0);
   m_graph_nbit ->SetMarkerStyle(20);
   m_graph_nhit ->SetMarkerStyle(20);
   m_graph_width->SetMarkerStyle(20);
   m_graph_nbit ->SetMarkerSize(0.3);
   m_graph_nhit ->SetMarkerSize(0.3);
   m_graph_width->SetMarkerSize(0.3);
+  */
+  m_graph_nbit ->SetMinimum(0.0);
+  m_graph_nhit ->SetMinimum(0.0);
+  m_graph_width->SetMinimum(0.0);
   
   m_tree->set_writebranch();
   m_tree->init_tree();
@@ -288,7 +304,7 @@ int SampleMonitor::fill_data(const unsigned char* mydata, const int size)
   }
 
   unsigned long sequence_num = get_sequence_num();
-  if( (sequence_num % m_monitor_update_rate)!=0 ) return 0;
+  if( (sequence_num % m_monitor_update_rate)!=0 && (sequence_num % m_monitor_sampling_rate)!=0 ) return 0;
 
   double prev_nbit = m_hist_bit_allch_int->GetEntries();
   double prev_nhit = m_hist_hit_allch_int->GetEntries();
@@ -310,7 +326,7 @@ int SampleMonitor::fill_data(const unsigned char* mydata, const int size)
   detect_signal();
 
   // input to graph
-  m_graph_width->SetPoint     ( m_graph_width->GetN(),   sequence_num, m_hist_width->GetMean()             );
+  m_graph_width->SetPoint     ( m_graph_width->GetN(),   sequence_num, m_hist_width->GetMean()             ); // tmpppppp
   m_graph_nbit ->SetPoint     ( m_graph_nbit->GetN(),    sequence_num, m_hist_bit_allch_int->GetEntries()-prev_nbit );
   m_graph_nhit ->SetPoint     ( m_graph_nhit->GetN(),    sequence_num, m_hist_hit_allch_int->GetEntries()-prev_nhit );
   m_graph_nhit ->SetPointError( m_graph_nhit->GetN()-1,           0.0, (double)(sqrt(m_hist_hit_allch_int->GetEntries()-prev_nhit)) );
@@ -403,10 +419,11 @@ int SampleMonitor::daq_run()
   
   /////////////  Write component main logic here. /////////////
   memcpy(&m_recv_data[0], &m_in_data.data[HEADER_BYTE_SIZE], m_event_byte_size);
-  if( m_monitor_update_rate == 0 ) m_monitor_update_rate = 100;
+  if( m_monitor_update_rate   == 0 ) m_monitor_update_rate   = 100;
+  if( m_monitor_sampling_rate == 0 ) m_monitor_sampling_rate =  25;
   unsigned long sequence_num = get_sequence_num();
-  if( (sequence_num % m_monitor_update_rate)==0 ) reset_obj_per_monitor_update();
-  reset_obj_per_events();
+  if( (sequence_num % m_monitor_update_rate  )==0 ) reset_obj();
+  if( (sequence_num % m_monitor_sampling_rate)==0 ) reset_obj(); // tmpppppp
   
   fill_data(&m_recv_data[0], m_event_byte_size);
   
@@ -440,7 +457,11 @@ int SampleMonitor::delete_obj(){
   if( m_hist_bit_allch_int  ){ delete m_hist_bit_allch_int;  m_hist_bit_allch_int  = 0; }
   if( m_hist_hit_allch_int  ){ delete m_hist_hit_allch_int;  m_hist_hit_allch_int  = 0; }
 
+  if( m_hist_nbit   ){ delete m_hist_nbit;   m_hist_nbit   = 0; }
+  if( m_hist_nhit   ){ delete m_hist_nhit;   m_hist_nhit   = 0; }
   if( m_hist_width  ){ delete m_hist_width;  m_hist_width  = 0; }
+  if( m_hist_time   ){ delete m_hist_time;   m_hist_time   = 0; }
+
   if( m_graph_nbit  ){ delete m_graph_nbit;  m_graph_nbit  = 0; }
   if( m_graph_nhit  ){ delete m_graph_nhit;  m_graph_nhit  = 0; }
   if( m_graph_width ){ delete m_graph_width; m_graph_width = 0; }
@@ -449,7 +470,6 @@ int SampleMonitor::delete_obj(){
 }
 
 int SampleMonitor::draw_obj(){
-  
   m_canvas->cd( 1); m_hist_bit_1ch_1evt  ->Draw();
   m_canvas->cd( 2); m_hist_hit_1ch_1evt  ->Draw();
   m_canvas->cd( 3); m_hist_bit_1ch_int   ->Draw();
@@ -461,21 +481,20 @@ int SampleMonitor::draw_obj(){
   m_canvas->cd( 9); m_graph_nbit         ->Draw("AP");
   m_canvas->cd(10); m_graph_nhit         ->Draw("AP");
   m_canvas->cd(11); m_graph_width        ->Draw("AP");
+  m_canvas->cd(13); m_hist_nbit          ->Draw();
+  m_canvas->cd(14); m_hist_nhit          ->Draw();
+  m_canvas->cd(15); m_hist_width         ->Draw();
+  m_canvas->cd(16); m_hist_time          ->Draw();
   m_canvas->Update();
 
   return 0;
 }
 
-int SampleMonitor::reset_obj_per_monitor_update(){
+int SampleMonitor::reset_obj(){
   m_hist_bit_1ch_1evt  ->Reset();
   m_hist_hit_1ch_1evt  ->Reset();
   m_hist_bit_allch_1evt->Reset();
   m_hist_hit_allch_1evt->Reset();
-  m_hist_width         ->Reset();
-  return 0;
-}
-
-int SampleMonitor::reset_obj_per_events(){
   
   return 0;
 }
