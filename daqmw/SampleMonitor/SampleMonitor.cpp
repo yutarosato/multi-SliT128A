@@ -326,10 +326,11 @@ int SampleMonitor::fill_data(const unsigned char* mydata, const int size)
   detect_signal();
 
   // input to graph
-  m_graph_width->SetPoint     ( m_graph_width->GetN(),   sequence_num, m_hist_width->GetMean()             ); // tmpppppp
   m_graph_nbit ->SetPoint     ( m_graph_nbit->GetN(),    sequence_num, m_hist_bit_allch_int->GetEntries()-prev_nbit );
   m_graph_nhit ->SetPoint     ( m_graph_nhit->GetN(),    sequence_num, m_hist_hit_allch_int->GetEntries()-prev_nhit );
   m_graph_nhit ->SetPointError( m_graph_nhit->GetN()-1,           0.0, (double)(sqrt(m_hist_hit_allch_int->GetEntries()-prev_nhit)) );
+  m_hist_nbit->Fill( m_hist_bit_allch_int->GetEntries()-prev_nbit );
+  m_hist_nhit->Fill( m_hist_hit_allch_int->GetEntries()-prev_nhit );
 
   return 0;
 }
@@ -355,7 +356,9 @@ int SampleMonitor::detect_signal(){
 	//int span  = bin_start - prev_bin_end; // which is better ??
 	
 	if( ( span >= th_span || prev_bin_start == 0) && width >= th_width ){ // identified as true signal
-	  m_hist_width->Fill( width );
+	  m_hist_width->Fill( width     );
+	  m_hist_time ->Fill( bin_start );
+	  
 
 	  m_hist_hit_allch_1evt->Fill( itime, ich );
 	  m_hist_hit_allch_int ->Fill( itime, ich );
