@@ -116,11 +116,11 @@ def SET_ZERO_EVENT_NO(rbcp, ip_address, num):
     
     rbcp.write_registers(ip_address, address = 0x8000000A, length = len(lower_data), id = 17, data = lower_data)
     rbcp.write_registers(ip_address, address = 0x8000000B, length = len(upper_data), id = 18, data = upper_data)
-    if options.debug:
-        print 'SET ZERO EVENT NO: %0x %0x' % (upper_byte, lower_byte)
+    #if options.debug:
+        #print 'SET ZERO EVENT NO: %0x %0x' % (upper_byte, lower_byte)
 
 def READ_SLOW_CONTROL(rbcp, ip_address):
-    print "++++++++++SLOw CONTROL STATUS ++++++++++++++"
+    print "++++++++++SLOW CONTROL STATUS ++++++++++++++"
     data_date = rbcp.read_registers(ip_address, address = 0x80000000, length = 4, id = 1)
     data_ver  = rbcp.read_registers(ip_address, address = 0x80000004, length = 1, id = 1)
     print "FPGA (DATE, version) = (%s, %s)" % (data_date.encode('hex'), data_ver.encode('hex'))
@@ -220,6 +220,7 @@ def main():
 
     for ch in sorted(values.keys()):
         send_value_packet(rbcp, ip_address, base_addr, ch, values[ch])
+        #time.sleep(0.03) # tmpppp
 
     send_final_packet(rbcp, ip_address, base_addr)
 
@@ -229,7 +230,7 @@ def main():
     UNIT_ENABLE   (rbcp, ip_address)
     SET_ZERO_EVENT_NO(rbcp, ip_address, 1000)
     READ_SLOW_CONTROL(rbcp, ip_address)
-    time.sleep(0.01)
+    #time.sleep(0.01)
     G_UNIT_ENABLE (rbcp, ip_address)
 
 

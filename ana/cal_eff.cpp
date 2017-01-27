@@ -17,8 +17,10 @@ const Int_t span_exp = 1000; // 200kHz -> 5us -> 1000 bit
 
 // signal definition
 const Int_t    th_span       =   450;
-const Int_t    th_width      =     2;
+//const Int_t    th_width      =     2;
+const Int_t    th_width      =     5;
 const Int_t    th_window     =    20;
+const Int_t    mask_prompt   =    50;
 const Double_t th_eff_before =   2.0; // >=1.0 is no-cut
 const Double_t th_eff_after  =  -1.0; // <=0.0 is no-cut
 
@@ -63,8 +65,9 @@ Int_t detect_signal( TH1I* hist ){
 				   << ", span = "         << span
 				   << ", eff(before) = "  << entry_eff_before
 				   << ", eff(after) = "   << entry_eff_after  << std::endl;
-
-      if( entry_eff_before <= th_eff_before && entry_eff_after >= th_eff_after && ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
+      if( mask_prompt > ibin ){ // remove prompt noise
+	;
+      }else if( entry_eff_before <= th_eff_before && entry_eff_after >= th_eff_after && ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
 	hist_width  ->Fill( width     );
 	hist_1ch_int->Fill( bin_start );
 	hist_wid_tim->Fill( bin_start, width );

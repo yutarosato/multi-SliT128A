@@ -21,7 +21,8 @@ else
 endif
 echo "   DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}"
 
-foreach ICHIP( 0 1 2 3 )
+#foreach ICHIP( 0 1 2 3 )
+foreach ICHIP( 0 ) # tmppppp
     if( ${ICHIP} == 0 ) then
 	set CTRL_CHIP = "0000000"
     else if( ${ICHIP} == 1 ) then
@@ -38,7 +39,8 @@ foreach ICHIP( 0 1 2 3 )
     # <Slow Control>
     cd slow_control;
     if( ${ICHIP} == ${CHIP} ) then
-       ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL # other DAC = 0 # default
+       #./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL # other DAC = 0 # default
+       ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLH # other DAC = 0 # default # tmppppp
     else
        ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL
     endif
@@ -54,7 +56,6 @@ foreach ICHIP( 0 1 2 3 )
     cd ../
     echo $ICHIP
 end
-
 
 set OUTNAME = "test.dat"
 #exit

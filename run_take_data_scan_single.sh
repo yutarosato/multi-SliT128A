@@ -22,7 +22,7 @@ if( $3 == "0" ) then
     exit
 endif
 
-# SHOULD SUPPRESS OTHER CHIP !!!
+echo "SHOULD SUPPRESS OTHER CHIP IN ADVANCE !!!"
 ###########################################
 (cd decoder; make;)
 
@@ -56,13 +56,7 @@ foreach CH( ${CH_LIST} )
       # <Slow Control>
       pwd
       cd slow_control;
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL
       ./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLLLLLLLLLL # other DAC = 0 # default
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLHHHHHHLLLLL # other DAC = +31
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLHHHHHLLLLL # other DAC = -31
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLHLHHHHLLLLL # other DAC = +15
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLHHHHLLLLL # other DAC = -15
 
       while (1)
          ./slit128sc control_${CTRL_CHIP}.dat 192.168.10.16;
@@ -80,12 +74,6 @@ foreach CH( ${CH_LIST} )
       mkdir -p binary_data
       nc -d 192.168.10.16 24 > binary_data/${OUTNAME}.dat &
       sleep 3
-      #sleep 4
-      #sleep 5
-      #sleep 6
-      #sleep 16
-      #sleep 32
-      #sleep 64
       kill -9 $!
       usleep 100000 # 0.1 sec
 

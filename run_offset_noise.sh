@@ -22,6 +22,7 @@ echo "   DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}"
 
 
 foreach ICHIP( 0 1 2 3 )
+#foreach ICHIP( 3 ) # tmppp
     if( ${ICHIP} == 0 ) then
 	set CTRL_CHIP = "0000000"
     else if( ${ICHIP} == 1 ) then
@@ -39,6 +40,7 @@ foreach ICHIP( 0 1 2 3 )
     cd slow_control;
     if( ${ICHIP} == ${CHIP} ) then
        ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL
+       #./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # tmpppp
     else
        ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL
     endif

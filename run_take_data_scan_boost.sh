@@ -2,14 +2,14 @@
 
 set HEADNAME = "output"
 set CHIP     = 0 # 0-3
-set VREF     = 0.0 # VREF value [mV]
+set VREF     = 220.0 # VREF value [mV]
 set TPCHG    = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 
 
-set CH_LIST = 123 
+#set CH_LIST = 123 
 #set CH_LIST = 127 
 #set CH_LIST = `seq 122 124`
-#set CH_LIST = `seq 0 127`
+set CH_LIST = `seq 0 127`
 #set CH_LIST = `seq 87 127`
 
 
@@ -76,21 +76,15 @@ foreach CH( ${CH_LIST} )
       # <Slow Control>
       pwd
       cd slow_control;
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL
       ./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLLLLLLLLLL # other DAC = 0 # default
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLHHHHHHLLLLL # other DAC = +31
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLHHHHHLLLLL # other DAC = -31
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLHLHHHHLLLLL # other DAC = +15
-      #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLHHHHLLLLL # other DAC = -15
 
       while (1)
-        ./slit128sc control.dat 192.168.10.16;
+        ./slit128sc control_${CTRL_CHIP}.dat 192.168.10.16;
         if( $? == 0 ) then
         break
         endif
       end
-      #./slit128sc -d control.dat 192.168.10.16;
+      #./slit128sc -d control_${CTRL_CHIP}.dat 192.168.10.16;
       #exit
 
       set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${CHIP}_${CH}_${CTRL_DAC}"
@@ -136,9 +130,11 @@ foreach CH( ${CH_LIST} )
       else if( ${NOHIT} >= 24000 )then
         @ CTRL_DAC += 3
       else if( ${NOHIT} >= 22000)then
-        @ CTRL_DAC += 2
+        #@ CTRL_DAC += 2
+        @ CTRL_DAC += 3 # tmpppp
       else
-        @ CTRL_DAC += 1
+        #@ CTRL_DAC += 1
+        @ CTRL_DAC += 3 # tmpppp
       endif
    end # DAC LOOP
    #./run_offset_noise.sh ${CHIP} 123 0
