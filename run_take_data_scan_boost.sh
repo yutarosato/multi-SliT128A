@@ -1,15 +1,20 @@
 #! /bin/tcsh -f
 
 set HEADNAME = "output"
-set CHIP     = 0 # 0-3
-set VREF     = 220.0 # VREF value [mV]
+set CHIP     = 1 # 0-3
+set VREF     = 260.0 # VREF value [mV]
 set TPCHG    = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 
 
 #set CH_LIST = 123 
-#set CH_LIST = 127 
+#set CH_LIST = "37 59 90"
+#set CH_LIST = "24 27 29 43 47 48 49 53 55 61 64 69 70 72 80 81 82 85 87 88 89 97 98 99 104 109 119 121 122"
+set CH_LIST = "0 1 2 3 4 5"
+#set CH_LIST = "68 76 79"
+#set CH_LIST = 0
+#set CH_LIST = 66
 #set CH_LIST = `seq 122 124`
-set CH_LIST = `seq 0 127`
+#set CH_LIST = `seq 0 127`
 #set CH_LIST = `seq 87 127`
 
 
