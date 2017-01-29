@@ -3,7 +3,7 @@
 set LOCAL = "1" # "0" if you use batch ques in KEKCC, 
 set CHIP  = "1" # 0-3
 
-set FILE_LIST = `ls ../root_data/output2[4]*.root` # default
+set FILE_LIST = `ls ../root_data/output3[1]*.root` # default
 #set FILE_LIST = `ls ../test.root`
 #set FILE_LIST = `ls ../store/20161017_bias/root_data/output*.root`
 
@@ -11,8 +11,9 @@ set FILE_LIST = `ls ../root_data/output2[4]*.root` # default
 #set CH_LIST   = `seq 122 124`
 #set CH_LIST   = "37 59 90"
 #set CH_LIST   = "24 27 29 43 47 48 49 53 55 61 64 69 70 72 80 81 82 85 87 88 89 97 98 99 104 109 119 121 122"
-#set CH_LIST   = "0 1 2 3 4 5"
-set CH_LIST   = "0"
+set CH_LIST   = "0 1 2 3 4 5"
+#set CH_LIST   = "0"
+#set CH_LIST   = "68 76 79"
 #set CH_LIST   = "66"
 
 set DAC_LIST  = `seq -31 31`
