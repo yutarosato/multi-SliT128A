@@ -1,13 +1,21 @@
 #! /bin/tcsh -f
 
 
-#set INFILE = `ls dat_scurve/output*.dat` # default
-set INFILE = `ls dat_scurve/test*.dat` # default
+set INFILE = `ls dat_scurve/output2[1234]*.dat` # default
+#set INFILE = `ls dat_scurve/ch0/output*.dat`
+#set INFILE = `ls dat_scurve/test*.dat`
 #set INFILE = `ls ../store/20161006_wire/dat_scurve/output*.dat`
 
 #set CH_LIST = `seq 0 127`
 #set CH_LIST = `seq 122 124`
 set CH_LIST = "0"
+#set CH_LIST = "15"
+#if( $#argv < 1 )then
+#    echo " Usage : $0 [ch]"
+#    echo "Example: $0  127"
+#  exit 1
+#endif
+#set CH_LIST = $1
 
 ################################################
 
@@ -25,8 +33,6 @@ wc -l ${TABLE}
 
 foreach CH( ${CH_LIST} )
   set CH_NAME = `printf "%03d" $CH`
-  #set TABLE_BASE_CH = "${TABLE_BASE}_obsch${CH}_tpch${CH}"
-  #grep "OBSCH${CH}TPCH${CH}HOGE" ${TABLE} | sed "s|OBSCH${CH}TPCH${CH}HOGE||g" > ${TABLE_BASE_CH}.dat
   set TABLE_BASE_CH = "${TABLE_BASE}_obsch${CH_NAME}_tpch${CH_NAME}"
   grep "OBSCH${CH_NAME}TPCH${CH_NAME}HOGE" ${TABLE} | sed "s|OBSCH${CH_NAME}TPCH${CH_NAME}HOGE||g" > ${TABLE_BASE_CH}.dat
   cat ${TABLE_BASE_CH}.dat | awk '{print $2" "$3}' | sort | uniq | nl -v 0 > ${TABLE_BASE_CH}_tab.dat

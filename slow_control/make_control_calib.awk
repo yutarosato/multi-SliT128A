@@ -15,7 +15,7 @@ th = ceil($7*target+$5);
 if     ( th < -31 ) th = -31
 else if( th >  31 ) th = 31
 
-printf( "%-3d    ", $1)
+printf( "%-3d    ", 127-$1)
 printf "LLLLL"
 
 if( th<0 ){ printf "L"; th = -th }

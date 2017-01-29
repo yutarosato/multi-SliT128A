@@ -1,6 +1,6 @@
 #include "setting.h"
 
-const Bool_t fl_batch = !true;
+const Bool_t fl_batch = true;
 const Bool_t fl_plot  = !true;
 // true (one plot per parameter point) for reproducibility check or one-channel scan
 // false(one plot per channel) for all-channel scan
@@ -155,7 +155,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	  //tmp_func->SetParameter(1, 2.5);
 	  tmp_func->SetParameter(1, 1.9); // tmpppppp
 	  tmp_func->SetParNames( "mean", "sigma");
-	  tmp_func->SetParLimits( 0, -31, 31 );
+	  tmp_func->SetParLimits( 0, -40, 40 );
 	  tmp_func->SetParLimits( 1, 0.0, 20 );
 	  func[itab].push_back( tmp_func );
 	  //delete tmp_func; // "graph->Fit"can not find object in std::vector by object name;
@@ -280,8 +280,8 @@ Int_t main( Int_t argc, Char_t** argv ){
 	  if( ipar1==0 ){
 	    Int_t subfit_status = 1;
 	    while( subfit_status ){
-	      func[itab][ig]->SetParLimits(0,-31,31);
-	      func[itab][ig]->SetParameter( 0, rnd.Uniform(-31.0,31.0) );
+	      func[itab][ig]->SetParLimits(0,-40,40);
+	      func[itab][ig]->SetParameter( 0, rnd.Uniform(-40.0,40.0) );
 	      func[itab][ig]->SetParameter(1,2.5);
 	      TFitResultPtr subfit_result = g_scurve[itab][ig].Fit( func[itab][ig],"SQ0" );
 	      subfit_status = subfit_result->Status();
@@ -293,7 +293,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	}
 	for( Int_t ipar=0; ipar<func[itab][ig]->GetNpar(); ipar++ ) func[itab][ig]->ReleaseParameter(ipar);
 	// +++++++++++ iterative fit(end) +++++++++++
-	func[itab][ig]->SetParLimits( 0, -31, 31 );
+	func[itab][ig]->SetParLimits( 0, -40, 40 );
 	func[itab][ig]->SetParLimits( 1,   0, 20 );
 	TFitResultPtr fit_result = g_scurve[itab][ig].Fit( func[itab][ig], "SQ0" );
 
@@ -393,8 +393,8 @@ Int_t main( Int_t argc, Char_t** argv ){
   for( Int_t itab=0; itab<ntab; itab++ ){
     for( Int_t ig=0; ig<cnt_g[itab]; ig++ ){
       if( fl_fit[itab][ig] ) continue;
-      if( func[itab][ig]->GetParameter(0) < -30.99 || func[itab][ig]->GetParameter(0) > 30.99 ){
-	std::cout << Form("[Warining] under/over-flow in %d-ch, vref=%.2f, tpchg=%.2f", ch,vref_tab[itab],tpchg_tab[itab]) << std::endl;       
+      if( func[itab][ig]->GetParameter(0) < -37 || func[itab][ig]->GetParameter(0) > 37 ){
+	std::cout << Form("[WARNING] under/over-flow in %d-ch, vref=%.2f, tpchg=%.2f", ch,vref_tab[itab],tpchg_tab[itab]) << std::endl;       
 	continue;
       }
       for( Int_t itab_vref=0; itab_vref<ntab_vref; itab_vref++ ){

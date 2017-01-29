@@ -1,7 +1,7 @@
 #include "setting.h"
 
 const Bool_t   fl_batch = !true;
-const Double_t ref_chg  = 1.92; // [fC] // reference points for estimation of noise and s-curve
+const Double_t ref_chg  = 1.54; // [fC] // reference points for estimation of noise and s-curve
 const Int_t    nch      = 128;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -76,32 +76,31 @@ Int_t main( Int_t argc, Char_t** argv ){
 
     Double_t tmp_div  = 100000;
     Int_t   ref_point = 0;
+
     for( Int_t ievt=0; ievt<tree->GetEntries(); ievt++ ){
       tree->GetEntry(ievt);
       Double_t tmp_chg = (Double_t)tree->GetLeaf("tpchg")->GetValue();
-      if( abs(tmp_chg-ref_chg) < tmp_div ){
+      if( fabs(tmp_chg-ref_chg) < tmp_div ){
 	ref_point = ievt;
-	tmp_div = abs(tmp_chg-ref_chg);
+	tmp_div = fabs(tmp_chg-ref_chg);
       }
     }
     if( tmp_div > 0.1 ) std::cerr << "[WARNING] reference point is not accurate : ch " << ch << std::endl;
-    
     TGraphErrors* g_gain_vref = (TGraphErrors*)infile->Get( "g_gain_vref_0" );
     if( g_gain_vref==NULL ) std::cerr << "[ABORT] can not find g_gain_vref_0 in " << app.Argv(ifile+1) << std::endl, abort();
-    
     fl_alive [ch] = 1;
-    v_gain   [ch] = g_gain_vref->GetFunction("pol1")->GetParameter(1);
-    v_gainE  [ch] = g_gain_vref->GetFunction("pol1")->GetParError (1);
-    v_offset [ch] = g_gain_vref->GetFunction("pol1")->GetParameter(0);
-    v_offsetE[ch] = g_gain_vref->GetFunction("pol1")->GetParError (0);
-    
+    TF1* fit_func = g_gain_vref->GetFunction("pol1");
+    if( fit_func==NULL){ std::cerr<< "[WARNING] can not find g_gain_vref_0->GetFunction(pol1) : " << app.Argv(ifile+1) << std::endl; continue; }
+    v_gain   [ch] = fit_func->GetParameter(1);
+    v_gainE  [ch] = fit_func->GetParError (1);
+    v_offset [ch] = fit_func->GetParameter(0);
+    v_offsetE[ch] = fit_func->GetParError (0);
     g_gain_vref->Draw("Psame");
     g_chi2->SetPoint( g_chi2->GetN(), ch, g_gain_vref->GetRMS(2) ); // tmppppppp
 
     TGraphErrors* g_scurve = (TGraphErrors*)infile->Get( Form("scurve_%d_0", ref_point) );
-    for( Int_t ievt=0; ievt<tree->GetEntries(); ievt++ ){
-      
-    }
+
+
     if( g_scurve==NULL ) std::cerr << "[ABORT] can not find scurve in " << app.Argv(ifile+1) << std::endl, abort();
     Double_t tmp_gain   = g_gain_vref->GetFunction("pol1")->GetParameter(1);
     Double_t tmp_gainE  = g_gain_vref->GetFunction("pol1")->GetParError (1);
@@ -114,7 +113,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 					 );
     v_noise [ch] = tmp_noise;
     v_noiseE[ch] = tmp_noiseE;
-    
+
     for( Int_t ip=0; ip<xbin_dac; ip++ ){
       Double_t tmp_x = -31.0+ip*(62.0/xbin_dac);
       Double_t tmp_y = g_scurve->GetFunction( Form("func%d_0",ref_point) )->Eval(tmp_x);
@@ -122,7 +121,7 @@ Int_t main( Int_t argc, Char_t** argv ){
       if( ip==0 ) hist_scurve->SetTitle( Form("S-curve (%s)",g_scurve->GetTitle()) );
     }
   } // END file-loop
-    
+
   can0->cd(2);
   hist_scurve->Draw("COLZ");
   can0->cd(3);
@@ -133,9 +132,9 @@ Int_t main( Int_t argc, Char_t** argv ){
   TGraphErrors* g_noise  = new TGraphErrors( nch, v_ch, v_noise,  v_chE, v_noiseE  );
   TGraphErrors* g_offset = new TGraphErrors( nch, v_ch, v_offset, v_chE, v_offsetE );
   TGraphErrors* g_gain   = new TGraphErrors( nch, v_ch, v_gain,   v_chE, v_gainE   );
-  g_noise ->SetTitle(      "Noise (Ref. : %.2f fC);Channel;Noise [fC];"    );
-  g_offset->SetTitle( "Offset DAC (Ref. : %.2f fC);Channel;Offset DAC;"    );
-  g_gain  ->SetTitle(       "Gain (Ref. : %.2f fC);Channel;Gain [DAC/fC];" );
+  g_noise ->SetTitle( Form(     "Noise (Ref. : %.2f fC);Channel;Noise [fC];",   ref_chg) );
+  g_offset->SetTitle( Form("Offset DAC (Ref. : %.2f fC);Channel;Offset DAC;",   ref_chg) );
+  g_gain  ->SetTitle( Form(      "Gain (Ref. : %.2f fC);Channel;Gain [DAC/fC];",ref_chg) );
   g_noise ->Sort();
   g_offset->Sort();
   g_gain  ->Sort();
@@ -171,8 +170,6 @@ Int_t main( Int_t argc, Char_t** argv ){
   //h_gain->Fit("gaus","L", "same"); 
   h_gain->Fit("gaus","LR","same",5,100); // tmpppp
 
-  can1->Update();
-
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   std::ofstream fout("threshold_calib.dat");
   std::cout << "======================================================================================================" << std::endl
@@ -200,7 +197,10 @@ Int_t main( Int_t argc, Char_t** argv ){
 	 << std::endl;
 
   }
-
+  can0->Update();
+  can0->Print("pic/threshold_calib_can0.eps");
+  can1->Update();
+  can1->Print("pic/threshold_calib_can1.eps");
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
