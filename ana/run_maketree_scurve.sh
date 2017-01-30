@@ -2,21 +2,23 @@
 
 
 set INFILE = `ls dat_scurve/output{21,27,28,29,30,31}*.dat` # default
-#set INFILE = `ls dat_scurve/output[23][12789]*.dat` # default
+#set INFILE = `ls dat_scurve/output1[34567]*.dat` # default
 #set INFILE = `ls dat_scurve/ch0/output*.dat`
+#set INFILE = `ls dat_scurve/ch1/output*.dat`
 #set INFILE = `ls dat_scurve/test*.dat`
 #set INFILE = `ls ../store/20161006_wire/dat_scurve/output*.dat`
 
 #set CH_LIST = `seq 0 127`
 #set CH_LIST = `seq 122 124`
 #set CH_LIST = "0"
+set CH_LIST = "0 1 2 3 4 5"
 #set CH_LIST = "15"
-if( $#argv < 1 )then
-    echo " Usage : $0 [ch]"
-    echo "Example: $0  127"
-  exit 1
-endif
-set CH_LIST = $1
+#if( $#argv < 1 )then
+#    echo " Usage : $0 [ch]"
+#    echo "Example: $0  127"
+#  exit 1
+#endif
+#set CH_LIST = $1
 
 ################################################
 

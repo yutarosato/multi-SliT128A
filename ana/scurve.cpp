@@ -1,6 +1,6 @@
 #include "setting.h"
 
-const Bool_t fl_batch = !true;
+const Bool_t fl_batch = true;
 const Bool_t fl_plot  = !true;
 // true (one plot per parameter point) for reproducibility check or one-channel scan
 // false(one plot per channel) for all-channel scan
