@@ -43,9 +43,9 @@
                     <outPorts>
                     </outPorts>
                     <params>
-                       <param pid="dirName">binary_data</param>
+                       <param pid="dirName">../museum201702/data</param>
                        <param pid="isLogging">yes</param>
-                       <param pid="maxFileSizeInMegaByte">1024</param>
+                       <param pid="maxFileSizeInMegaByte">50</param>
                     </params>
                 </component>
             </components>

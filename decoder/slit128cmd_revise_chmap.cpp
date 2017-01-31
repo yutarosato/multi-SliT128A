@@ -46,6 +46,7 @@ float t_vref  = -999;
 float t_tpchg = -999;
 int   t_selch = -999;
 int   t_dac   = -999;
+int   t_rf    = -999;
 
 int prev_event = -999;
 int prev_ndata = 0;
@@ -114,6 +115,7 @@ int fill_event_buf( FILE *fp, unsigned char *event_buf ){ // 0(correctly read on
 int set_tree(){
   tree = new TTree("slit128A","slit128A");
   tree->Branch( "event",  &t_event,  "event/I" );
+  tree->Branch( "rf",     &t_rf,     "rf/I"    );
   tree->Branch( "chip",   &t_chip_v );
   tree->Branch( "unit",   &t_unit_v );
   tree->Branch( "bit",    &t_bit_v  );
@@ -165,6 +167,11 @@ int decode( unsigned char *buf, int length ){
   //int new_event = ntohs(*event_number);
   unsigned short tmp_number = ( *event_number & 0xff7f ); // RF state bit is omitted.
   int new_event = ntohs(tmp_number);
+
+  unsigned char rf = buf[2];
+  rf = ( rf & 0x80 );
+  rf = ( rf >> 7 );
+  t_rf = rf;
 
   if( prev_event != new_event && prev_event != -999 ){
     if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", prev_event, prev_ndata );
