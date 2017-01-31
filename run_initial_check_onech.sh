@@ -21,8 +21,8 @@ else
 endif
 echo "   DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}"
 
-#foreach ICHIP( 0 1 2 3 )
-foreach ICHIP( 1 ) # tmppppp
+foreach ICHIP( 0 1 2 3 )
+#foreach ICHIP( 0 ) # tmppppp
     if( ${ICHIP} == 0 ) then
 	set CTRL_CHIP = "0000000"
     else if( ${ICHIP} == 1 ) then

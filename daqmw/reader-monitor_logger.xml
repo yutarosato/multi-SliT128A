@@ -10,7 +10,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleReader0.rtc</instName>
-               <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
+               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>4</startOrd>
                <inPorts/>
@@ -27,7 +27,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>Dispatcher0.rtc</instName>
-               <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/Dispatcher/DispatcherComp</execPath>
+               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/Dispatcher/DispatcherComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>3</startOrd>
                <inPorts>
@@ -43,7 +43,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleLogger0.rtc</instName>
-               <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleLogger/SampleLoggerComp</execPath>
+               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleLogger/SampleLoggerComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>1</startOrd>
                <inPorts>
@@ -51,7 +51,7 @@
                </inPorts>
                <outPorts/>
                <params>
-                  <param pid="dirName">binary_data</param>
+                  <param pid="dirName">../museum201702/data</param>
                   <param pid="isLogging">yes</param>
                   <param pid="maxFileSizeInMegaByte">1024</param>
                </params>
@@ -61,7 +61,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleMonitor0.rtc</instName>
-               <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleMonitor/SampleMonitorComp</execPath>
+               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleMonitor/SampleMonitorComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>2</startOrd>
                <inPorts>

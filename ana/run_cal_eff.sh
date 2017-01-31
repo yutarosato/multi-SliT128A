@@ -1,9 +1,9 @@
 #! /bin/tcsh -f
 
 set LOCAL = "1" # "0" if you use batch ques in KEKCC, 
-set CHIP  = "1" # 0-3
+set CHIP  = "0" # 0-3
 
-set FILE_LIST = `ls ../root_data/output3[1]*.root` # default
+set FILE_LIST = `ls ../root_data/output*.root` # default
 #set FILE_LIST = `ls ../test.root`
 #set FILE_LIST = `ls ../store/20161017_bias/root_data/output*.root`
 

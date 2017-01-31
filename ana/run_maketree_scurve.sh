@@ -1,11 +1,12 @@
 #! /bin/tcsh -f
 
+set INFILE = `ls dat_scurve/output*.dat` # default
+#set INFILE = `ls dat_scurve/test*.dat`
 
-set INFILE = `ls dat_scurve/output{21,27,28,29,30,31}*.dat` # default
-#set INFILE = `ls dat_scurve/output1[34567]*.dat` # default
+#set INFILE = `ls dat_scurve/output{21,27,28,29,30,31}*.dat`
+#set INFILE = `ls dat_scurve/output1[34567]*.dat`
 #set INFILE = `ls dat_scurve/ch0/output*.dat`
 #set INFILE = `ls dat_scurve/ch1/output*.dat`
-#set INFILE = `ls dat_scurve/test*.dat`
 #set INFILE = `ls ../store/20161006_wire/dat_scurve/output*.dat`
 
 #set CH_LIST = `seq 0 127`
