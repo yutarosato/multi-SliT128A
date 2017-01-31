@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<configInfo>
+   <daqOperator>
+      <hostAddr>127.0.0.1</hostAddr>
+   </daqOperator>
+   <daqGroups>
+      <daqGroup gid="group0">
+         <components>
+            <component cid="SampleReader0">
+               <hostAddr>127.0.0.1</hostAddr>
+               <hostPort>50000</hostPort>
+               <instName>SampleReader0.rtc</instName>
+               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/museum201702/daqmw/SampleReader/SampleReaderComp</execPath>
+               <confFile>/tmp/daqmw/rtc.conf</confFile>
+               <startOrd>4</startOrd>
+               <inPorts/>
+               <outPorts>
+                  <outPort>samplereader_out</outPort>
+               </outPorts>
+               <params>
+                  <param pid="srcAddr">192.168.10.16</param>
+                  <param pid="srcPort">24</param>
+               </params>
+            </component>
+
+            <component cid="Dispatcher0">
+               <hostAddr>127.0.0.1</hostAddr>
+               <hostPort>50000</hostPort>
+               <instName>Dispatcher0.rtc</instName>
+               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/museum201702/daqmw/Dispatcher/DispatcherComp</execPath>
+               <confFile>/tmp/daqmw/rtc.conf</confFile>
+               <startOrd>3</startOrd>
+               <inPorts>
+                  <inPort from="SampleReader0:samplereader_out">dispatcher_in</inPort>
+               </inPorts>
+               <outPorts>
+                  <outPort>dispatcher_out1</outPort>
+                  <outPort>dispatcher_out2</outPort>
+               </outPorts>
+               <params/>
+            </component>
+            <component cid="SampleLogger0">
+               <hostAddr>127.0.0.1</hostAddr>
+               <hostPort>50000</hostPort>
+               <instName>SampleLogger0.rtc</instName>
+               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/museum201702/daqmw/SampleLogger/SampleLoggerComp</execPath>
+               <confFile>/tmp/daqmw/rtc.conf</confFile>
+               <startOrd>1</startOrd>
+               <inPorts>
+                  <inPort from="Dispatcher0:dispatcher_out1">samplelogger_in</inPort>
+               </inPorts>
+               <outPorts/>
+               <params>
+                  <param pid="dirName">../data</param>
+                  <param pid="isLogging">yes</param>
+                  <param pid="maxFileSizeInMegaByte">1024</param>
+                  <param pid="runsummaryName">run_summary.dat2</param>
+                  <param pid="VREF0">0</param>
+                  <param pid="VREF1">1</param>
+                  <param pid="VREF23">23</param>
+                  <param pid="HV">140</param>
+               </params>
+            </component>
+
+            <component cid="SampleMonitor0">
+               <hostAddr>127.0.0.1</hostAddr>
+               <hostPort>50000</hostPort>
+               <instName>SampleMonitor0.rtc</instName>
+               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/museum201702/daqmw/SampleMonitor/SampleMonitorComp</execPath>
+               <confFile>/tmp/daqmw/rtc.conf</confFile>
+               <startOrd>2</startOrd>
+               <inPorts>
+                  <inPort from="Dispatcher0:dispatcher_out2">samplemonitor_in</inPort>
+               </inPorts>
+               <outPorts/>
+               <params>
+                        <param pid="monitorUpdateRate">200</param>
+                        <param pid="monitorSamplingRate">25</param>
+                        <param pid="sel1chip">0</param>
+                        <param pid="sel1ch">123</param>
+                        <param pid="signal_width">10</param>
+                        <param pid="signal_span">50</param>
+               </params>
+            </component>
+         </components>
+      </daqGroup>
+   </daqGroups>
+</configInfo>
