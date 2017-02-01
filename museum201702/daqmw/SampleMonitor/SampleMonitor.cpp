@@ -62,7 +62,7 @@ SampleMonitor::SampleMonitor(RTC::Manager* manager)
       m_event_byte_size(0),
       m_nevt_success(0),
       m_nevt_fail(0),
-      m_debug(false)
+      m_debug(true)
 {
 
   // Registration: InPort/OutPort/Service
@@ -235,26 +235,15 @@ int SampleMonitor::daq_start()
   m_graph_nbit ->SetTitle( "N_{bit};events;Bits/events"     );
   m_graph_nhit ->SetTitle( "N_{hit};events;Hits/events"     );
   m_graph_width->SetTitle( "Signal Width;events;Width [ns]" );
-  /*
-  m_graph_nbit ->SetMarkerColor(2);
-  m_graph_nhit ->SetMarkerColor(2);
-  m_graph_width->SetMarkerColor(2);
-  m_graph_nbit ->SetLineColor  (2);
-  m_graph_nhit ->SetLineColor  (2);
-  m_graph_width->SetLineColor  (2);
-  m_graph_nbit ->SetMarkerStyle(20);
-  m_graph_nhit ->SetMarkerStyle(20);
-  m_graph_width->SetMarkerStyle(20);
-  m_graph_nbit ->SetMarkerSize(0.3);
-  m_graph_nhit ->SetMarkerSize(0.3);
-  m_graph_width->SetMarkerSize(0.3);
-  */
+
   m_graph_nbit ->SetMinimum(0.0);
   m_graph_nhit ->SetMinimum(0.0);
   m_graph_width->SetMinimum(0.0);
   
   m_tree->set_writebranch();
   m_tree->init_tree();
+
+  std::cerr << "*** SampleMonitor::start2" << std::endl;
   
   return 0;
 }

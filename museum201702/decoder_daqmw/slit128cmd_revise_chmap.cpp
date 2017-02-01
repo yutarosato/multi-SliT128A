@@ -37,16 +37,17 @@ int cnt_data = 0; // used for judgement of the endpoint of s-curve
 
 TTree* tree;
 int t_event;
+
 std::vector<int> t_chip_v;
 std::vector<int> t_unit_v;
 std::vector<int> t_bit_v;
 std::vector<int> t_time_v;
 
-float t_vref  = -999;
-float t_tpchg = -999;
-int   t_selch = -999;
-int   t_dac   = -999;
-int   t_rf    = -999;
+float t_vref0  = -999;
+float t_vref1  = -999;
+float t_vref23 = -999;
+float t_hv     = -999;
+int   t_rf     = -999;
 
 int prev_event = -999;
 int prev_ndata = 0;
@@ -69,7 +70,8 @@ int fill_event_buf( FILE *fp, unsigned char *event_buf ){ // 0(correctly read on
   static bool first_read = true;
   static unsigned char tmpbuf[4];
   int event_data_len = 0;
-  
+
+  // read first 4 byte
   if( first_read ){
     n = read_4_bytes( fp, tmpbuf );
     if( n <= 0 ) return -1;
@@ -78,33 +80,35 @@ int fill_event_buf( FILE *fp, unsigned char *event_buf ){ // 0(correctly read on
   }else{
     memcpy( &event_buf[event_data_len], tmpbuf, 4 );
   }
-  event_data_len += 4; /* first time: read from file. after second time stored in tmpbuf */
-  
+  event_data_len += 4;
+
+  // read second 4 byte ( total 8 byte)
   n = read_4_bytes( fp, tmpbuf );
   if( n <= 0 ) return -1;
   memcpy( &event_buf[event_data_len], tmpbuf, 4 );
   event_data_len += 4;
-  
+
+  // read third 4 byte (total 12 byte)
   n = read_4_bytes( fp, tmpbuf );
   if( n <= 0 ) return -1;
   memcpy( &event_buf[event_data_len], tmpbuf, 4 );
   event_data_len += 4;
-  
+
   while( 1 ){
+    // read 4 byte and check header or not-header data
     n = read_4_bytes( fp, tmpbuf );
     if( n <= 0 ) return -1;
-
-    if( (tmpbuf[0] & 0x80) == 0x00 ){
+    if( (tmpbuf[0] & 0x80) == 0x00 ){ // find header data
       if( fl_message > 0 ) printf( "    fill_event_buf done %d bytes\n", event_data_len);
       return event_data_len;
-    }else{
-      memcpy( &event_buf[event_data_len], tmpbuf, 4 );
-      event_data_len += 4; /* increment by above (***) read_4_bytes() */
-      
-      n = read_4_bytes( fp, tmpbuf );
+    }else{ // find not-header data
       memcpy( &event_buf[event_data_len], tmpbuf, 4 );
       event_data_len += 4;
+      
+      n = read_4_bytes( fp, tmpbuf );
       if( n <= 0 ) return -1;
+      memcpy( &event_buf[event_data_len], tmpbuf, 4 );
+      event_data_len += 4;
     }
   }
   
@@ -120,10 +124,10 @@ int set_tree(){
   tree->Branch( "unit",   &t_unit_v );
   tree->Branch( "bit",    &t_bit_v  );
   tree->Branch( "time",   &t_time_v );
-  tree->Branch( "vref",   &t_vref,  "vref/F"  );
-  tree->Branch( "tpchg",  &t_tpchg, "tpchg/F" );
-  tree->Branch( "selch",  &t_selch, "selch/I" );
-  tree->Branch( "dac",    &t_dac,   "dac/I"   );
+  tree->Branch( "vref0",  &t_vref0,  "vref0/F"  );
+  tree->Branch( "vref1",  &t_vref1,  "vref1/F"  );
+  tree->Branch( "vref23", &t_vref23, "vref23/F" );
+  tree->Branch( "hv",     &t_hv,     "hv/F"     );
 
   return 0;
 }
@@ -143,18 +147,6 @@ int delete_tree(){
   return 0;
 }
 
-/*
-int unit_id_mapping( int unit ){
-  int flipped_unit = 0;
-  if     ( unit==0 ) flipped_unit = 3;
-  else if( unit==1 ) flipped_unit = 2;
-  else if( unit==2 ) flipped_unit = 1;
-  else if( unit==3 ) flipped_unit = 0;
-  else std::cerr << "[ABORT] Wrong unit-ID : " << unit << std::endl;
-  return flipped_unit;
-}
-*/
-
 int bit_flip( bool bit ){
   if( bit ) return false;
   else      return true;
@@ -164,9 +156,9 @@ int bit_flip( bool bit ){
 
 int decode( unsigned char *buf, int length ){
   unsigned short* event_number = (unsigned short*)&buf[2];
-  int new_event = ntohs(*event_number);
-  //unsigned short tmp_number = ( *event_number & 0xff7f ); // RF state bit is omitted.
-  //int new_event = ntohs(tmp_number);
+  //int new_event = ntohs(*event_number);
+  unsigned short tmp_number = ( *event_number & 0xff7f ); // RF state bit is omitted.
+  int new_event = ntohs(tmp_number);
 
   unsigned char rf = buf[2];
   rf = ( rf & 0x80 );
@@ -174,8 +166,8 @@ int decode( unsigned char *buf, int length ){
   t_rf = rf;
 
   if( prev_event != new_event && prev_event != -999 ){
-    if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", prev_event, prev_ndata );
-    if( prev_event - new_event > 0 ){ printf( "[ERROR] Event number is shifted : %d and %d\n",prev_event, new_event ); abort(); }
+    if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d]\n", prev_event, prev_ndata );
+    if( prev_event - new_event > 0 && prev_event!=32767 ) printf( "[ERROR] Event number is shifted : %d and %d\n",prev_event, new_event );
     tree->Fill();
     t_event = new_event;
     cnt_data += t_time_v.size();
@@ -188,7 +180,7 @@ int decode( unsigned char *buf, int length ){
   prev_event = t_event;
 
   int ndata = (length-4)/8;
-  if( fl_message > 0 ) printf( "       [ Event#=%d : #Data=%d : ", ntohs(*event_number), ndata );
+  if( fl_message > 1 ) printf( "       [ Event#=%d : #Data=%d : ", ntohs(*event_number), ndata );
 
   for( int idata=0; idata<ndata; idata++ ){
     unsigned char   chip_id   = buf[8*idata+4]; chip_id = ( chip_id & 0x7f );
@@ -251,25 +243,22 @@ int main( int argc, char *argv[] ){
   char *data_filename;
   char *out_filename;
 
-  if( argc<2 ){
+  if( argc<7 ){
     std::cerr << "Usage : "
 	      << argv[0] << "  "
-	      << "output_rootfile  input_binary_file  (VREF) (Test Pulse charge) (selected channel-ID)  (DAC value)" << std::endl;
+	      << "output_rootfile  input_binary_file  VREF0 VREF1 VREF23 HV" << std::endl;
     abort();    
   }else{
     out_filename = argv[1];
 
-    if( argc==2 ) fp = stdin;
-    else if( argc>2 ){
-      data_filename = argv[2];
-      fp = fopen( data_filename, "r" );
-      if( fp == NULL ) err( EXIT_FAILURE, "fopen" );
-    }
-
-    if( argc>3 ) t_vref  = atof(argv[3]);
-    if( argc>4 ) t_tpchg = atof(argv[4]);
-    if( argc>5 ) t_selch = atoi(argv[5]);
-    if( argc>6 ) t_dac   = atoi(argv[6]);
+    data_filename = argv[2];
+    fp = fopen( data_filename, "r" );
+    if( fp == NULL ) err( EXIT_FAILURE, "fopen" );
+    
+    t_vref0  = atof(argv[3]);
+    t_vref1  = atof(argv[4]);
+    t_vref23 = atof(argv[5]);
+    t_hv     = atof(argv[6]);
   }
 
   // open output file and define tree's branches

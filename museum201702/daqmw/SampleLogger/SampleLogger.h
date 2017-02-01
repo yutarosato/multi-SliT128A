@@ -67,6 +67,7 @@ private:
   double m_vref1;
   double m_vref23;
   double m_hv;
+  std::string m_note;
 };
 
 extern "C"

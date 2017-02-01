@@ -1,6 +1,6 @@
 #! /bin/tcsh -f
 
-set INFILE = `ls dat_scurve/output*.dat` # default
+set INFILE = `ls dat_scurve/output00{5,6,7,8,9}*.dat` # default
 #set INFILE = `ls dat_scurve/test*.dat`
 
 #set INFILE = `ls dat_scurve/output{21,27,28,29,30,31}*.dat`
@@ -11,8 +11,10 @@ set INFILE = `ls dat_scurve/output*.dat` # default
 
 #set CH_LIST = `seq 0 127`
 #set CH_LIST = `seq 122 124`
-#set CH_LIST = "0"
-set CH_LIST = "0 1 2 3 4 5"
+#set CH_LIST = `seq 0 13`
+set CH_LIST = "0"
+#set CH_LIST = "0 1 2"
+#set CH_LIST = "0 1 2 3 4 5"
 #set CH_LIST = "15"
 #if( $#argv < 1 )then
 #    echo " Usage : $0 [ch]"

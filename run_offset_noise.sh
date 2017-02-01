@@ -21,8 +21,8 @@ set TMP = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
 echo "   DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}"
 
 
-#foreach ICHIP( 0 1 2 3 )
-foreach ICHIP( 0 ) # tmppp
+foreach ICHIP( 0 1 2 3 )
+#foreach ICHIP( 0 ) # tmppp
     if( ${ICHIP} == 0 ) then
 	set CTRL_CHIP = "0000000"
     else if( ${ICHIP} == 1 ) then

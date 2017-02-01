@@ -42,7 +42,7 @@ SampleLogger::SampleLogger(RTC::Manager* manager)
       m_filesOpened(false),
       m_in_status(BUF_SUCCESS),
       m_update_rate(100),
-      m_debug(false),
+      m_debug(true),
       m_vref0 (-999),
       m_vref1 (-999),
       m_vref23(-999),
@@ -201,6 +201,11 @@ int SampleLogger::parse_params(::NVList* list)
 	      std::cerr << "HV:"
 			<< m_hv << std::endl;
             }
+	    if (sname == "NOTE") {
+	      m_note = svalue;
+	      std::cerr << "NOTE:"
+			<< m_note << std::endl;
+            }
         }
     }
 
@@ -248,11 +253,13 @@ int SampleLogger::daq_start()
             m_filesOpened = true;
 	    std::ofstream run_summary_file;
 	    run_summary_file.open(m_runsummary.c_str(),std::ios::app);
-	    run_summary_file << std::right << std::setw(20) << fileUtils->get_file_name().c_str()
-			     << std::right << std::setw( 8) << m_vref0
-			     << std::right << std::setw( 8) << m_vref1
-			     << std::right << std::setw( 8) << m_vref23
-			     << std::right << std::setw( 8) << m_hv
+	    run_summary_file << std::right << std::setw(25) << fileUtils->get_file_name().c_str()
+			     << std::right << std::setw(10) << m_vref0
+			     << std::right << std::setw(10) << m_vref1
+			     << std::right << std::setw(10) << m_vref23
+			     << std::right << std::setw(10) << m_hv
+			     << " : "
+			     << m_note.c_str()
 			     << std::endl;
 	    run_summary_file.close();
         }

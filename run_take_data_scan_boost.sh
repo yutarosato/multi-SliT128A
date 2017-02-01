@@ -1,14 +1,15 @@
 #! /bin/tcsh -f
 
 set HEADNAME = "output"
-set CHIP     = 1 # 0-3
-set VREF     = 260.0 # VREF value [mV]
-set TPCHG    = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+set CHIP     = 0 # 0-3
+set VREF     = 100.0 # VREF value [mV]
+set TPCHG    = 1.54 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 
 
 #set CH_LIST = 123 
 #set CH_LIST = "37 59 90"
 #set CH_LIST = "24 27 29 43 47 48 49 53 55 61 64 69 70 72 80 81 82 85 87 88 89 97 98 99 104 109 119 121 122"
+#set CH_LIST = "0 1 2"
 set CH_LIST = "0 1 2 3 4 5"
 #set CH_LIST = "68 76 79"
 #set CH_LIST = 0
@@ -79,6 +80,7 @@ foreach CH( ${CH_LIST} )
       echo "   DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}"
 
       # <Slow Control>
+      #while(1)
       pwd
       cd slow_control;
       ./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLLLLLLLLLL # other DAC = 0 # default
@@ -86,10 +88,10 @@ foreach CH( ${CH_LIST} )
       while (1)
         ./slit128sc control_${CTRL_CHIP}.dat 192.168.10.16;
         if( $? == 0 ) then
-        break
+           break
         endif
       end
-      #./slit128sc -d control_${CTRL_CHIP}.dat 192.168.10.16;
+      #./slit128sc control_${CTRL_CHIP}.dat 192.168.10.16;
       #exit
 
       set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${CHIP}_${CH}_${CTRL_DAC}"
@@ -110,9 +112,21 @@ foreach CH( ${CH_LIST} )
 
       cd decoder;
       ./slit128cmd_revise_chmap ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${VREF} ${TPCHG} ${CH} ${CTRL_DAC}
+
       set NOHIT = $?
+
+	#if( $NOHIT == 0 ) then
+	#    echo "BREAK"
+	#    break;
+	#else
+	#    echo "RE-DO"
+	#    cd ../
+	#endif
+      #end
+
       rm -f ../binary_data/${OUTNAME}.dat
       #./slit128cmd ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${VREF} ${TPCHG} ${CH} ${CTRL_DAC} && rm -f ../binary_data/${OUTNAME}.dat
+
       
       if( ${NOHIT} == 0 )then
          @ CNT = 0

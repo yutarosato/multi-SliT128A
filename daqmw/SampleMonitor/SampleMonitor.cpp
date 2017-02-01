@@ -302,7 +302,7 @@ int SampleMonitor::fill_data(const unsigned char* mydata, const int size)
   }else{ // success
     m_nevt_success++;
   }
-
+  std::cout << "EvtNo = " << m_tree->getevtno() << std::endl;
   unsigned long sequence_num = get_sequence_num();
   if( (sequence_num % m_monitor_update_rate)!=0 && (sequence_num % m_monitor_sampling_rate)!=0 ) return 0;
 
