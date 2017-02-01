@@ -42,7 +42,7 @@ SampleLogger::SampleLogger(RTC::Manager* manager)
       m_filesOpened(false),
       m_in_status(BUF_SUCCESS),
       m_update_rate(100),
-      m_debug(true),
+      m_debug(!true),
       m_vref0 (-999),
       m_vref1 (-999),
       m_vref23(-999),
