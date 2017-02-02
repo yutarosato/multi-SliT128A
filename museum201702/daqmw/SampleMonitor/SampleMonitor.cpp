@@ -269,6 +269,7 @@ int SampleMonitor::daq_stop()
   std::cerr << "*** SampleMonitor::stop" << std::endl;
   draw_obj();
   m_canvas->Print("pic.eps");
+  m_canvas->Print("pic.png");
   reset_InPort();
   
   return 0;
