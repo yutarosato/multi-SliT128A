@@ -197,6 +197,15 @@ int SampleMonitor::parse_params(::NVList* list)
       char *offset;
       th_span = (int)strtol(svalue.c_str(), &offset, 10);
     }
+    /*
+    if (sname == "runNumber") {
+      unsigned int runNumber = atoi(svalue.c_str());
+      std::cerr << "Run Number:"
+		<< runNumber << std::endl;
+      std::cerr << "PPPPPPPPPP" << std::endl;
+
+    }
+    */
   }
   
   return 0;
@@ -269,8 +278,9 @@ int SampleMonitor::daq_stop()
 {
   std::cerr << "*** SampleMonitor::stop" << std::endl;
   draw_obj();
-  m_canvas->Print("pic.eps");
-  m_canvas->Print("pic.png");
+  unsigned int runNumber = m_daq_service0.getRunNo();
+  m_canvas->Print( Form("pic/run%d.eps", runNumber) );
+  m_canvas->Print( Form("pic/run%d.png", runNumber) );
   reset_InPort();
   
   return 0;

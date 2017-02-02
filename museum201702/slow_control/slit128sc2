@@ -93,7 +93,7 @@ def ZERO_SUPPRESS(rbcp, ip_address):
 def UNIT_ENABLE(rbcp, ip_address):
     data = struct.pack('>B', 0xFF) # chip(1[unit(3,2,1,0)]), chip(0[unit(3,2,1,0)]) # tmppppp
     rbcp.write_registers(ip_address, address = 0x80000005, length = len(data), id = 17, data = data)
-    data = struct.pack('>B', 0xFF) # chip(3[unit(3,2,1,0)]), chip(2[unit(3,2,1,0)]) # tmppppp
+    data = struct.pack('>B', 0x0F) # chip(3[unit(3,2,1,0)]), chip(2[unit(3,2,1,0)]) # tmppppp
     rbcp.write_registers(ip_address, address = 0x80000006, length = len(data), id = 18, data = data)
 
 def G_UNIT_DISABLE(rbcp, ip_address):
@@ -221,7 +221,7 @@ def main():
     ZERO_SUPPRESS (rbcp, ip_address)
     UNIT_ENABLE   (rbcp, ip_address)
     SET_ZERO_EVENT_NO(rbcp, ip_address, 0)
-    #READ_SLOW_CONTROL(rbcp, ip_address)
+    READ_SLOW_CONTROL(rbcp, ip_address)
     time.sleep(0.03)
     G_UNIT_ENABLE (rbcp, ip_address)
 
