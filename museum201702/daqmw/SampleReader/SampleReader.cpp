@@ -350,11 +350,9 @@ int SampleReader::read_data_from_detectors()
 	std::cerr << "### Timeout: m_sock->readAll" << std::endl;
 	fatal_error_report(USER_DEFINED_ERROR2, "SOCKET TIMEOUT");
       }
-      //std::cout << "             EvtNo = " << event_number << " : " << current_event_number << std::endl;
       if( event_number!=current_event_number ){ // end of the event
 	memcpy( tmpbuf, &m_data[event_data_len], 3*DATA_STEP );
 	current_event_number = event_number;
-	//std::cerr << "**** event_data_len = " << event_data_len << std::endl; // tmppppp
 	return event_data_len;	  
       }else{ // continue the event
 	event_data_len += 3*DATA_STEP;

@@ -41,7 +41,8 @@ Int_t main( Int_t argc, Char_t** argv ){
     }
 
     if( fl_show>cnt_show ){
-      printf( "  [Event:%d] %d entries\n", t_event, (Int_t)hist->Integral() );
+      //printf( "  [Event:%d] %d entries\n", t_event, (Int_t)hist->Integral() );
+      printf( "  [Event:%d] %d entries, %d bit\n", t_event, (Int_t)hist->Integral(), t_unit_v->size() ); // tmpppp
       hist    ->SetTitle( Form("Event : %d, %d entries", t_event,(Int_t)hist->Integral()) );
       hist_int->SetTitle( Form("Integration of %d events", cnt_show) );
       can->cd(1);

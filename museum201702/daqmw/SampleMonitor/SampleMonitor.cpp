@@ -260,8 +260,6 @@ int SampleMonitor::daq_start()
   
   m_tree->set_writebranch();
   m_tree->init_tree();
-
-  std::cerr << "*** SampleMonitor::start2" << std::endl;
   
   return 0;
 }
@@ -340,6 +338,11 @@ int SampleMonitor::fill_data(const unsigned char* mydata, const int size)
   m_graph_nhit ->SetPointError( m_graph_nhit->GetN()-1,           0.0, (double)(sqrt(m_hist_hit_allch_int->GetEntries()-prev_nhit)) );
   m_hist_nbit->Fill( m_hist_bit_allch_int->GetEntries()-prev_nbit );
   m_hist_nhit->Fill( m_hist_hit_allch_int->GetEntries()-prev_nhit );
+  //std::cout << "EvtNo = " << m_tree->getevtno() << ", "
+  //<< "byte  = " << size << ", "
+  //<< "Nbit  = " << m_hist_bit_allch_int->GetEntries()-prev_nbit << ", "
+  //<< "Nhit  = " << m_hist_hit_allch_int->GetEntries()-prev_nhit << std::endl; // tmpppppp
+  //return m_tree->getevtno(); // tmpppppp
 
   return 0;
 }
@@ -439,12 +442,14 @@ int SampleMonitor::daq_run()
   if( (sequence_num % m_monitor_update_rate  )==0 ) reset_obj();
   if( (sequence_num % m_monitor_sampling_rate)==0 ) reset_obj(); // tmpppppp
   fill_data(&m_recv_data[0], m_event_byte_size);
-  // Draw
+  //int tmp = fill_data(&m_recv_data[0], m_event_byte_size); // tmppp
 
+  // Draw
   if( (sequence_num % m_monitor_update_rate)==0 ){
     //m_hist_bit_1ch_int   ->SetTitle( Form("Chip%d,Channel%d, Integral of %d events;Time [bit];Bits",m_obs_chip, m_obs_ch, (int)(sequence_num/m_monitor_update_rate)+1) );
     //m_hist_hit_1ch_int   ->SetTitle( Form("Chip%d,Channel%d, Integral of %d events;Time [bit];Hits",m_obs_chip, m_obs_ch, (int)(sequence_num/m_monitor_update_rate)+1) );
     m_hist_bit_allch_1evt->SetTitle( Form("Bit (%d);Time [bit];Channel",                                                  (int)(sequence_num)                        ) );
+    //m_hist_bit_allch_1evt->SetTitle( Form("Bit (%d);Time [bit];Channel",                                                  tmp                                        ) ); // tmpppp
     m_hist_hit_allch_1evt->SetTitle( Form("Hit (%d);Time [bit];Channel",                                                  (int)(sequence_num)                        ) );
     m_hist_bit_allch_int ->SetTitle( Form("Bit (Integral of %d events);Time [bit];Channel",                               (int)(sequence_num/m_monitor_update_rate)+1) );
     m_hist_hit_allch_int ->SetTitle( Form("Hit (Integral of %d events);Time [bit];Channel",                               (int)(sequence_num/m_monitor_update_rate)+1) );

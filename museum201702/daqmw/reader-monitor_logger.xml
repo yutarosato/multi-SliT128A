@@ -59,7 +59,7 @@
                   <param pid="VREF1">140</param>
                   <param pid="VREF23">360</param>
                   <param pid="HV">120</param>
-                  <param pid="NOTE">Chip #2,3 on</param>
+                  <param pid="NOTE">No Beam Data</param>
                </params>
             </component>
 
@@ -79,7 +79,7 @@
                         <param pid="monitorSamplingRate">25</param>
                         <param pid="sel1chip">0</param>
                         <param pid="sel1ch">123</param>
-                        <param pid="signal_width">10</param>
+                        <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                </params>
             </component>
