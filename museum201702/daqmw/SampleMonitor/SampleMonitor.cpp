@@ -245,9 +245,10 @@ int SampleMonitor::daq_start()
   m_hist_hit_allch_int  = new TH2I( "hist_hit_allch_int",  "hist_hit_allch_int",  m_hist_xbin, m_hist_xmin, m_hist_xmax, m_hist_ybin, m_hist_ymin, m_hist_ymax );
 
   m_hist_nbit  = new TH1I( "hist_nbit",  "hist_nbit;Nbit;",                  50,         0.0,     10000.0 );
-  m_hist_nhit  = new TH1I( "hist_nhit",  "hist_nhit;Nhit;",                  50,         0.0,       200.0 );
-  m_hist_width = new TH1I( "hist_width", "hist_width;Width [bit];",          40,         0.0,        80.0 );
-  m_hist_time  = new TH1I( "hist_time",  "hist_time;Time [bit];",            50, m_hist_xmin, m_hist_xmax );
+  m_hist_nhit  = new TH1I( "hist_nhit",  "hist_nhit;Nhit;",                  40,         0.0,        80.0 );
+  m_hist_width = new TH1I( "hist_width", "hist_width;Width [bit];",          60,         0.0,       120.0 );
+  //m_hist_time  = new TH1I( "hist_time",  "hist_time;Time [bit];",            50, m_hist_xmin, m_hist_xmax );
+  m_hist_time  = new TH1I( "hist_time",  "hist_time;Time [bit];",           100,        2000,        6000 ); // tmppp
 
   m_graph_nbit  = new TGraph();
   m_graph_nhit  = new TGraphErrors();
