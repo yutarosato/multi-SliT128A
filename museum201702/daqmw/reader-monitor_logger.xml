@@ -10,7 +10,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleReader0.rtc</instName>
-               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/museum201702/daqmw/SampleReader/SampleReaderComp</execPath>
+               <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201702/daqmw/SampleReader/SampleReaderComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>4</startOrd>
                <inPorts/>
@@ -27,7 +27,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>Dispatcher0.rtc</instName>
-               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/museum201702/daqmw/Dispatcher/DispatcherComp</execPath>
+               <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201702/daqmw/Dispatcher/DispatcherComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>3</startOrd>
                <inPorts>
@@ -43,7 +43,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleLogger0.rtc</instName>
-               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/museum201702/daqmw/SampleLogger/SampleLoggerComp</execPath>
+               <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201702/daqmw/SampleLogger/SampleLoggerComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>1</startOrd>
                <inPorts>
@@ -55,11 +55,11 @@
                   <param pid="isLogging">yes</param>
                   <param pid="maxFileSizeInMegaByte">1024</param>
                   <param pid="runsummaryName">../data/run_summary.dat</param>
-                  <param pid="VREF0">200</param>
-                  <param pid="VREF1">60</param>
-                  <param pid="VREF23">-999</param>
+                  <param pid="VREF0">240</param>
+                  <param pid="VREF1">140</param>
+                  <param pid="VREF23">360</param>
                   <param pid="HV">120</param>
-                  <param pid="NOTE">TEST1 TEST2</param>
+                  <param pid="NOTE">Chip #2,3 on</param>
                </params>
             </component>
 
@@ -67,7 +67,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleMonitor0.rtc</instName>
-               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/museum201702/daqmw/SampleMonitor/SampleMonitorComp</execPath>
+               <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201702/daqmw/SampleMonitor/SampleMonitorComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>2</startOrd>
                <inPorts>
