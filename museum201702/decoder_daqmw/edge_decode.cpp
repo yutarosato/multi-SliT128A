@@ -131,9 +131,10 @@ Int_t main( Int_t argc, Char_t** argv ){
     std::cout << "[ERROR] Can not find input file : " << infilename << std::endl;
     return 1;
   }
-
+  tree->Add(infilename);
   set_readbranch(tree);
   printf( "[input] %s : %d entries\n", infilename, (Int_t)tree->GetEntries() );
+
   //++++++++++++++++++++++++++++++++++++++++++++++
   TTree* newtree = new TTree( "slit128A", "slit128A" );
   set_tree( newtree );
