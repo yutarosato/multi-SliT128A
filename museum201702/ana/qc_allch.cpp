@@ -31,6 +31,7 @@ Int_t main( Int_t argc, Char_t** argv ){
   TCanvas* can = new TCanvas("can","can", 1600, 800 );
   can->Divide(1,2);
   can->Draw();
+  
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   Int_t cnt_show = 0;
   for( Int_t ievt=0; ievt<chain->GetEntries(); ievt++ ){

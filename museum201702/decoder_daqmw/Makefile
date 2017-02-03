@@ -8,6 +8,9 @@ all: $(shell ls *.cpp | sed "s/\.cpp//g")
 slit128cmd_revise_chmap:slit128cmd_revise_chmap.o $(other)
 	$(CXX) $(ROOTLIBS) -o $@ $^
 
+slit128cmd_revise_chmap_fixed_nunit:slit128cmd_revise_chmap_fixed_nunit.o $(other)
+	$(CXX) $(ROOTLIBS) -o $@ $^
+
 edge_decode:edge_decode.o $(other)
 	$(CXX) $(ROOTLIBS) -o $@ $^
 
@@ -17,9 +20,10 @@ fast_edge_decode:fast_edge_decode.o $(other)
 .cpp.o:
 	$(CXX) $(ROOTFLAGS) -c $< -o $@
 
-slit128cmd_revise_chmap.o    : slit128cmd_revise_chmap.cpp
-edge_decode.o                : edge_decode.cpp
-fast_edge_decode.o           : fast_edge_decode.cpp
+slit128cmd_revise_chmap.o                : slit128cmd_revise_chmap.cpp
+slit128cmd_revise_chmap_fixed_nunit.o    : slit128cmd_revise_chmap_fixed_nunit.cpp
+edge_decode.o                            : edge_decode.cpp
+fast_edge_decode.o                       : fast_edge_decode.cpp
 
 
 clean:
