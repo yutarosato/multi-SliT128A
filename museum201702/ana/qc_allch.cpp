@@ -1,12 +1,13 @@
 #include "setting.h"
 
 const Bool_t fl_batch = !true; // should be false for quick check.
-const Int_t  fl_show  = 5;
+const Int_t  fl_show  = 0;
 
 Int_t main( Int_t argc, Char_t** argv ){
   gROOT->SetBatch(fl_batch);
   TApplication app( "app", &argc, argv );
   TStyle* sty = Style();
+  sty->SetOptStat(111111);
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   if( !(app.Argc()==2) )
@@ -42,8 +43,7 @@ Int_t main( Int_t argc, Char_t** argv ){
     }
 
     if( fl_show>cnt_show ){
-      //printf( "  [Event:%d] %d entries\n", t_event, (Int_t)hist->Integral() );
-      printf( "  [Event:%d] %d entries, %d bit\n", t_event, (Int_t)hist->Integral(), t_unit_v->size() ); // tmpppp
+      printf( "  [Event:%d] %d entries, %d bit\n", t_event, (Int_t)hist->Integral(), t_unit_v->size() );
       hist    ->SetTitle( Form("Event : %d, %d entries", t_event,(Int_t)hist->Integral()) );
       hist_int->SetTitle( Form("Integration of %d events", cnt_show) );
       can->cd(1);
@@ -55,6 +55,7 @@ Int_t main( Int_t argc, Char_t** argv ){
       hist->Reset();
     }
     cnt_show++;
+    if( ievt==200 ) break;
   }
   can->cd(2);
   hist_int->SetTitle( Form("Integration of %d events", cnt_show) );

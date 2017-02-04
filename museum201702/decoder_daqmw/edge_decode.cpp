@@ -183,8 +183,8 @@ Int_t main( Int_t argc, Char_t** argv ){
 	t2_unit_v.push_back   ( rev_ch_map_unit   (ich) );
 	t2_bit_v.push_back    ( rev_ch_map_bit    (ich) );
 	t2_channel_v.push_back( rev_ch_map_channel(ich) );
-	t2_ledge_v.push_back  ( t_ledge   );
-	t2_tedge_v.push_back  ( t_ledge+1 );
+	t2_ledge_v.push_back  ( t_ledge );
+	t2_tedge_v.push_back  ( n_time  );
 	t2_prev_ledge_v.push_back( t_prev_ledge            );
 	t2_prev_tedge_v.push_back( t_prev_tedge            );
       }
@@ -192,6 +192,7 @@ Int_t main( Int_t argc, Char_t** argv ){
     // ++++++++++++++++++++++++++++
     newtree->Fill();
     hist->Reset();
+    if( ievt==200 ) break; // tmppppp
 
   } // END EVENT-LOOP
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
