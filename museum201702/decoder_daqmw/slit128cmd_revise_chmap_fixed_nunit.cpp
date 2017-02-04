@@ -97,6 +97,10 @@ int fill_event_buf( FILE *fp, unsigned char *event_buf, int n_unit ){ // 0(corre
     }else{ // find not-header data
       memcpy( &event_buf[event_data_len], tmpbuf, 4 );
       event_data_len += 4;
+      n = read_4_bytes( fp, tmpbuf );
+      if( n <= 0 ) return -1;
+      memcpy( &event_buf[event_data_len], tmpbuf, 4 );
+      event_data_len += 4;
     }
   }
   
