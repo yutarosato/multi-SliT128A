@@ -49,9 +49,6 @@ float t_vref23 = -999;
 float t_hv     = -999;
 int   t_rf     = -999;
 
-int prev_event = -999;
-int prev_ndata = 0;
-
 int read_4_bytes( FILE *fp, unsigned char *buf ){ // -1(fread err), 0(end file), +n(correctly read n-byte)
   int n;
   n = fread( buf, 1, 4, fp );
@@ -86,6 +83,7 @@ int fill_event_buf( FILE *fp, unsigned char *event_buf, int n_unit ){ // 0(corre
   for( int i=0; i<3*n_unit-1; i++ ){
     n = read_4_bytes( fp, tmpbuf );
     if( n <= 0 ) return -1;
+    if( i%3==2 && (tmpbuf[0] & 0x80) != 0x00 ) printf( "[ABORT] Can not decode\n");
     memcpy( &event_buf[event_data_len], tmpbuf, 4 );
     event_data_len += 4;
   }
@@ -144,7 +142,7 @@ int bit_flip( bool bit ){
 
 
 
-int decode( unsigned char *buf, int length ){
+int decode( unsigned char *buf, int length, int n_unit ){
   unsigned short* event_number = (unsigned short*)&buf[2];
   //int new_event = ntohs(*event_number);
   unsigned short tmp_number = ( *event_number & 0xff7f ); // RF state bit is omitted.
@@ -155,28 +153,19 @@ int decode( unsigned char *buf, int length ){
   rf = ( rf >> 7 );
   t_rf = rf;
 
-  if( prev_event != new_event && prev_event != -999 ){
-    if( fl_message ) printf( "=>[ Event#=%d : #Data=%d]\n", prev_event, prev_ndata );
-    if( prev_event - new_event > 0 && prev_event!=32767 ) printf( "[ERROR] Event number is shifted : %d and %d\n",prev_event, new_event );
-    tree->Fill();
-    t_event = new_event;
-    cnt_data += t_time_v.size();
-    nevt_success++;
-    
-    init_tree();
-  }else if( prev_event == -999 ){
-    t_event = new_event;
-  }
-  prev_event = t_event;
+  init_tree();
 
-  int ndata = (length-4)/8;
+  t_event = new_event;
+
+  int ndata = (length-4*n_unit)/8;
   if( fl_message > 1 ) printf( "       [ Event#=%d : #Data=%d : ", ntohs(*event_number), ndata );
-
+  int adjust = 0;
   for( int idata=0; idata<ndata; idata++ ){
-    unsigned char   chip_id   = buf[8*idata+4]; chip_id = ( chip_id & 0x7f );
-    unsigned char   unit_id   = buf[8*idata+5];
-    unsigned short* time_info = (unsigned short*)&buf[8*idata+6];
-    unsigned long*  data      = (unsigned long* )&buf[8*idata+8];
+    if( !(buf[8*idata+adjust] & 0x80) ) adjust += 4;
+    unsigned char   chip_id   = buf[8*idata+adjust+0]; chip_id = ( chip_id & 0x7f );
+    unsigned char   unit_id   = buf[8*idata+adjust+1];
+    unsigned short* time_info = (unsigned short*)&buf[8*idata+adjust+2];
+    unsigned long*  data      = (unsigned long* )&buf[8*idata+adjust+4];
     //if( idata==0 && (int)unit_id==0 ) t_event = ntohs(*event_number);
     if( idata==0 && fl_message > 0 ) printf( "Chip-ID=%d : Unit-ID=%d ] \n", (int)chip_id, (int)unit_id );
     if( fl_message > 1 ) printf( "%3d : (Chip-ID=%d, Unit-ID=%d) : (time=%d, data=%x)\n", idata, (int)chip_id, (int)unit_id, ntohs(*time_info), ntohl(*data) );
@@ -186,7 +175,7 @@ int decode( unsigned char *buf, int length ){
     t_time = ntohs(*time_info);
 
     for( int ibyte=0; ibyte<4; ibyte++ ){ // for-loop from large ch number to small ch number
-      unsigned char byte_data = buf[8*idata+8+ibyte];
+      unsigned char byte_data = buf[8*idata+adjust+4+ibyte];
 
       if( fl_message > 1 ) std::cout << "("
 				     << (int )((unsigned char)(byte_data)) << " : "
@@ -220,8 +209,10 @@ int decode( unsigned char *buf, int length ){
     }
   }
 
-  prev_ndata = ndata;
-  
+    tree->Fill();
+    cnt_data += t_time_v.size();
+    nevt_success++;
+
   return 0;
 }
 
@@ -262,7 +253,7 @@ int main( int argc, char *argv[] ){
     n = fill_event_buf( fp, event_buf, n_unit ); // read one event
 
     if( n < 0 ) break;
-    else decode( event_buf, n ); // save it in tree
+    else decode( event_buf, n, n_unit ); // save it in tree
   }
 
   std::cout << "#event = "  << nevt_success << ", "
