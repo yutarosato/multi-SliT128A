@@ -1,7 +1,7 @@
 #include "setting.h"
 
 const Bool_t fl_batch = !true; // should be false for quick check.
-const Int_t  fl_show  = 0;
+const Int_t  fl_show  = 3;
 
 Int_t main( Int_t argc, Char_t** argv ){
   gROOT->SetBatch(fl_batch);
@@ -15,7 +15,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	      << "Usage : " << app.Argv(0)
 	      << " (char*)infilename" << std::endl
 	      << "[e.g]" << std::endl
-	      << app.Argv(0) << " test.root 0" << std::endl
+	      << app.Argv(0) << " test.root" << std::endl
 	      << std::endl, abort();
 
   Char_t* infilename = app.Argv(1);

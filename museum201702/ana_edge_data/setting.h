@@ -234,30 +234,4 @@ Int_t multi_ch_map   ( Int_t chip, Int_t unit, Int_t bit ){ return chip*n_unit*n
 Int_t rev_ch_map_chip( Int_t gch ){ return (gch/(n_bit*n_unit)); } // return chip-No    from global Channel-No.
 Int_t rev_ch_map_ch  ( Int_t gch ){ return (gch%(n_bit*n_unit)); } // return channel-No from global Channel-No.
 
-/*
-TH1D* conv_graphtohist( TGraphErrors* graph, const Char_t* name, const Char_t* title ){
-  TH1D* hist = new TH1D( name, title, 30, 0, 0 );
-  for( Int_t ip=0; ip<graph->GetN(); ip++ ) hist->Fill( graph->GetY()[ip] );
-  return hist;
-}
-
-TH1D* conv_graphtohist( TGraphErrors* graph, const Char_t* name, const Char_t* title, const Int_t xbin, const Double_t xmin, const Double_t xmax ){
-  TH1D* hist = new TH1D( name, title, xbin, xmin, xmax );
-  for( Int_t ip=0; ip<graph->GetN(); ip++ ) hist->Fill( graph->GetY()[ip] );
-  return hist;
-}
-
-TGraphErrors* div_graph( TGraphErrors* graph1, TGraphErrors* graph2 ){ // graph1/graph2
-  TGraphErrors* graph = new TGraphErrors();
-  if( graph1->GetN() != graph2->GetN() ) std::cerr << "[ABORT] Wrong #points : " << graph1->GetN() << " != " << graph2->GetN() << std::endl, abort();
-  for( Int_t ip=0; ip<graph1->GetN(); ip++ ){
-    if( graph1->GetX()[ip] != graph2->GetX()[ip] ) std::cerr << "[ABORT] Wrong X : " << ip << " : " << graph1->GetX()[ip] << " != " << graph2->GetX()[ip] << std::endl, abort();
-    Double_t y  = ( graph2->GetY()[ip] ? graph1->GetY()[ip]/graph2->GetY()[ip] : 0 );
-    Double_t yE = ( y ? sqrt( pow(graph2->GetEY()[ip]*graph1->GetY()[ip]/graph2->GetY()[ip],2) + pow(graph1->GetEY()[ip],2) )/graph2->GetY()[ip] : 0 );
-    graph->SetPoint( ip, graph1->GetX()[ip], y );
-    graph->SetPointError( ip, 0.0, yE );
-  }
-  return graph;
-}
-*/
 #endif
