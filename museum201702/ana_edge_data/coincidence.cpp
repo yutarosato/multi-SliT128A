@@ -46,7 +46,7 @@ Int_t main( Int_t argc, Char_t** argv ){
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   const Int_t range_low  =  200;
   const Int_t range_high = 1000;
-  TH1I* hist_silicon  = new TH1I( "hist_silicon", "Time(silicon);Time [bit]", (range_low+range_high)/5, peak_silicon -range_low, peak_silicon +range_high );
+  TH1I* hist_silicon  = new TH1I( "hist_silicon", "Time(silicon);Time [ns]",  (range_low+range_high)/5, peak_silicon -range_low, peak_silicon +range_high );
   TH1I* hist_counter1 = new TH1I( "hist_counter1", "Time(counter);Time [ns]",  range_low+range_high,    peak_counter1-range_low, peak_counter1+range_high );
   TH1I* hist_counter2 = new TH1I( "hist_counter2", "Time(counter);Time [ns]",  range_low+range_high,    peak_counter1-range_low, peak_counter1+range_high );
 
