@@ -1,13 +1,7 @@
 #! /bin/tcsh -f
 
-#set INFILE = `ls dat_scurve/output*.dat` # default
-set INFILE = `ls ../data/20170323_all_chip_scan/dat_scurve/output3*.dat`
-#set INFILE = `ls ../data/20170322_demo_takasago_power/dat_scurve/output0*.dat`
-#set INFILE = `ls ../data/20170128_multi_scurve_after_connection_sensor/dat_scurve/ch0/output*.dat`
-#set INFILE = `ls ../data/20170128_multi_scurve_after_connection_sensor/dat_scurve/ch1/output*.dat`
-#set INFILE = `ls ../data/20170202_duringBT/dat_scurve/output2{2,3,4}*.dat`
-#set INFILE = `ls 20170317_jps/wid5_sig9_dat_scurve/output2{2,3,4}*.dat`
-
+#set INFILE = `ls dat_scurve/output00{5,6,7,8,9}*.dat` # default
+set INFILE = `ls dat_scurve/output{0,4}*.dat` # default
 #set INFILE = `ls dat_scurve/test*.dat`
 
 #set INFILE = `ls dat_scurve/output{21,27,28,29,30,31}*.dat`
@@ -19,19 +13,16 @@ set INFILE = `ls ../data/20170323_all_chip_scan/dat_scurve/output3*.dat`
 #set CH_LIST = `seq 0 127`
 #set CH_LIST = `seq 122 124`
 #set CH_LIST = `seq 0 13`
-#set CH_LIST = "1"
-#set CH_LIST = "0 1"
+#set CH_LIST = "0"
 #set CH_LIST = "0 1 2"
 #set CH_LIST = "0 1 2 3 4 5"
-set CH_LIST = "1 16 32 48 64 80 96 112"
-
 #set CH_LIST = "15"
-#if( $#argv < 1 )then
-#    echo " Usage : $0 [ch]"
-#    echo "Example: $0  127"
-#  exit 1
-#endif
-#set CH_LIST = $1
+if( $#argv < 1 )then
+    echo " Usage : $0 [ch]"
+    echo "Example: $0  127"
+  exit 1
+endif
+set CH_LIST = $1
 
 ################################################
 

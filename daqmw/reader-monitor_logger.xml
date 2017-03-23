@@ -10,7 +10,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleReader0.rtc</instName>
-               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
+               <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>4</startOrd>
                <inPorts/>
@@ -27,7 +27,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>Dispatcher0.rtc</instName>
-               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/Dispatcher/DispatcherComp</execPath>
+               <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/Dispatcher/DispatcherComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>3</startOrd>
                <inPorts>
@@ -43,7 +43,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleLogger0.rtc</instName>
-               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleLogger/SampleLoggerComp</execPath>
+               <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleLogger/SampleLoggerComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>1</startOrd>
                <inPorts>
@@ -51,9 +51,15 @@
                </inPorts>
                <outPorts/>
                <params>
-                  <param pid="dirName">../museum201702/data</param>
+                  <param pid="dirName">binary_data</param>
                   <param pid="isLogging">yes</param>
                   <param pid="maxFileSizeInMegaByte">1024</param>
+                  <param pid="runsummaryName">run_summary.dat</param>
+                  <param pid="VREF0">560</param>
+                  <param pid="VREF1">460</param>
+                  <param pid="VREF23">360</param>
+                  <param pid="HV">120</param>
+                  <param pid="NOTE">Beam Data</param>
                </params>
             </component>
 
@@ -61,7 +67,7 @@
                <hostAddr>127.0.0.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleMonitor0.rtc</instName>
-               <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleMonitor/SampleMonitorComp</execPath>
+               <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleMonitor/SampleMonitorComp</execPath>
                <confFile>/tmp/daqmw/rtc.conf</confFile>
                <startOrd>2</startOrd>
                <inPorts>
@@ -69,10 +75,11 @@
                </inPorts>
                <outPorts/>
                <params>
-                        <param pid="monitorUpdateRate">200</param>
+                        <param pid="monitorUpdateRate">250</param>
+                        <param pid="monitorSamplingRate">25</param>
                         <param pid="sel1chip">0</param>
                         <param pid="sel1ch">123</param>
-                        <param pid="signal_width">10</param>
+                        <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                </params>
             </component>

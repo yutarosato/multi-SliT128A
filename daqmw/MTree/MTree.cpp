@@ -83,7 +83,7 @@ int MTree::decode_data(const unsigned char* mydata, int length)
   int idata  = 0;
   
   while(1){
-    if( mydata[8*idata+adjust] & 0x00 ) adjust += 4;
+    if( !(mydata[8*idata+adjust] & 0x80) ) adjust += 4;
     unsigned char   chip_id   = mydata[8*idata+adjust+0]; chip_id = ( chip_id & 0x7f );
     unsigned char   unit_id   = mydata[8*idata+adjust+1];
     unsigned short* time_info = (unsigned short*)&mydata[8*idata+adjust+2];

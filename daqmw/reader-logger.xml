@@ -17,7 +17,7 @@
                     <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleReader0.rtc</instName>
-                    <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
+                    <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
                     <startOrd>2</startOrd>
                     <inPorts>
@@ -34,7 +34,7 @@
                     <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleLogger0.rtc</instName>
-                    <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleLogger/SampleLoggerComp</execPath>
+                    <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleLogger/SampleLoggerComp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
                     <startOrd>1</startOrd>
                     <inPorts>
@@ -43,9 +43,15 @@
                     <outPorts>
                     </outPorts>
                     <params>
-                       <param pid="dirName">../museum201702/data</param>
+                       <param pid="dirName">../data/binary_data</param>
                        <param pid="isLogging">yes</param>
-                       <param pid="maxFileSizeInMegaByte">50</param>
+                       <param pid="maxFileSizeInMegaByte">1024</param>
+                       <param pid="runsummaryName">../data/run_summary.dat</param>
+                       <param pid="VREF0">60</param>
+                       <param pid="VREF1">0</param>
+                       <param pid="VREF23">240</param>
+                       <param pid="HV">120</param>
+                       <param pid="NOTE">TEST1 TEST2</param>
                     </params>
                 </component>
             </components>

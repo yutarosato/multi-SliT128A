@@ -53,6 +53,8 @@ public:
                    unsigned int buf_size);
     int  close_file();
 
+  std::string get_file_name(){ return m_file_info.file_path; }
+
 private:
     void set_max_size(unsigned long long size);
     int  open_file_incr_branch(std::string dir_name);
@@ -71,6 +73,7 @@ private:
     std::string m_dir_name;
     bool m_auto_fname;
     bool m_debug;
+  std::string m_file_name;
 };
 
 #endif

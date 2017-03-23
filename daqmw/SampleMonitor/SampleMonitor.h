@@ -94,7 +94,6 @@ private:
 
   TGraph*        m_graph_nbit;
   TGraphErrors*  m_graph_nhit;
-  TGraphErrors*  m_graph_width;
 
   
   // external parameters
