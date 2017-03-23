@@ -1,5 +1,7 @@
 #include "setting.h"
 
+//[xy]_s[12]_cl_org : position : view from upperstream to downstream
+
 const Bool_t fl_batch = !true; // should be false for quick check.
 // maximum point by prompt
 
@@ -10,8 +12,9 @@ const Int_t peak_counter2 = 11470;
 Int_t t_tdc_s1[1024];
 Int_t t_tdc_s2[1024];
 Int_t set_readbranch_counter( TTree* tree ){
-  tree->SetBranchAddress("tdc_s1", t_tdc_s1 );
-  tree->SetBranchAddress("tdc_s2", t_tdc_s2 );
+  tree->SetBranchAddress("tdc_s1", t_tdc_s1 ); // tdc_s1_cl_org
+  tree->SetBranchAddress("tdc_s2", t_tdc_s2 ); // tdc_s2_cl_org
+  // better to take coinciden between tdc_s[12]_cl_org
 }
 
 Int_t main( Int_t argc, Char_t** argv ){

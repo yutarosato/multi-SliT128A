@@ -93,7 +93,8 @@ Int_t main( Int_t argc, Char_t** argv ){
     if( fit_func==NULL){ std::cerr<< "[WARNING] can not find g_gain_vref_0->GetFunction(pol1) : " << app.Argv(ifile+1) << std::endl; continue; }
     v_gain   [ch] = fit_func->GetParameter(1);
     v_gainE  [ch] = fit_func->GetParError (1);
-    v_offset [ch] = fit_func->GetParameter(0);
+    //v_offset [ch] = fit_func->GetParameter(0);
+    v_offset [ch] = fit_func->GetParameter(0) + fit_func->GetParameter(1)*1.54; // tmpppp
     v_offsetE[ch] = fit_func->GetParError (0);
     g_gain_vref->Draw("Psame");
     g_chi2->SetPoint( g_chi2->GetN(), ch, g_gain_vref->GetRMS(2) ); // tmppppppp
@@ -142,7 +143,9 @@ Int_t main( Int_t argc, Char_t** argv ){
   g_gain ->SetMinimum(0.0);
 
   TH1D* h_noise  = conv_graphtohist( g_noise,  "hist_noise",  "Noise; Noise [fC]"   );
-  TH1D* h_offset = conv_graphtohist( g_offset, "hist_offset", "Offset; Offset DAC"  );
+  //TH1D* h_noise  = conv_graphtohist( g_noise,  "hist_noise",  "Noise; Noise [fC]", 40, 0.0, 0.20 ); // tmppppp
+  TH1D* h_offset = conv_graphtohist( g_offset, "hist_offset", "Offset; Offset DAC" );
+  //TH1D* h_offset = conv_graphtohist( g_offset, "hist_offset", "Offset; Offset DAC", 40, -40, 40 ); // tmpppp
   TH1D* h_gain   = conv_graphtohist( g_gain,   "hist_gain",   "Gain; Gain [DAC/fC]" );
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   TCanvas* can1 = new TCanvas( "can1","can1", 1600, 800 );
@@ -160,8 +163,9 @@ Int_t main( Int_t argc, Char_t** argv ){
   can1->cd(4);
   h_noise->Draw();
   h_noise->Fit("gaus","L","same");
-  //h_noise->Fit("gaus","LR","same",0.03,0.09); // tmpppp
+  //h_noise->Fit("gaus","LR","same",0.010,0.20); // tmpppp
   can1->cd(5);
+  h_offset->Print();
   h_offset->Draw();
   h_offset->Fit("gaus","L","same");
   //h_offset->Fit("gaus","LR","same",-300, 0); // tmpppp

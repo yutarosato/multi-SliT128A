@@ -19,7 +19,7 @@
 #include <TGraph.h>
 
 
-const int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
+const int fl_message = 1; // 0(simple message), 1(normal message), 2(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
@@ -276,8 +276,8 @@ int main( int argc, char *argv[] ){
   std::cout << "#event = "  << nevt_success << ", "
 	    << "#hit = "    << cnt_data
 	    << std::endl;
-  std::ofstream outlog("tmp.log");
-  outlog << cnt_data << std::endl;
+  //std::ofstream outlog("tmp.log");
+  //outlog << cnt_data << std::endl;
   
   tree->Write();
   outfile.Close();

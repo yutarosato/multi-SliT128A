@@ -51,10 +51,10 @@
                </inPorts>
                <outPorts/>
                <params>
-                  <param pid="dirName">../data/binary_data</param>
+                  <param pid="dirName">binary_data</param>
                   <param pid="isLogging">yes</param>
                   <param pid="maxFileSizeInMegaByte">1024</param>
-                  <param pid="runsummaryName">../data/run_summary.dat</param>
+                  <param pid="runsummaryName">run_summary.dat</param>
                   <param pid="VREF0">560</param>
                   <param pid="VREF1">460</param>
                   <param pid="VREF23">360</param>
