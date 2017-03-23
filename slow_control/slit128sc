@@ -91,9 +91,9 @@ def ZERO_SUPPRESS(rbcp, ip_address):
     rbcp.write_registers(ip_address, address = 0x80000008, length = len(data), id = 16, data = data)
 
 def UNIT_ENABLE(rbcp, ip_address):
-    data = struct.pack('>B', 0x0F) # chip(1[unit(3,2,1,0)]), chip(0[unit(3,2,1,0)]) # tmppppp
+    data = struct.pack('>B', 0x00) # chip(1[unit(3,2,1,0)]), chip(0[unit(3,2,1,0)]) # tmppppp
     rbcp.write_registers(ip_address, address = 0x80000005, length = len(data), id = 17, data = data)
-    data = struct.pack('>B', 0x00) # chip(3[unit(3,2,1,0)]), chip(2[unit(3,2,1,0)]) # tmppppp
+    data = struct.pack('>B', 0xF0) # chip(3[unit(3,2,1,0)]), chip(2[unit(3,2,1,0)]) # tmppppp
     rbcp.write_registers(ip_address, address = 0x80000006, length = len(data), id = 18, data = data)
 
 def G_UNIT_DISABLE(rbcp, ip_address):
