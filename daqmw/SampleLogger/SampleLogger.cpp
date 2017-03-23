@@ -42,7 +42,12 @@ SampleLogger::SampleLogger(RTC::Manager* manager)
       m_filesOpened(false),
       m_in_status(BUF_SUCCESS),
       m_update_rate(100),
-      m_debug(false)
+      m_debug(!true),
+      m_vref0 (-999),
+      m_vref1 (-999),
+      m_vref23(-999),
+      m_hv    (-999)
+      
 {
     // Registration: InPort/OutPort/Service
     registerInPort("samplelogger_in", m_InPort);
@@ -171,6 +176,36 @@ int SampleLogger::parse_params(::NVList* list)
                 std::cerr << "Max File size(MByte):"
                           << m_maxFileSizeInMByte << std::endl;
             }
+	    if (sname == "runsummaryName") {
+	      m_runsummary = svalue;
+	      std::cerr << "run summary table:"
+			<< m_runsummary << std::endl;
+            }
+	    if (sname == "VREF0") {
+	      m_vref0 = atof(svalue.c_str());
+	      std::cerr << "VREF0:"
+			<< m_vref0 << std::endl;
+            }
+	    if (sname == "VREF1") {
+	      m_vref1 = atof(svalue.c_str());
+	      std::cerr << "VREF1:"
+			<< m_vref1 << std::endl;
+            }
+	    if (sname == "VREF23") {
+	      m_vref23 = atof(svalue.c_str());
+	      std::cerr << "VREF23:"
+			<< m_vref23 << std::endl;
+            }
+	    if (sname == "HV") {
+	      m_hv = atof(svalue.c_str());
+	      std::cerr << "HV:"
+			<< m_hv << std::endl;
+            }
+	    if (sname == "NOTE") {
+	      m_note = svalue;
+	      std::cerr << "NOTE:"
+			<< m_note << std::endl;
+            }
         }
     }
 
@@ -216,6 +251,17 @@ int SampleLogger::daq_start()
         else {
             std::cerr << "*** SampleLogger: file open succeed\n";
             m_filesOpened = true;
+	    std::ofstream run_summary_file;
+	    run_summary_file.open(m_runsummary.c_str(),std::ios::app);
+	    run_summary_file << std::right << std::setw(25) << fileUtils->get_file_name().c_str()
+			     << std::right << std::setw(10) << m_vref0
+			     << std::right << std::setw(10) << m_vref1
+			     << std::right << std::setw(10) << m_vref23
+			     << std::right << std::setw(10) << m_hv
+			     << " : "
+			     << m_note.c_str()
+			     << std::endl;
+	    run_summary_file.close();
         }
     }
     return 0;

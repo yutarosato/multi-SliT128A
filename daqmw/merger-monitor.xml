@@ -17,7 +17,7 @@
                     <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleReader0.rtc</instName>
-                    <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
+                    <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
                     <startOrd>5</startOrd>
                     <inPorts>
@@ -34,7 +34,7 @@
                     <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleReader20.rtc</instName>
-                    <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
+                    <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
                     <startOrd>4</startOrd>
                     <inPorts>
@@ -51,7 +51,7 @@
                     <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>Merger0.rtc</instName>
-                    <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/Merger/MergerComp</execPath>
+                    <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/Merger/MergerComp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
                     <startOrd>2</startOrd>
                     <inPorts>
@@ -69,7 +69,7 @@
                     <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleMonitor0.rtc</instName>
-                    <execPath>/home/yutaro/g-2/elech/multi-SliT128A/daqmw/SampleMonitor/SampleMonitorComp</execPath>
+                    <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleMonitor/SampleMonitorComp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
                     <startOrd>1</startOrd>
                     <inPorts>

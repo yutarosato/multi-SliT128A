@@ -18,6 +18,7 @@
 
 #include "DaqComponentBase.h"
 #include "FileUtils.h"
+#include <iostream>
 
 using namespace RTC;
 
@@ -35,37 +36,43 @@ public:
     virtual RTC::ReturnCode_t onExecute(RTC::UniqueId ec_id);
 
 private:
-    RTC::TimedOctetSeq m_in_data;
-    ///InPort<TimedOctetSeq, MyRingBuffer> m_InPort;
-    RTC::InPort< RTC::TimedOctetSeq > m_InPort;
-
+  RTC::TimedOctetSeq m_in_data;
+  ///InPort<TimedOctetSeq, MyRingBuffer> m_InPort;
+  RTC::InPort< RTC::TimedOctetSeq > m_InPort;
+  
 private:
-    int daq_dummy();
-    int daq_configure();
-    int daq_unconfigure();
-    int daq_start();
-    int daq_run();
-    int daq_stop();
-    int daq_pause();
-    int daq_resume();
-
-    int parse_params(::NVList* list);
-    int reset_InPort();
-    void toLower(std::basic_string<char>& s);
-
-    FileUtils* fileUtils;
-    bool m_isDataLogging;
-    bool m_filesOpened;
-    std::string m_dirName;
-    unsigned int m_maxFileSizeInMByte;
-    BufferStatus m_in_status;
-    int m_update_rate;
-    bool m_debug;
+  int daq_dummy();
+  int daq_configure();
+  int daq_unconfigure();
+  int daq_start();
+  int daq_run();
+  int daq_stop();
+  int daq_pause();
+  int daq_resume();
+  
+  int parse_params(::NVList* list);
+  int reset_InPort();
+  void toLower(std::basic_string<char>& s);
+  
+  FileUtils* fileUtils;
+  bool m_isDataLogging;
+  bool m_filesOpened;
+  std::string m_dirName;
+  std::string m_runsummary;
+  unsigned int m_maxFileSizeInMByte;
+  BufferStatus m_in_status;
+  int m_update_rate;
+  bool m_debug;
+  double m_vref0;
+  double m_vref1;
+  double m_vref23;
+  double m_hv;
+  std::string m_note;
 };
 
 extern "C"
 {
-    void SampleLoggerInit(RTC::Manager* manager);
+  void SampleLoggerInit(RTC::Manager* manager);
 };
 
 #endif // SAMPLELOGGER_H

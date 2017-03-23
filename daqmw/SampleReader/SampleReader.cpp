@@ -38,7 +38,7 @@ SampleReader::SampleReader(RTC::Manager* manager)
       m_recv_byte_size(0),
       m_out_status(BUF_SUCCESS),
 
-      m_debug(false)
+      m_debug(!true)
 {
     // Registration: InPort/OutPort/Service
 
@@ -219,13 +219,107 @@ int SampleReader::read_data_from_detectors()
       event_number               = current_event_number;
     }
     first_read = false;
+    /*
+    std::cerr << std::endl << "FIRST_READ" << std::endl; // tmppppp
+    std::cout << (bool)((unsigned char)(m_data[0] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[0] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[0] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[0] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[1] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[1] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[1] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[1] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[2] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[2] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[2] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[2] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[3] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[3] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[3] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[3] & 0x01)) << " : " << std::endl;
+
+    std::cout << (bool)((unsigned char)(m_data[4] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[4] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[4] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[4] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[5] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[5] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[5] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[5] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[6] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[6] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[6] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[6] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[7] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[7] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[7] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[7] & 0x01)) << " : " << std::endl;
+
+    std::cout << (bool)((unsigned char)(m_data[8] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[8] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[8] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[8] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[9] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[9] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[9] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[9] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[10] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[10] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[10] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[10] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[11] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[11] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[11] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[11] & 0x01)) << " : " << std::endl;
+    std::cout << "event_data_len = " << event_data_len << std::endl;
+    std::cout << std::endl;
+    */
+
   }else{
     memcpy( m_data, tmpbuf, 3*DATA_STEP );
     event_data_len += 3*DATA_STEP;
+    //std::cerr << std::endl << "SECOND FIRST_RESD" << std::endl; // tmppppp
   }
   
   while(1){
     int status = m_sock->readAll(&m_data[event_data_len], 2*DATA_STEP);
+    /*
+    std::cout << "+++++++++++++ READ 8 byte " << std::endl;
+    std::cout << (bool)((unsigned char)(m_data[event_data_len+0] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+0] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+0] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+0] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[event_data_len+1] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+1] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+1] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+1] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[event_data_len+2] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+2] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+2] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+2] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[event_data_len+3] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+3] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+3] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+3] & 0x01)) << " : " << std::endl;
+
+    std::cout << (bool)((unsigned char)(m_data[event_data_len+4] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+4] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+4] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+4] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[event_data_len+5] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+5] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+5] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+5] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[event_data_len+6] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+6] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+6] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+6] & 0x01)) << " : "
+	      << (bool)((unsigned char)(m_data[event_data_len+7] & 0x08)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+7] & 0x04)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+7] & 0x02)) << " "
+	      << (bool)((unsigned char)(m_data[event_data_len+7] & 0x01)) << " : " << std::endl;
+    std::cout << std::endl;
+    */
     
     if( status == DAQMW::Sock::ERROR_FATAL ){
       std::cerr << "### ERROR: m_sock->readAll" << std::endl;
@@ -234,11 +328,21 @@ int SampleReader::read_data_from_detectors()
       std::cerr << "### Timeout: m_sock->readAll" << std::endl;
       fatal_error_report(USER_DEFINED_ERROR2, "SOCKET TIMEOUT");
     }
-    
+    /*
+    unsigned char* tmp_unit0 = (unsigned char*)&m_data[event_data_len];
+    unsigned char* tmp_unit1 = (unsigned char*)&m_data[event_data_len];
+    int tmp_num0            = ntohs(*tmp_unit0);
+    int tmp_num1            = ntohs(*tmp_unit1);
+    std::cout << "tmp_num0 = " << tmp_num0 << std::endl;
+    std::cout << "tmp_num1 = " << tmp_num1 << std::endl;
+    */
+
+
     if( (m_data[event_data_len] & 0x80) == 0x00 ){ // read more 4 byte, because it is 12 byte header.
       event_number_short   = (unsigned short*)&m_data[event_data_len+2];
       event_number         = ntohs(*event_number_short);
-      int status = m_sock->readAll(&m_data[event_data_len], DATA_STEP);
+
+      int status = m_sock->readAll(&m_data[event_data_len+2*DATA_STEP], DATA_STEP);
       if( status == DAQMW::Sock::ERROR_FATAL ){
 	std::cerr << "### ERROR: m_sock->readAll" << std::endl;
 	fatal_error_report(USER_DEFINED_ERROR1, "SOCKET FATAL ERROR");
@@ -246,16 +350,17 @@ int SampleReader::read_data_from_detectors()
 	std::cerr << "### Timeout: m_sock->readAll" << std::endl;
 	fatal_error_report(USER_DEFINED_ERROR2, "SOCKET TIMEOUT");
       }
-      
       if( event_number!=current_event_number ){ // end of the event
 	memcpy( tmpbuf, &m_data[event_data_len], 3*DATA_STEP );
 	current_event_number = event_number;
 	return event_data_len;	  
       }else{ // continue the event
 	event_data_len += 3*DATA_STEP;
+	//std::cerr << "   ===> continue events(HEADER) : " << event_data_len << std::endl; // tmppp
       }
     }else{ // continue the eventn
       event_data_len += 2*DATA_STEP;
+      //std::cerr << "   ===> continue events(NOT HEADER) : " << event_data_len << std::endl; // tmppp
     }
   }
 }
