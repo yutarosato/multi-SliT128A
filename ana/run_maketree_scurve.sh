@@ -1,7 +1,7 @@
 #! /bin/tcsh -f
 
 #set INFILE = `ls dat_scurve/output00{5,6,7,8,9}*.dat` # default
-set INFILE = `ls dat_scurve/output2*.dat` # default
+set INFILE = `ls dat_scurve/output{0,4}*.dat` # default
 #set INFILE = `ls dat_scurve/test*.dat`
 
 #set INFILE = `ls dat_scurve/output{21,27,28,29,30,31}*.dat`

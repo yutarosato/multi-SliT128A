@@ -17,8 +17,8 @@ const Int_t span_exp = 1000; // 200kHz -> 5us -> 1000 bit
 
 // signal definition
 const Int_t    th_span       =   450;
-//const Int_t    th_width      =     2;
-const Int_t    th_width      =     5;
+const Int_t    th_width      =     2;
+//const Int_t    th_width      =     5;
 const Int_t    th_window     =    20;
 const Int_t    mask_prompt   =    50;
 const Double_t th_eff_before =   2.0; // >=1.0 is no-cut
