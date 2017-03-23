@@ -1,6 +1,6 @@
 #include "setting.h"
 
-const Bool_t fl_batch = !true;
+const Bool_t fl_batch = true;
 const Bool_t fl_plot  = !true;
 // true (one plot per parameter point) for reproducibility check or one-channel scan
 // false(one plot per channel) for all-channel scan
@@ -13,8 +13,8 @@ Int_t main( Int_t argc, Char_t** argv ){
   sty->SetLabelSize(0.04,"y");
   sty->SetTitleOffset(1.2,"y");
   unsigned int seed = time(NULL);
-  //TRandom rnd(seed);
-  TRandom rnd(3000);
+  TRandom rnd(seed);
+  //TRandom rnd(3000);
 
   if( !(app.Argc()==3) )
     std::cerr << "Wrong input" << std::endl
@@ -234,7 +234,9 @@ Int_t main( Int_t argc, Char_t** argv ){
     can1->Divide(4,3);
   }else{ // one plot per channel
     can1 = new TCanvas("can1","can1", 1500, 400 );
+    //can1 = new TCanvas("can1","can1", 1000, 800 ); // tmppp
     can1->Divide(4,1);
+    //can1->Divide(2,2); // tmppp
   }
   can1->Draw();
   Int_t cnt_pad  = 1;
@@ -242,6 +244,7 @@ Int_t main( Int_t argc, Char_t** argv ){
   Int_t cnt_tex  = 0;
   for( Int_t itab=0; itab<ntab; itab++ ){
     can1->cd( (fl_plot ? cnt_pad++ : 1) );
+
 
     if     (  fl_plot            ) gPad->DrawFrame( -32, 0.0, 32, 1.2, Form("VREF=%.2f, TPCHG=%.2f;DAC;Count Efficiency", vref_tab[itab], tpchg_tab[itab]) );
     else if( !fl_plot && itab==0 ) gPad->DrawFrame( -32, 0.0, 32, 1.2, Form(                   "%s;DAC;Count Efficiency", basename.c_str()               ) );
@@ -281,7 +284,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	    Int_t subfit_status = 1;
 	    while( subfit_status ){
 	      func[itab][ig]->SetParLimits(0,-40,40);
-	      func[itab][ig]->SetParameter( 0, rnd.Uniform(-40.0,40.0) );
+	      func[itab][ig]->SetParameter( 0, rnd.Uniform(-33.0,33.0) );
 	      func[itab][ig]->SetParameter(1,2.5);
 	      TFitResultPtr subfit_result = g_scurve[itab][ig].Fit( func[itab][ig],"SQ0" );
 	      subfit_status = subfit_result->Status();
@@ -326,9 +329,11 @@ Int_t main( Int_t argc, Char_t** argv ){
 	  TLatex* tex_col = new TLatex();
 	  tex_col->SetTextColor(itab+1);
 	  tex_col->SetTextSize(0.03);
+	  //*// tmpppp
 	  tex_col->DrawLatexNDC( 0.65, 0.86-0.15*cnt_tex, Form("#mu = %.2f #pm %.2f",        func[itab][ig]->GetParameter(0), func[itab][ig]->GetParError(0)) );
 	  tex_col->DrawLatexNDC( 0.65, 0.82-0.15*cnt_tex, Form("#sigma = %.2f #pm %.2f",     func[itab][ig]->GetParameter(1), func[itab][ig]->GetParError(1)) );
 	  tex_col->DrawLatexNDC( 0.65, 0.78-0.15*cnt_tex, Form("#chi^{2}/NDF = %.2f / %d",   func[itab][ig]->GetChisquare(),  func[itab][ig]->GetNDF()      ) );
+	  //*/
 	  cnt_tex++;
 	}
       }else{
