@@ -39,9 +39,11 @@ foreach ICHIP( 0 1 2 3 )
     # <Slow Control>
     cd slow_control;
     if( ${ICHIP} == ${CHIP} ) then
-       ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL
+       ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL # default
+       #./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHLL LLLLL${CTRL_DAC_BIT}LLHLL # for pedestal
     else
-       ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL
+       ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default
+       #./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHLL LLLLL${CTRL_DAC_BIT}LLHLL # for pedestal
     endif
 
     while (1)
