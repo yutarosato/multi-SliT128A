@@ -175,7 +175,7 @@ int decode( unsigned char *buf, int length ){
 
   if( prev_event != new_event && prev_event != -999 ){
     if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d+15 ]\n", prev_event, prev_ndata );
-    if( prev_event - new_event > 0 ){ printf( "[ERROR] Event number is shifted : %d and %d\n",prev_event, new_event ); abort(); }
+    if( prev_event - new_event > 0 && prev_event!=32767 ) printf( "[ERROR] Event number is shifted : %d and %d\n",prev_event, new_event );
     tree->Fill();
     t_event = new_event;
     cnt_data += t_time_v.size();
