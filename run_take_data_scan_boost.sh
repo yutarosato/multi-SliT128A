@@ -1,9 +1,9 @@
 #! /bin/tcsh -f
 
 set HEADNAME = "output"
-set CHIP     = 0 # 0-3
+set CHIP     = 3 # 0-3
 set VREF     = 180.0 # VREF value [mV]
-set TPCHG    = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+set TPCHG    = 1.15 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 
 #set CH_LIST = 123 
 #set CH_LIST = "37 59 90"
@@ -17,7 +17,8 @@ set TPCHG    = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 #set CH_LIST = `seq 122 124`
 #set CH_LIST = `seq 0 127`
 #set CH_LIST = `seq 87 127`
-set CH_LIST = "1 2" # demo-power supply
+#set CH_LIST = "1 2" # demo-power supply
+set CH_LIST = "1 16 32 48 64 80 96 112" # all chip scan
 
 
 ###########################################
