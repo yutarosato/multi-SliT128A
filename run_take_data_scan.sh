@@ -85,7 +85,7 @@ foreach CH( ${CH_LIST} )
       #./make_control.sh ${CTRL_CHIP} $CH LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLHHHHLLLLL # other DAC = -15
 
       while (1)
-         ./slit128sc control.dat 192.168.10.16;
+         ./slit128sc control_${CTRL_CHIP}.dat 192.168.10.16;
          if( $? == 0 ) then
          break
          endif
