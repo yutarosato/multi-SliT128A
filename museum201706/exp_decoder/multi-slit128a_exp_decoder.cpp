@@ -26,6 +26,10 @@ const int n_bit  =    32;
 const int n_time =  8192; // pow(2,13)
 //const int chip_id[n_chip] = {0,1,2,4};
 
+const int byte_global_header = 8;
+const int byte_unit_header   = 6;
+const int byte_unit_data     = 6;
+
 int nevt_success = 0;
 
 int t_chip;
@@ -36,7 +40,8 @@ int t_data[n_bit];
 int cnt_data = 0; // used for judgement of the endpoint of s-curve
 
 TTree* tree;
-int t_event;
+int t_event_number;
+int t_nevent_overflow;
 
 std::vector<int> t_chip_v;
 std::vector<int> t_unit_v;
@@ -52,9 +57,11 @@ int   t_rf     = -999;
 int prev_event = -999;
 int prev_ndata = 0;
 
-int read_4_bytes( FILE *fp, unsigned char *buf ){ // -1(fread err), 0(end file), +n(correctly read n-byte)
+unsigned long long total_data_length;
+
+int read_n_bytes( FILE *fp, unsigned char *buf, int nbytes ){ // -1(fread err), 0(end file), +n(correctly read n-byte)
   int n;
-  n = fread( buf, 1, 4, fp );
+  n = fread( buf, 1, nbytes, fp );
   if( n==0 ){
     if( ferror(fp) ){
       warn("fread error");
@@ -67,67 +74,54 @@ int read_4_bytes( FILE *fp, unsigned char *buf ){ // -1(fread err), 0(end file),
 
 int fill_event_buf( FILE *fp, unsigned char *event_buf ){ // 0(correctly read one event), -1(end event (or fread err))
   int n;
-  static bool first_read = true;
-  static unsigned char tmpbuf[4];
   int event_data_len = 0;
 
-  // read first 4 byte
-  if( first_read ){
-    n = read_4_bytes( fp, tmpbuf );
-    if( n <= 0 ) return -1;
-    memcpy( &event_buf[event_data_len], tmpbuf, 4 );
-    first_read = false;
-  }else{
-    memcpy( &event_buf[event_data_len], tmpbuf, 4 );
-  }
-  event_data_len += 4;
-
-  // read second 4 byte ( total 8 byte)
-  n = read_4_bytes( fp, tmpbuf );
+  n = read_n_bytes( fp, &event_buf[event_data_len], byte_global_header ); // read global header
   if( n <= 0 ) return -1;
-  memcpy( &event_buf[event_data_len], tmpbuf, 4 );
-  event_data_len += 4;
+  event_data_len += byte_global_header;
 
-  // read third 4 byte (total 12 byte)
-  n = read_4_bytes( fp, tmpbuf );
-  if( n <= 0 ) return -1;
-  memcpy( &event_buf[event_data_len], tmpbuf, 4 );
-  event_data_len += 4;
-
-  while( 1 ){
-    // read 4 byte and check header or not-header data
-    n = read_4_bytes( fp, tmpbuf );
-    if( n <= 0 ) return -1;
-    if( (tmpbuf[0] & 0x80) == 0x00 ){ // find header data
-      if( fl_message > 0 ) printf( "    fill_event_buf done %d bytes\n", event_data_len);
-      return event_data_len;
-    }else{ // find not-header data
-      memcpy( &event_buf[event_data_len], tmpbuf, 4 );
-      event_data_len += 4;
-      
-      n = read_4_bytes( fp, tmpbuf );
-      if( n <= 0 ) return -1;
-      memcpy( &event_buf[event_data_len], tmpbuf, 4 );
-      event_data_len += 4;
-    }
-  }
+  // mark "ee"
+  unsigned char global_mark = event_buf[0];
   
+  // over-flow event counter
+  //unsigned char nevent_overflow = event_buf[1];
+  //nevent_overflow = ( nevent_overflow & 0xfc );
+  
+  // data length
+  unsigned long* tmp_total_data_length1 = (unsigned long*)&event_buf[0];
+  unsigned long* tmp_total_data_length2 = (unsigned long*)&event_buf[2];
+  *tmp_total_data_length1 = (*tmp_total_data_length1 & 0x3000 );
+  total_data_length =  ntohs(*tmp_total_data_length1)*pow(2,16);
+  total_data_length += ntohs(*tmp_total_data_length2);
+
+  // event number
+  //unsigned short* tmp_event_number = (unsigned short*)&event_buf[4];
+  //int event_number = ntohs(*tmp_event_number);
+  //t_event_number = event_number;
+
+  // unit enable
+  //unsigned short* unit_enable = (unsigned short*)&event_buf[6];
+
+  int nread = byte_unit_header*n_chip*n_unit + byte_unit_data*total_data_length; // to be checked !!!!
+  n = read_n_bytes( fp, &event_buf[event_data_len], nread ); // read unit header+data
+  if( n <= 0 ) return -1;
+  event_data_len += nread;
+
   return 0;
 }
 
-
 int set_tree(){
   tree = new TTree("slit128A","slit128A");
-  tree->Branch( "event",  &t_event,  "event/I" );
-  tree->Branch( "rf",     &t_rf,     "rf/I"    );
+  tree->Branch( "event",  &t_event_number, "event/I"  );
+  tree->Branch( "rf",     &t_rf,           "rf/I"     );
   tree->Branch( "chip",   &t_chip_v );
   tree->Branch( "unit",   &t_unit_v );
   tree->Branch( "bit",    &t_bit_v  );
   tree->Branch( "time",   &t_time_v );
-  tree->Branch( "vref0",  &t_vref0,  "vref0/F"  );
-  tree->Branch( "vref1",  &t_vref1,  "vref1/F"  );
-  tree->Branch( "vref23", &t_vref23, "vref23/F" );
-  tree->Branch( "hv",     &t_hv,     "hv/F"     );
+  tree->Branch( "vref0",  &t_vref0,        "vref0/F"  );
+  tree->Branch( "vref1",  &t_vref1,        "vref1/F"  );
+  tree->Branch( "vref23", &t_vref23,       "vref23/F" );
+  tree->Branch( "hv",     &t_hv,           "hv/F"     );
 
   return 0;
 }
@@ -155,83 +149,105 @@ int bit_flip( bool bit ){
 
 
 int decode( unsigned char *buf, int length ){
-  unsigned short* event_number = (unsigned short*)&buf[2];
-  //int new_event = ntohs(*event_number);
-  unsigned short tmp_number = ( *event_number & 0xff7f ); // RF state bit is omitted.
-  int new_event = ntohs(tmp_number);
 
-  unsigned char rf = buf[2];
-  rf = ( rf & 0x80 );
-  rf = ( rf >> 7 );
-  t_rf = rf;
+  // mark "ee"
+  //unsigned char global_mark = buf[0];
+  
+  // over-flow event counter
+  unsigned char* nevent_overflow = (unsigned char*)&buf[1];
+  //*nevent_overflow = ( nevent_overflow & 0xfc ); // tmppppp to be comment on !!!!
+  
+  // data length
+  //unsigned long* tmp_total_data_length1 = (unsigned long*)&buf[0];
+  //unsigned long* tmp_total_data_length2 = (unsigned long*)&buf[2];
+  //*tmp_total_data_length1 = (*tmp_total_data_length1 & 0x3000 );
+  //total_data_length =  ntohs(*tmp_total_data_length1)*pow(2,16);
+  //total_data_length += ntohs(*tmp_total_data_length2);
 
-  if( prev_event != new_event && prev_event != -999 ){
-    if( fl_message   ) printf( "=>[ Event#=%d : #Data=%d]\n", prev_event, prev_ndata );
-    if( prev_event - new_event > 0 && prev_event!=32767 ) printf( "[ERROR] Event number is shifted : %d and %d\n",prev_event, new_event );
-    tree->Fill();
-    t_event = new_event;
-    cnt_data += t_time_v.size();
-    nevt_success++;
+  // event number
+  unsigned short* tmp_event_number = (unsigned short*)&buf[4];
+  int event_number = ntohs(*tmp_event_number);
+  t_event_number = event_number;
+
+  // unit enable
+  unsigned short* unit_enable = (unsigned short*)&buf[6];
+
+  if( fl_message ) printf( "=>[ Event#=%d : #Data=%llu, #Over-Flow-Events=%d]\n", (int)event_number, total_data_length, (int)nevent_overflow );
+
+  int index =0;
+  while(1){ // iterate for 16 units
+
+    // header for each unit
+    unsigned char   chip_id              = buf[index+0]; chip_id = ( chip_id & 0x7f );
+    unsigned char   unit_id              = buf[index+1];
+    unsigned short* tmp_unit_data_length = (unsigned short*)&buf[index+2]; *tmp_unit_data_length = ( *tmp_unit_data_length & 0xff3f );
+    int             unit_data_length     = ntohs(*tmp_unit_data_length);
+    unsigned short* tmp_event_number     = (unsigned short*)&buf[index+4];
+    int             event_number         = ntohs(*tmp_event_number);
     
-    init_tree();
-  }else if( prev_event == -999 ){
-    t_event = new_event;
-  }
-  prev_event = t_event;
+    unsigned char mark1 = buf[index+0];
+    mark1 = ( mark1 & 0x80 );
+    mark1 = ( mark1 >> 7 );
 
-  int ndata = (length-4)/8;
-  if( fl_message > 1 ) printf( "       [ Event#=%d : #Data=%d : ", ntohs(*event_number), ndata );
+    unsigned char mark2 = buf[index+2];
+    mark2 = ( mark2 & 0x80 );
+    mark2 = ( mark2 >> 7 );
 
-  for( int idata=0; idata<ndata; idata++ ){
-    unsigned char   chip_id   = buf[8*idata+4]; chip_id = ( chip_id & 0x7f );
-    unsigned char   unit_id   = buf[8*idata+5];
-    unsigned short* time_info = (unsigned short*)&buf[8*idata+6];
-    unsigned long*  data      = (unsigned long* )&buf[8*idata+8];
-    //if( idata==0 && (int)unit_id==0 ) t_event = ntohs(*event_number);
-    if( idata==0 && fl_message > 0 ) printf( "Chip-ID=%d : Unit-ID=%d ] \n", (int)chip_id, (int)unit_id );
-    if( fl_message > 1 ) printf( "%3d : (Chip-ID=%d, Unit-ID=%d) : (time=%d, data=%x)\n", idata, (int)chip_id, (int)unit_id, ntohs(*time_info), ntohl(*data) );
+    unsigned char cksum = buf[index+2];
+    cksum = ( cksum & 0x40 );
+    cksum = ( cksum >> 6 );
 
-    t_chip = chip_id;
-    t_unit = unit_id;
-    t_time = ntohs(*time_info);
+    if( fl_message > 1 ) printf( "Chip-ID=%d, Unit-ID=%d, Length=%d, Event#=%d ] \n", (int)chip_id, (int)unit_id, unit_data_length, event_number );
+    
+    // data for each unit
+    for( int idata=0; idata<unit_data_length; idata++ ){
+      unsigned short* time_info = (unsigned short*)&buf[index+byte_unit_header+idata*byte_unit_data+0];
+      unsigned long*  data      = (unsigned long* )&buf[index+byte_unit_header+idata*byte_unit_data+2];
+      if( fl_message > 2 ) printf( "%3d : (time=%d, data=%x)\n", idata, ntohs(*time_info), ntohl(*data) );
+      t_chip = chip_id;
+      t_unit = unit_id;
+      t_time = ntohs(*time_info);
 
-    for( int ibyte=0; ibyte<4; ibyte++ ){ // for-loop from large ch number to small ch number
-      unsigned char byte_data = buf[8*idata+8+ibyte];
 
-      if( fl_message > 1 ) std::cout << "("
-				     << (int )((unsigned char)(byte_data)) << " : "
-				     << (bool)((unsigned char)(byte_data & 0x80)) << " "
-				     << (bool)((unsigned char)(byte_data & 0x40)) << " "
-				     << (bool)((unsigned char)(byte_data & 0x20)) << " "
-				     << (bool)((unsigned char)(byte_data & 0x10)) << "  "
-				     << (bool)((unsigned char)(byte_data & 0x08)) << " "
-				     << (bool)((unsigned char)(byte_data & 0x04)) << " "
-				     << (bool)((unsigned char)(byte_data & 0x02)) << " "
-				     << (bool)((unsigned char)(byte_data & 0x01)) << ") ";
-      if( fl_message > 1 && ibyte==3 ) std::cout << std::endl;
-
-      t_data[7+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x80)) ); // bit-flip correction // modified for ch-map correction @20161004
-      t_data[6+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x40)) ); // bit-flip correction // modified for ch-map correction @20161004
-      t_data[5+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x20)) ); // bit-flip correction // modified for ch-map correction @20161004
-      t_data[4+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x10)) ); // bit-flip correction // modified for ch-map correction @20161004
-      t_data[3+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x08)) ); // bit-flip correction // modified for ch-map correction @20161004
-      t_data[2+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x04)) ); // bit-flip correction // modified for ch-map correction @20161004
-      t_data[1+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x02)) ); // bit-flip correction // modified for ch-map correction @20161004
-      t_data[0+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x01)) ); // bit-flip correction // modified for ch-map correction @20161004
-      
-      for( int i=0; i<8; i++ ){
-	if( t_data[i+(3-ibyte)*8] ){ // modified for ch-map correction @20161004
-	  t_chip_v.push_back(t_chip);
-	  t_unit_v.push_back(t_unit);
-	  t_bit_v.push_back (i+(3-ibyte)*8); // modified for ch-map correction @20161004
-	  t_time_v.push_back(t_time);
+      for( int ibyte=0; ibyte<4; ibyte++ ){ // for-loop from large ch number to small ch number
+	unsigned char byte_data = buf[index+byte_unit_header+idata*byte_unit_data+2+ibyte];
+	
+	if( fl_message > 1 ) std::cout << "("
+				       << (int )((unsigned char)(byte_data)) << " : "
+				       << (bool)((unsigned char)(byte_data & 0x80)) << " "
+				       << (bool)((unsigned char)(byte_data & 0x40)) << " "
+				       << (bool)((unsigned char)(byte_data & 0x20)) << " "
+				       << (bool)((unsigned char)(byte_data & 0x10)) << "  "
+				       << (bool)((unsigned char)(byte_data & 0x08)) << " "
+				       << (bool)((unsigned char)(byte_data & 0x04)) << " "
+				       << (bool)((unsigned char)(byte_data & 0x02)) << " "
+				       << (bool)((unsigned char)(byte_data & 0x01)) << ") ";
+	if( fl_message > 1 && ibyte==3 ) std::cout << std::endl;
+	
+	t_data[7+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x80)) ); // bit-flip correction // modified for ch-map correction @20161004
+	t_data[6+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x40)) ); // bit-flip correction // modified for ch-map correction @20161004
+	t_data[5+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x20)) ); // bit-flip correction // modified for ch-map correction @20161004
+	t_data[4+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x10)) ); // bit-flip correction // modified for ch-map correction @20161004
+	t_data[3+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x08)) ); // bit-flip correction // modified for ch-map correction @20161004
+	t_data[2+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x04)) ); // bit-flip correction // modified for ch-map correction @20161004
+	t_data[1+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x02)) ); // bit-flip correction // modified for ch-map correction @20161004
+	t_data[0+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x01)) ); // bit-flip correction // modified for ch-map correction @20161004
+	
+	for( int i=0; i<8; i++ ){
+	  if( t_data[i+(3-ibyte)*8] ){ // modified for ch-map correction @20161004
+	    t_chip_v.push_back(t_chip);
+	    t_unit_v.push_back(t_unit);
+	    t_bit_v.push_back (i+(3-ibyte)*8); // modified for ch-map correction @20161004
+	    t_time_v.push_back(t_time);
+	  }
 	}
       }
+
+      tree->Fill();
+      init_tree();
     }
   }
 
-  prev_ndata = ndata;
-  
   return 0;
 }
 
