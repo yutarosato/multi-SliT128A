@@ -174,9 +174,10 @@ int decode( unsigned char *buf, int length ){
 
   if( fl_message ) printf( "=>[ Event#=%d : #Data=%llu, #Over-Flow-Events=%d]\n", (int)event_number, total_data_length, (int)nevent_overflow );
 
-  int index =0;
-  while(1){ // iterate for 16 units
+  int index    = 0;
+  int cnt_unit = 0;
 
+  while( cnt_unit<n_chip*n_unit ){ // iterate for 16 units
     // header for each unit
     unsigned char   chip_id              = buf[index+0]; chip_id = ( chip_id & 0x7f );
     unsigned char   unit_id              = buf[index+1];
@@ -246,6 +247,8 @@ int decode( unsigned char *buf, int length ){
       tree->Fill();
       init_tree();
     }
+    cnt_unit++;
+    index += byte_unit_header+byte_unit_data*unit_data_length;
   }
 
   return 0;
@@ -282,7 +285,7 @@ int main( int argc, char *argv[] ){
   set_tree();
   init_tree();
   
-  while(1){
+  while( 1 ){
     n = fill_event_buf( fp, event_buf ); // read one event
 
     if( n < 0 ) break;
