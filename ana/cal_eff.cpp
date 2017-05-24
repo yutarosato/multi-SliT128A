@@ -11,7 +11,7 @@ const Int_t nring_max= 20;
 const Int_t width_max= 300;
 
 // setup
-const Int_t nsig_exp =    9; // # of signals per event (probably 8 @200kHz)
+const Int_t nsig_exp =    8; // # of signals per event (probably 8 @200kHz)
 //const Int_t nsig_exp =    2; // # of signals per event (8@200kHz)
 const Int_t span_exp = 1000; // 200kHz -> 5us -> 1000 bit
 

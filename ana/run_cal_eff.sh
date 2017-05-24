@@ -1,9 +1,9 @@
 #! /bin/tcsh -f
 
 set LOCAL = "1" # "0" if you use batch ques in KEKCC, 
-set CHIP  = "3" # 0-3
+set CHIP  = "2" # 0-3
 
-set FILE_LIST = `ls ../root_data/output3*.root` # default
+set FILE_LIST = `ls ../root_data/output*.root` # default
 #set FILE_LIST = `ls ../test.root`
 #set FILE_LIST = `ls ../store/20161017_bias/root_data/output*.root`
 
@@ -14,11 +14,11 @@ set FILE_LIST = `ls ../root_data/output3*.root` # default
 #set CH_LIST   = "0 1" # Chip#0
 #set CH_LIST   = "2 3" # Chip#1
 #set CH_LIST   = "0 1 2 3 4 5"
-#set CH_LIST   = "0"
+set CH_LIST   = "1"
 #set CH_LIST   = "68 76 79"
 #set CH_LIST   = "66"
 #set CH_LIST = "1 2" # demo-power supply
-set CH_LIST = "1 16 32 48 64 80 96 112" # all chip scan
+#set CH_LIST = "1 16 32 48 64 80 96 112" # all chip scan
 
 set DAC_LIST  = `seq -31 31`
 #set DAC_LIST  = "-17"

@@ -87,7 +87,8 @@ def SUPPRESS_SCK(rbcp, ip_address):
     rbcp.write_registers(ip_address, address = 0x80000007, length = len(data), id = 15, data = data)
 
 def ZERO_SUPPRESS(rbcp, ip_address):
-    data = struct.pack('>B', 0xFF)
+    data = struct.pack('>B', 0x00)
+    #data = struct.pack('>B', 0xFF) # tmpppp
     rbcp.write_registers(ip_address, address = 0x80000008, length = len(data), id = 16, data = data)
 
 def UNIT_ENABLE(rbcp, ip_address):
