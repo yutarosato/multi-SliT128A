@@ -19,7 +19,7 @@
 #include <TGraph.h>
 
 
-const int fl_message = 1; // 0(simple message), 1(normal message), 2(detailed message)
+const int fl_message = 2; // 0(simple message), 1(normal message), 2(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
@@ -32,16 +32,17 @@ const int byte_unit_data     = 6;
 
 int nevt_success = 0;
 
-int t_chip;
-int t_unit;
-int t_time;
-int t_data[n_bit];
+
 
 int cnt_data = 0; // used for judgement of the endpoint of s-curve
 
 TTree* tree;
 int t_event_number;
 int t_nevent_overflow;
+int t_chip;
+int t_unit;
+int t_time;
+int t_data[n_bit];
 
 std::vector<int> t_chip_v;
 std::vector<int> t_unit_v;
@@ -56,8 +57,6 @@ int   t_rf     = -999;
 
 int prev_event = -999;
 int prev_ndata = 0;
-
-unsigned long long total_data_length;
 
 int read_n_bytes( FILE *fp, unsigned char *buf, int nbytes ){ // -1(fread err), 0(end file), +n(correctly read n-byte)
   int n;
@@ -75,35 +74,47 @@ int read_n_bytes( FILE *fp, unsigned char *buf, int nbytes ){ // -1(fread err), 
 int fill_event_buf( FILE *fp, unsigned char *event_buf ){ // 0(correctly read one event), -1(end event (or fread err))
   int n;
   int event_data_len = 0;
+  const int max_buf = n_chip*n_unit*(byte_unit_header + byte_unit_data*8191)+byte_global_header; // = 786440
+  static unsigned char tmpbuf[max_buf];
 
-  n = read_n_bytes( fp, &event_buf[event_data_len], byte_global_header ); // read global header
+  // read global header
+  n = read_n_bytes( fp, tmpbuf, byte_global_header );
   if( n <= 0 ) return -1;
+  memcpy( &event_buf[event_data_len], tmpbuf, byte_global_header );
   event_data_len += byte_global_header;
-
+  /*
   // mark "ee"
   unsigned char global_mark = event_buf[0];
+  printf("Mark : %x\n",(int)global_mark);
   
   // over-flow event counter
-  //unsigned char nevent_overflow = event_buf[1];
-  //nevent_overflow = ( nevent_overflow & 0xfc );
-  
-  // data length
-  unsigned long* tmp_total_data_length1 = (unsigned long*)&event_buf[0];
-  unsigned long* tmp_total_data_length2 = (unsigned long*)&event_buf[2];
-  *tmp_total_data_length1 = (*tmp_total_data_length1 & 0x3000 );
-  total_data_length =  ntohs(*tmp_total_data_length1)*pow(2,16);
-  total_data_length += ntohs(*tmp_total_data_length2);
-
+  unsigned char nevent_overflow = event_buf[1];
+  nevent_overflow = ( nevent_overflow >> 2 );
+  printf("over-flow : %x\n",(int)nevent_overflow);
+  */
+  // ndata 
+  unsigned long tmp_total_ndata = *(unsigned long*)&event_buf[1];
+  tmp_total_ndata = ((tmp_total_ndata & 0xffffff01)  );
+  unsigned long total_ndata = ntohl(tmp_total_ndata);
+  total_ndata = (total_ndata >> 8);
+  printf("# of total unit data (only unit data) : %x (%d)\n",total_ndata,total_ndata);
+  /*
   // event number
-  //unsigned short* tmp_event_number = (unsigned short*)&event_buf[4];
-  //int event_number = ntohs(*tmp_event_number);
-  //t_event_number = event_number;
+  unsigned short* tmp_event_number = (unsigned short*)&event_buf[4];
+  int event_number = ntohs(*tmp_event_number);
+  t_event_number = event_number;
+  printf("event number : %d\n", event_number);
 
   // unit enable
-  //unsigned short* unit_enable = (unsigned short*)&event_buf[6];
+  unsigned short* tmp_unit_enable = (unsigned short*)&event_buf[6];
+  int unit_enable = ntohs(*tmp_unit_enable);
+  printf("unit enable : %x\n", unit_enable);
+  */
 
-  int nread = byte_unit_header*n_chip*n_unit + byte_unit_data*total_data_length; // to be checked !!!!
-  n = read_n_bytes( fp, &event_buf[event_data_len], nread ); // read unit header+data
+  // read unit header+data
+  int nread = byte_unit_header*n_chip*n_unit + byte_unit_data*total_ndata;
+  std::cout << "total data length (global header + unit header + unit data) = " << byte_unit_header*n_chip*n_unit + byte_unit_data*total_ndata << std::endl;
+  n = read_n_bytes( fp, &event_buf[event_data_len], nread );
   if( n <= 0 ) return -1;
   event_data_len += nread;
 
@@ -148,71 +159,85 @@ int bit_flip( bool bit ){
 
 
 
-int decode( unsigned char *buf, int length ){
+int decode( unsigned char *event_buf, int length ){
 
   // mark "ee"
-  //unsigned char global_mark = buf[0];
-  
+  unsigned char global_mark = event_buf[0];
+  //printf("Mark : %x\n",(int)global_mark);
+
   // over-flow event counter
-  unsigned char* nevent_overflow = (unsigned char*)&buf[1];
-  //*nevent_overflow = ( nevent_overflow & 0xfc ); // tmppppp to be comment on !!!!
-  
-  // data length
-  //unsigned long* tmp_total_data_length1 = (unsigned long*)&buf[0];
-  //unsigned long* tmp_total_data_length2 = (unsigned long*)&buf[2];
-  //*tmp_total_data_length1 = (*tmp_total_data_length1 & 0x3000 );
-  //total_data_length =  ntohs(*tmp_total_data_length1)*pow(2,16);
-  //total_data_length += ntohs(*tmp_total_data_length2);
+  unsigned char nevent_overflow = event_buf[1];
+  nevent_overflow = ( nevent_overflow >> 2 );
+  t_nevent_overflow = nevent_overflow;
+  //printf("over-flow : %x\n",(int)nevent_overflow);
+
+  // ndata 
+  unsigned long tmp_total_ndata = *(unsigned long*)&event_buf[1];
+  tmp_total_ndata = ((tmp_total_ndata & 0xffffff01)  );
+  unsigned long total_ndata = ntohl(tmp_total_ndata);
+  total_ndata = (total_ndata >> 8);
+  //printf("# of total unit data (only unit data) : %x (%d)\n",total_ndata,total_ndata);  
 
   // event number
-  unsigned short* tmp_event_number = (unsigned short*)&buf[4];
+  unsigned short* tmp_event_number = (unsigned short*)&event_buf[4];
   int event_number = ntohs(*tmp_event_number);
   t_event_number = event_number;
+  //printf("event number : %d\n", event_number);
 
   // unit enable
-  unsigned short* unit_enable = (unsigned short*)&buf[6];
+  unsigned short* tmp_unit_enable = (unsigned short*)&event_buf[6];
+  int unit_enable = ntohs(*tmp_unit_enable);
+  //printf("unit enable : %x\n", unit_enable);
 
-  if( fl_message ) printf( "=>[ Event#=%d : #Data=%llu, #Over-Flow-Events=%d]\n", (int)event_number, total_data_length, (int)nevent_overflow );
-
-  int index    = 0;
+  int index    = byte_global_header;
   int cnt_unit = 0;
+  
+  if( fl_message ) printf("[Global Header] evtNo#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x)\n",event_number,total_ndata,(int)nevent_overflow,unit_enable);
 
   while( cnt_unit<n_chip*n_unit ){ // iterate for 16 units
-    // header for each unit
-    unsigned char   chip_id              = buf[index+0]; chip_id = ( chip_id & 0x7f );
-    unsigned char   unit_id              = buf[index+1];
-    unsigned short* tmp_unit_data_length = (unsigned short*)&buf[index+2]; *tmp_unit_data_length = ( *tmp_unit_data_length & 0xff3f );
-    int             unit_data_length     = ntohs(*tmp_unit_data_length);
-    unsigned short* tmp_event_number     = (unsigned short*)&buf[index+4];
-    int             event_number         = ntohs(*tmp_event_number);
+    //std::cout << "Unit#" << cnt_unit << std::endl;
+    // unit header
+    unsigned char   chip_id              = event_buf[index+0]; chip_id = ( chip_id & 0x7f );
+    unsigned char   unit_id              = event_buf[index+1];
+    t_chip = chip_id;
+    t_unit = unit_id;
+    //printf("chip#%d, unit#%d\n",(int)chip_id,(int)unit_id);
     
-    unsigned char mark1 = buf[index+0];
+    // ndata 
+    unsigned short tmp_unit_ndata = *(unsigned short*)&event_buf[index+2];
+    tmp_unit_ndata = ((tmp_unit_ndata & 0xff3f)  );
+    unsigned short unit_ndata = ntohs(tmp_unit_ndata);
+    //printf("# of unit unit data (only unit data) : %x (%d)\n",unit_ndata,unit_ndata);
+    
+    // event number
+    unsigned short* tmp_event_number_unit = (unsigned short*)&event_buf[index+4];
+    int event_number_unit = ntohs(*tmp_event_number_unit);
+    unsigned char cksum = event_buf[index+2];
+    cksum = ( cksum & 0x40 );
+    cksum = ( cksum >> 6 );
+    //printf("event number(cksum) : %d(%d)\n", event_number_unit,cksum);
+    /*
+    unsigned char mark1 = event_buf[index+0];
     mark1 = ( mark1 & 0x80 );
     mark1 = ( mark1 >> 7 );
 
-    unsigned char mark2 = buf[index+2];
+    unsigned char mark2 = event_buf[index+2];
     mark2 = ( mark2 & 0x80 );
     mark2 = ( mark2 >> 7 );
-
-    unsigned char cksum = buf[index+2];
-    cksum = ( cksum & 0x40 );
-    cksum = ( cksum >> 6 );
-
-    if( fl_message > 1 ) printf( "Chip-ID=%d, Unit-ID=%d, Length=%d, Event#=%d ] \n", (int)chip_id, (int)unit_id, unit_data_length, event_number );
-    
-    // data for each unit
-    for( int idata=0; idata<unit_data_length; idata++ ){
-      unsigned short* time_info = (unsigned short*)&buf[index+byte_unit_header+idata*byte_unit_data+0];
-      unsigned long*  data      = (unsigned long* )&buf[index+byte_unit_header+idata*byte_unit_data+2];
-      if( fl_message > 2 ) printf( "%3d : (time=%d, data=%x)\n", idata, ntohs(*time_info), ntohl(*data) );
-      t_chip = chip_id;
-      t_unit = unit_id;
-      t_time = ntohs(*time_info);
-
+    */
+    if( fl_message ) printf("   [Unit Header%d] Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(%d)\n",cnt_unit,chip_id,unit_id,unit_ndata,event_number_unit,cksum);
+    // unit data for each unit
+    for( int idata=0; idata<unit_ndata; idata++ ){
+      unsigned short* tmp_time = (unsigned short*)&event_buf[index+byte_unit_header+idata*byte_unit_data+0];
+      unsigned long*  tmp_data = (unsigned long* )&event_buf[index+byte_unit_header+idata*byte_unit_data+2];
+      unsigned short  time     = ntohs(*tmp_time);
+      unsigned short  data     = ntohl(*tmp_data);
+      t_time = time;
+      if( fl_message > 1 ) printf( "%3d : (time=%d, data=%x) : ", idata, time, data );
 
       for( int ibyte=0; ibyte<4; ibyte++ ){ // for-loop from large ch number to small ch number
-	unsigned char byte_data = buf[index+byte_unit_header+idata*byte_unit_data+2+ibyte];
-	
+	unsigned char byte_data = event_buf[index+byte_unit_header+idata*byte_unit_data+2+ibyte];
+
 	if( fl_message > 1 ) std::cout << "("
 				       << (int )((unsigned char)(byte_data)) << " : "
 				       << (bool)((unsigned char)(byte_data & 0x80)) << " "
@@ -243,19 +268,19 @@ int decode( unsigned char *buf, int length ){
 	  }
 	}
       }
-
       tree->Fill();
       init_tree();
     }
     cnt_unit++;
-    index += byte_unit_header+byte_unit_data*unit_data_length;
+    index += byte_unit_header+byte_unit_data*unit_ndata;
   }
 
   return 0;
 }
 
 int main( int argc, char *argv[] ){
-  unsigned char event_buf[1024*1024];
+  const int max_buf = n_chip*n_unit*(byte_unit_header + byte_unit_data*8191)+byte_global_header; // = 786440
+  unsigned char event_buf[max_buf];
   int n;
   
   FILE *fp;
@@ -287,7 +312,6 @@ int main( int argc, char *argv[] ){
   
   while( 1 ){
     n = fill_event_buf( fp, event_buf ); // read one event
-
     if( n < 0 ) break;
     else decode( event_buf, n ); // save it in tree
   }
