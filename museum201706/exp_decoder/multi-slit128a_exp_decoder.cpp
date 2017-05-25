@@ -31,9 +31,6 @@ const int byte_unit_header   = 6;
 const int byte_unit_data     = 6;
 
 int nevt_success = 0;
-
-
-
 int cnt_data = 0; // used for judgement of the endpoint of s-curve
 
 TTree* tree;
@@ -269,6 +266,8 @@ int decode( unsigned char *event_buf, int length ){
 	}
       }
       tree->Fill();
+      cnt_data += t_time_v.size();
+      nevt_success++;
       init_tree();
     }
     cnt_unit++;
