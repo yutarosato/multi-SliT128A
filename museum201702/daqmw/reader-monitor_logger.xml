@@ -78,7 +78,7 @@
                         <param pid="monitorUpdateRate">250</param>
                         <param pid="monitorSamplingRate">25</param>
                         <param pid="sel1chip">0</param>
-                        <param pid="sel1ch">123</param>
+                        <param pid="sel1ch">1</param>
                         <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                </params>

@@ -40,7 +40,7 @@ foreach ICHIP( 0 1 2 3 )
     cd slow_control;
     if( ${ICHIP} == ${CHIP} ) then
        ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL # other DAC = 0 # default
-       #./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLH # other DAC = 0 # default # tmppppp
+       #./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLH # other DAC = 0 # all channel # tmppppp
     else
        ./make_control.sh ${CTRL_CHIP} ${CH} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL
     endif
