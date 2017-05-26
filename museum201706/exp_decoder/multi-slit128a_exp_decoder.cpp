@@ -187,12 +187,10 @@ int decode( unsigned char *event_buf, int length ){
   //printf("unit enable : %x\n", unit_enable);
 
   int index    = byte_global_header;
-  int cnt_unit = 0;
   
   if( fl_message ) printf("[Global Header] evtNo#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x)\n",event_number,total_ndata,(int)nevent_overflow,unit_enable);
 
-  while( cnt_unit<n_chip*n_unit ){ // iterate for 16 units
-    //std::cout << "Unit#" << cnt_unit << std::endl;
+  for( int iunit=0; iunit<n_chip*n_unit; iunit++ ){ // iterate for 16 units
     // unit header
     unsigned char   chip_id              = event_buf[index+0]; chip_id = ( chip_id & 0x7f );
     unsigned char   unit_id              = event_buf[index+1];
@@ -222,7 +220,7 @@ int decode( unsigned char *event_buf, int length ){
     mark2 = ( mark2 & 0x80 );
     mark2 = ( mark2 >> 7 );
     */
-    if( fl_message ) printf("   [Unit Header%d] Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(%d)\n",cnt_unit,chip_id,unit_id,unit_ndata,event_number_unit,cksum);
+    if( fl_message ) printf("   [Unit Header%d] Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(%d)\n",iunit,chip_id,unit_id,unit_ndata,event_number_unit,cksum);
     // unit data for each unit
     for( int idata=0; idata<unit_ndata; idata++ ){
       unsigned short* tmp_time = (unsigned short*)&event_buf[index+byte_unit_header+idata*byte_unit_data+0];
@@ -270,7 +268,6 @@ int decode( unsigned char *event_buf, int length ){
       nevt_success++;
       init_tree();
     }
-    cnt_unit++;
     index += byte_unit_header+byte_unit_data*unit_ndata;
   }
 

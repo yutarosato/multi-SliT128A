@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <configInfo>
    <daqOperator>
-      <hostAddr>127.0.0.1</hostAddr>
+      <hostAddr>192.168.10.2</hostAddr>
    </daqOperator>
    <daqGroups>
       <daqGroup gid="group0">
          <components>
             <component cid="SampleReader0">
-               <hostAddr>127.0.0.1</hostAddr>
+               <hostAddr>192.168.10.2</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleReader0.rtc</instName>
                <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleReader/SampleReaderComp</execPath>
@@ -24,7 +24,7 @@
             </component>
 
             <component cid="Dispatcher0">
-               <hostAddr>127.0.0.1</hostAddr>
+               <hostAddr>192.168.10.2</hostAddr>
                <hostPort>50000</hostPort>
                <instName>Dispatcher0.rtc</instName>
                <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/Dispatcher/DispatcherComp</execPath>
@@ -40,7 +40,7 @@
                <params/>
             </component>
             <component cid="SampleLogger0">
-               <hostAddr>127.0.0.1</hostAddr>
+               <hostAddr>192.168.10.1</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleLogger0.rtc</instName>
                <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleLogger/SampleLoggerComp</execPath>
@@ -51,10 +51,10 @@
                </inPorts>
                <outPorts/>
                <params>
-                  <param pid="dirName">binary_data</param>
+                  <param pid="dirName">/home/SliT/g-2/elech/multi-SliT128A/daqmw/binary_data</param>
                   <param pid="isLogging">yes</param>
                   <param pid="maxFileSizeInMegaByte">1024</param>
-                  <param pid="runsummaryName">run_summary.dat</param>
+                  <param pid="runsummaryName">/home/SliT/g-2/elech/multi-SliT128A/daqmw/run_summary.dat</param>
                   <param pid="VREF0">560</param>
                   <param pid="VREF1">460</param>
                   <param pid="VREF23">360</param>
@@ -64,7 +64,7 @@
             </component>
 
             <component cid="SampleMonitor0">
-               <hostAddr>127.0.0.1</hostAddr>
+               <hostAddr>192.168.10.2</hostAddr>
                <hostPort>50000</hostPort>
                <instName>SampleMonitor0.rtc</instName>
                <execPath>/home/SliT/g-2/elech/multi-SliT128A/daqmw/SampleMonitor/SampleMonitorComp</execPath>

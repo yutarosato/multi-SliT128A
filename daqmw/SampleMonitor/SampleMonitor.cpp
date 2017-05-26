@@ -279,8 +279,8 @@ int SampleMonitor::daq_stop()
   std::cerr << "*** SampleMonitor::stop" << std::endl;
   draw_obj();
   unsigned int runNumber = m_daq_service0.getRunNo();
-  m_canvas->Print( Form("pic/run%d.eps", runNumber) );
-  m_canvas->Print( Form("pic/run%d.png", runNumber) );
+  //m_canvas->Print( Form("pic/run%d.eps", runNumber) );
+  //m_canvas->Print( Form("pic/run%d.png", runNumber) );
   reset_InPort();
   
   return 0;
