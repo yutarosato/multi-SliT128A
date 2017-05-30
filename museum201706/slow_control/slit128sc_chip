@@ -54,7 +54,8 @@ def is_busy(rbcp, ip_address, base_addr):
 def wait_until_ready_or_die(rbcp, ip_address, base_addr):
     busy_count = 0
     while is_busy(rbcp, ip_address, base_addr):
-        time.sleep(0.001)
+        #time.sleep(0.001)
+        time.sleep(0.000001) # save 0.2 sec for 128 ch @20170530
         busy_count += 1
         if busy_count == 1000:
             sys.stderr.write('busy more than 1 second.  exit')
@@ -226,15 +227,7 @@ def main():
 
     send_final_packet(rbcp, ip_address, base_addr)
 
-    G_UNIT_DISABLE(rbcp, ip_address)    
-    SUPPRESS_SCK  (rbcp, ip_address)
-    ZERO_SUPPRESS (rbcp, ip_address)
-    UNIT_ENABLE   (rbcp, ip_address)
-    SET_ZERO_EVENT_NO(rbcp, ip_address, 0)
-    READ_SLOW_CONTROL(rbcp, ip_address)
-    time.sleep(0.03)
-    G_UNIT_ENABLE (rbcp, ip_address)
-
+    SUPPRESS_SCK(rbcp, ip_address)
 
 if __name__ == '__main__':
     main()

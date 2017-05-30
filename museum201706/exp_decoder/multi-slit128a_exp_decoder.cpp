@@ -56,6 +56,14 @@ int   t_rf     = -999;
 int prev_event = -999;
 int prev_ndata = 0;
 
+int numofbits( int bits ){
+  bits = (bits & 0x55555555) + (bits >>  1 & 0x55555555);
+  bits = (bits & 0x33333333) + (bits >>  2 & 0x33333333);
+  bits = (bits & 0x0f0f0f0f) + (bits >>  4 & 0x0f0f0f0f);
+  bits = (bits & 0x00ff00ff) + (bits >>  8 & 0x00ff00ff);
+  return bits = (bits & 0x0000ffff) + (bits >> 16 & 0x0000ffff);
+}
+
 int read_n_bytes( FILE *fp, unsigned char *buf, int nbytes ){ // -1(fread err), 0(end file), +n(correctly read n-byte)
   int n;
   n = fread( buf, 1, nbytes, fp );
@@ -186,17 +194,17 @@ int decode( unsigned char *event_buf, int length ){
   unsigned short* tmp_unit_enable = (unsigned short*)&event_buf[6];
   int unit_enable = ntohs(*tmp_unit_enable);
   //printf("unit enable : %x\n", unit_enable);
-
-  int index    = byte_global_header;
+  int n_active_unit = numofbits( unit_enable);
   
-  if( fl_message ) printf("[Global Header] evtNo#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x)\n",event_number,total_ndata,(int)nevent_overflow,unit_enable);
-  if( total_ndata!=n_time*n_chip*n_unit ){
-    fprintf( stderr, "[Warning] evtNo=%d : Wrong total number of events : %d (correct value is %d)\n", t_event_number, total_ndata,n_time*n_chip*n_unit );
+  if( fl_message ) printf("[Global Header] evtNo#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x=>N=%d)\n",event_number,total_ndata,(int)nevent_overflow,unit_enable,n_active_unit);
+  if( total_ndata!=n_time*n_active_unit ){
+    //fprintf( stderr, "      [Warning] evtNo=%d : Wrong total number of events : %d (correct value is %d)\n", t_event_number, total_ndata,n_time*n_chip*n_unit );
+    printf( "      [Warning] evtNo=%d : Wrong total number of events : %d (correct value is %d)\n", t_event_number, total_ndata,n_time*n_chip*n_unit );
     cnt_warning++;
   }
 
-
-  for( int iunit=0; iunit<n_chip*n_unit; iunit++ ){ // iterate for 16 units
+  int index = byte_global_header;
+  for( int iunit=0; iunit<n_chip*n_unit; iunit++ ){ // iterate for unit head/data
     // unit header
     unsigned char   chip_id              = event_buf[index+0]; chip_id = ( chip_id & 0x7f );
     unsigned char   unit_id              = event_buf[index+1];
@@ -228,15 +236,18 @@ int decode( unsigned char *event_buf, int length ){
     mark2 = ( mark2 & 0x80 );
     mark2 = ( mark2 >> 7 );
     */
-    if( (int)cksum==0 ){
-      fprintf( stderr,"[Warning] Event number shift : evtNo=%d(Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_chip, t_unit, event_number );
+    bool fl_active = ( (unit_enable & (0x0001 << iunit))>> iunit );
+    if( (int)cksum==0 && fl_active ){
+      //fprintf( stderr,"      [Warning] Event number shift : evtNo=%d(Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_chip, t_unit, event_number );
+      printf( "      [Warning] Event number shift : evtNo=%d(Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_chip, t_unit, event_number );
       cnt_warning++;
     }
-    if( unit_ndata!=n_time ){
-      fprintf( stderr, "[Warning] evtNo=%d : Wrong number of events in chip#%d, unit#%d : %d (correct value is %d)\n", event_number, t_chip,t_unit,unit_ndata,n_time );
+    if( unit_ndata!=n_time && fl_active ){
+      //fprintf( stderr, "      [Warning] evtNo=%d : Wrong number of events in chip#%d, unit#%d : %d (correct value is %d)\n", event_number, t_chip,t_unit,unit_ndata,n_time );
+      printf( "      [Warning] evtNo=%d : Wrong number of events in chip#%d, unit#%d : %d (correct value is %d)\n", event_number, t_chip,t_unit,unit_ndata,n_time );
       cnt_warning++;
     }
-    if( fl_message ) printf("   [Unit Header%d] Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(cksum=%d)\n",iunit,chip_id,unit_id,unit_ndata,event_number_unit,cksum);
+    if( fl_message ) printf("   [Unit Header%d] Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,chip_id,unit_id,unit_ndata,event_number_unit,cksum,(int)fl_active);
     // unit data for each unit
     for( int idata=0; idata<unit_ndata; idata++ ){
       unsigned short* tmp_time = (unsigned short*)&event_buf[index+byte_unit_header+idata*byte_unit_data+0];

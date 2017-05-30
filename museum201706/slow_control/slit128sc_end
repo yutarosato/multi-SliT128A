@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import time
+from optparse import OptionParser
+import SitcpRbcp
+import socket
+import struct
+
+# XXX: global variable for options
+options      = {}
+cmdline_args = []
+
+def process_options():
+    global options
+    global cmdline_args
+    global parser
+
+    parser = OptionParser(usage = 'usage: %prog [options] ip_address', version = '%prog 1.0')
+
+    # -d, --debug
+    parser.add_option('-d', '--debug',
+                      action = 'store_true',
+                      dest   = 'debug',
+                      help   = 'show debug message')
+    parser.set_defaults(debug = False)
+
+    # -v, --verbose
+    parser.add_option('-v', '--verbose',
+                      action = 'store_true',
+                      dest   = 'verbose',
+                      help   = 'print verbose message')
+    parser.set_defaults(verbose = False)
+
+    (options, cmdline_args) = parser.parse_args()
+
+def print_options_and_args():
+    # don't need "global options" to read global variable
+    print 'option dump:', options
+
+    if len(cmdline_args) > 0:
+        print 'cmdline_args:', cmdline_args
+
+def is_busy(rbcp, ip_address, base_addr):
+    """FIFO full bit.  Return True if full"""
+    fifo_full_address = base_addr + 0x0b
+    b = ord(rbcp.read_registers(ip_address, fifo_full_address, 1))
+    if (b & 0x80) == 0x80:
+        return True
+
+    return False
+
+def wait_until_ready_or_die(rbcp, ip_address, base_addr):
+    busy_count = 0
+    while is_busy(rbcp, ip_address, base_addr):
+        #time.sleep(0.001)
+        time.sleep(0.000001) # save 0.2 sec for 128 ch @20170530
+        busy_count += 1
+        if busy_count == 1000:
+            sys.stderr.write('busy more than 1 second.  exit')
+            sys.exit(1)
+
+def send_final_packet(rbcp, ip_address, base_addr):
+    data = struct.pack('>B', 0xff)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(data), id = 13, data = data)
+    data = struct.pack('>B', 0x55)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(data), id = 14, data = data)
+
+    wait_until_ready_or_die(rbcp, ip_address, base_addr)
+
+def send_prepare_packet(rbcp, ip_address, base_addr):
+    data = struct.pack('>B', 0x47)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0B, length = len(data), id = 10, data = data)
+    data = struct.pack('>B', 0xff)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(data), id = 11, data = data)
+    data = struct.pack('>B', 0x55)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(data), id = 12, data = data)
+
+    wait_until_ready_or_die(rbcp, ip_address, base_addr)
+
+def SUPPRESS_SCK(rbcp, ip_address):
+    data = struct.pack('>B', 0x00)
+    rbcp.write_registers(ip_address, address = 0x80000007, length = len(data), id = 15, data = data)
+
+def G_UNIT_ENABLE(rbcp, ip_address):
+    data = struct.pack('>B', 0x03) # RST_EVTNO, G_UNIT_ENB
+    rbcp.write_registers(ip_address, address = 0x80000009, length = len(data), id = 18, data = data) # RESET EVTNO
+    data = struct.pack('>B', 0x01) # RST_EVTNO, G_UNIT_ENB
+    rbcp.write_registers(ip_address, address = 0x80000009, length = len(data), id = 19, data = data)
+
+def hl2digit(s):
+    return int(s.replace('L', '0').replace('H', '1'), 2)
+
+def send_value_packet(rbcp, ip_address, base_addr, ch, value):
+    if options.debug:
+        print ip_address, hex(base_addr), ch, value
+
+    first_byte  = hl2digit(value[0:8])
+    second_byte = hl2digit(value[8:16])
+
+    if options.debug:
+        print '%d %0x %0x' % (ch, first_byte, second_byte)
+
+    zero_data   = struct.pack('>B', 0)
+    first_data  = struct.pack('>B', first_byte )
+    second_data = struct.pack('>B', second_byte)
+
+    rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(zero_data),  id = 12, data = zero_data)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(first_data), id = 13, data = first_data)
+
+    wait_until_ready_or_die(rbcp, ip_address, base_addr)
+
+    rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(zero_data),   id = 14, data = zero_data)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(second_data), id = 15, data = second_data)
+
+    wait_until_ready_or_die(rbcp, ip_address, base_addr)
+
+def main():
+    process_options()
+    if options.verbose > 1:
+        print_options_and_args()
+    
+    if len(cmdline_args) != 1:
+        parser.print_usage()
+        sys.exit(1)
+
+    ip_address  = cmdline_args[0]
+
+    if options.debug:
+        print ip_address
+
+    rbcp = SitcpRbcp.SitcpRbcp()
+
+    SUPPRESS_SCK  (rbcp, ip_address)
+    G_UNIT_ENABLE (rbcp, ip_address)
+
+
+if __name__ == '__main__':
+    main()

@@ -17,7 +17,7 @@ def process_options():
     global cmdline_args
     global parser
 
-    parser = OptionParser(usage = 'usage: %prog [options] datafile ip_address', version = '%prog 1.0')
+    parser = OptionParser(usage = 'usage: %prog [options] ip_address', version = '%prog 1.0')
 
     # -d, --debug
     parser.add_option('-d', '--debug',
@@ -54,7 +54,8 @@ def is_busy(rbcp, ip_address, base_addr):
 def wait_until_ready_or_die(rbcp, ip_address, base_addr):
     busy_count = 0
     while is_busy(rbcp, ip_address, base_addr):
-        time.sleep(0.001)
+        #time.sleep(0.001)
+        time.sleep(0.000001) # save 0.2 sec for 128 ch @20170530
         busy_count += 1
         if busy_count == 1000:
             sys.stderr.write('busy more than 1 second.  exit')
@@ -78,14 +79,6 @@ def send_prepare_packet(rbcp, ip_address, base_addr):
 
     wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
-def START_SCK(rbcp, ip_address):
-    data = struct.pack('>B', 0xFF)
-    rbcp.write_registers(ip_address, address = 0x80000007, length = len(data), id = 9, data = data)
-
-def SUPPRESS_SCK(rbcp, ip_address):
-    data = struct.pack('>B', 0x00)
-    rbcp.write_registers(ip_address, address = 0x80000007, length = len(data), id = 15, data = data)
-
 def ZERO_SUPPRESS(rbcp, ip_address):
     data = struct.pack('>B', 0x00)
     #data = struct.pack('>B', 0xFF) # tmpppp
@@ -100,50 +93,6 @@ def UNIT_ENABLE(rbcp, ip_address):
 def G_UNIT_DISABLE(rbcp, ip_address):
     data = struct.pack('>B', 0x00) # RST_EVTNO, G_UNIT_ENB
     rbcp.write_registers(ip_address, address = 0x80000009, length = len(data), id = 17, data = data)
-
-def G_UNIT_ENABLE(rbcp, ip_address):
-    data = struct.pack('>B', 0x03) # RST_EVTNO, G_UNIT_ENB
-    rbcp.write_registers(ip_address, address = 0x80000009, length = len(data), id = 18, data = data) # RESET EVTNO
-    data = struct.pack('>B', 0x01) # RST_EVTNO, G_UNIT_ENB
-    rbcp.write_registers(ip_address, address = 0x80000009, length = len(data), id = 19, data = data)
-
-def SET_ZERO_EVENT_NO(rbcp, ip_address, num):
-    upper_binary = bin(num>>8)
-    lower_binary = bin(num & 0b0000000011111111)
-    upper_byte = int(upper_binary,2)
-    lower_byte = int(lower_binary,2)
-    upper_data = struct.pack('>B', upper_byte)
-    lower_data = struct.pack('>B', lower_byte)
-    
-    rbcp.write_registers(ip_address, address = 0x8000000A, length = len(lower_data), id = 17, data = lower_data)
-    rbcp.write_registers(ip_address, address = 0x8000000B, length = len(upper_data), id = 18, data = upper_data)
-    #if options.debug:
-        #print 'SET ZERO EVENT NO: %0x %0x' % (upper_byte, lower_byte)
-
-def READ_SLOW_CONTROL(rbcp, ip_address):
-    print "++++++++++SLOW CONTROL STATUS ++++++++++++++"
-    data_date = rbcp.read_registers(ip_address, address = 0x80000000, length = 4, id = 1)
-    data_ver  = rbcp.read_registers(ip_address, address = 0x80000004, length = 1, id = 1)
-    print "FPGA (DATE, version) = (%s, %s)" % (data_date.encode('hex'), data_ver.encode('hex'))
-
-    data_unit_enb = rbcp.read_registers(ip_address, address = 0x80000005, length = 2, id = 1)
-    print "%s : UNIT ENABLE(Chip#1,0,3,2[unit(3,2,1,0])" % data_unit_enb.encode('hex')
-
-    data_sck = rbcp.read_registers(ip_address, address = 0x80000007, length = 1, id = 1)
-    print "%s   : SLOW CONTROL CLOCK ENABLE" % data_sck.encode('hex')
-    
-    data_zerosupp = rbcp.read_registers(ip_address, address = 0x80000008, length = 1, id = 1)
-    print "%s   : ZEROSUPP" % data_zerosupp.encode('hex')
-    
-    data_genb = rbcp.read_registers(ip_address, address = 0x80000009, length = 1, id = 1)
-    print "%s   : GLOBAL UNIT ENABLE" % data_genb.encode('hex')
-    
-    data_zeroevtno_L = rbcp.read_registers(ip_address, address = 0x8000000A, length = 1, id = 1)
-    data_zeroevtno_H = rbcp.read_registers(ip_address, address = 0x8000000B, length = 1, id = 1)
-    num_zeroevtno_L  = data_zeroevtno_L.encode('hex')
-    num_zeroevtno_H  = data_zeroevtno_H.encode('hex')
-    print "%s%s : ZERO EVENT NO(->%d)" % (data_zeroevtno_H.encode('hex'),data_zeroevtno_L.encode('hex'), int(num_zeroevtno_L,16)+int(num_zeroevtno_H,16)*256)
-    print "++++++++++++++++++++++++++++++++++++++++++++"
 
 def hl2digit(s):
     return int(s.replace('L', '0').replace('H', '1'), 2)
@@ -177,64 +126,20 @@ def main():
     if options.verbose > 1:
         print_options_and_args()
     
-    if len(cmdline_args) != 2:
+    if len(cmdline_args) != 1:
         parser.print_usage()
         sys.exit(1)
 
-    filename    = cmdline_args[0]
-    ip_address  = cmdline_args[1]
+    ip_address  = cmdline_args[0]
 
     if options.debug:
-        print filename, ip_address
-
-    try:
-        f = open(filename, 'r')
-    except IOError, e:
-        sys.exit(e)
-
-    has_read_dipswitch_line = False
-    values = {} # line storage.  Use dictionary because data origin file has channel number data
-                # channel number may interchange.
-    
-    for line in f:
-        line = line.partition('#')[0]
-        line = line.strip()
-        if line == '':
-            continue
-        # first non-comment line is dipswitch setting for base_addr
-        if has_read_dipswitch_line == False:
-            base_addr = (int(line, 2) << 24)
-            has_read_dipswitch_line = True
-            continue
-        # then channel data
-        (ch, v) = line.split()
-        values[int(ch)] = v
-
-    if options.debug:
-        print 'base_addr: 0x%x' % (base_addr)
-        for ch in sorted(values.keys()):
-            print ch, values[ch]
+        print ip_address
 
     rbcp = SitcpRbcp.SitcpRbcp()
-    START_SCK(rbcp, ip_address)
-
-    send_prepare_packet(rbcp, ip_address, base_addr)
-
-    for ch in sorted(values.keys()):
-        send_value_packet(rbcp, ip_address, base_addr, ch, values[ch])
-        #time.sleep(0.03) # tmpppp
-
-    send_final_packet(rbcp, ip_address, base_addr)
 
     G_UNIT_DISABLE(rbcp, ip_address)    
-    SUPPRESS_SCK  (rbcp, ip_address)
     ZERO_SUPPRESS (rbcp, ip_address)
     UNIT_ENABLE   (rbcp, ip_address)
-    SET_ZERO_EVENT_NO(rbcp, ip_address, 0)
-    READ_SLOW_CONTROL(rbcp, ip_address)
-    time.sleep(0.03)
-    G_UNIT_ENABLE (rbcp, ip_address)
-
 
 if __name__ == '__main__':
     main()
