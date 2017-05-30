@@ -19,19 +19,20 @@
 #include <TGraph.h>
 
 
-const int fl_message = 2; // 0(simple message), 1(normal message), 2(detailed message)
+const int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
-const int n_time =  8192; // pow(2,13)
+const int n_time =  8191; // pow(2,13)
 //const int chip_id[n_chip] = {0,1,2,4};
 
 const int byte_global_header = 8;
 const int byte_unit_header   = 6;
 const int byte_unit_data     = 6;
 
-int nevt_success = 0;
-int cnt_data = 0; // used for judgement of the endpoint of s-curve
+int cnt_warning = 0;
+int cnt_event   = 0;
+int cnt_hit     = 0; // used for judgement of the endpoint of s-curve
 
 TTree* tree;
 int t_event_number;
@@ -94,7 +95,7 @@ int fill_event_buf( FILE *fp, unsigned char *event_buf ){ // 0(correctly read on
   tmp_total_ndata = ((tmp_total_ndata & 0xffffff01)  );
   unsigned long total_ndata = ntohl(tmp_total_ndata);
   total_ndata = (total_ndata >> 8);
-  printf("# of total unit data (only unit data) : %x (%d)\n",total_ndata,total_ndata);
+  //printf("# of total unit data (only unit data) : %x (%d)\n",total_ndata,total_ndata);
   /*
   // event number
   unsigned short* tmp_event_number = (unsigned short*)&event_buf[4];
@@ -110,7 +111,7 @@ int fill_event_buf( FILE *fp, unsigned char *event_buf ){ // 0(correctly read on
 
   // read unit header+data
   int nread = byte_unit_header*n_chip*n_unit + byte_unit_data*total_ndata;
-  std::cout << "total data length (global header + unit header + unit data) = " << byte_unit_header*n_chip*n_unit + byte_unit_data*total_ndata << std::endl;
+  //std::cout << "total data length (global header + unit header + unit data) = " << byte_unit_header*n_chip*n_unit + byte_unit_data*total_ndata << std::endl;
   n = read_n_bytes( fp, &event_buf[event_data_len], nread );
   if( n <= 0 ) return -1;
   event_data_len += nread;
@@ -189,13 +190,18 @@ int decode( unsigned char *event_buf, int length ){
   int index    = byte_global_header;
   
   if( fl_message ) printf("[Global Header] evtNo#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x)\n",event_number,total_ndata,(int)nevent_overflow,unit_enable);
+  if( total_ndata!=n_time*n_chip*n_unit ){
+    fprintf( stderr, "[Warning] evtNo=%d : Wrong total number of events : %d (correct value is %d)\n", t_event_number, total_ndata,n_time*n_chip*n_unit );
+    cnt_warning++;
+  }
+
 
   for( int iunit=0; iunit<n_chip*n_unit; iunit++ ){ // iterate for 16 units
     // unit header
     unsigned char   chip_id              = event_buf[index+0]; chip_id = ( chip_id & 0x7f );
     unsigned char   unit_id              = event_buf[index+1];
-    t_chip = chip_id;
-    t_unit = unit_id;
+    t_chip = (int)chip_id;
+    t_unit = (int)unit_id;
     //printf("chip#%d, unit#%d\n",(int)chip_id,(int)unit_id);
     
     // ndata 
@@ -203,6 +209,7 @@ int decode( unsigned char *event_buf, int length ){
     tmp_unit_ndata = ((tmp_unit_ndata & 0xff3f)  );
     unsigned short unit_ndata = ntohs(tmp_unit_ndata);
     //printf("# of unit unit data (only unit data) : %x (%d)\n",unit_ndata,unit_ndata);
+
     
     // event number
     unsigned short* tmp_event_number_unit = (unsigned short*)&event_buf[index+4];
@@ -210,6 +217,7 @@ int decode( unsigned char *event_buf, int length ){
     unsigned char cksum = event_buf[index+2];
     cksum = ( cksum & 0x40 );
     cksum = ( cksum >> 6 );
+
     //printf("event number(cksum) : %d(%d)\n", event_number_unit,cksum);
     /*
     unsigned char mark1 = event_buf[index+0];
@@ -220,7 +228,15 @@ int decode( unsigned char *event_buf, int length ){
     mark2 = ( mark2 & 0x80 );
     mark2 = ( mark2 >> 7 );
     */
-    if( fl_message ) printf("   [Unit Header%d] Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(%d)\n",iunit,chip_id,unit_id,unit_ndata,event_number_unit,cksum);
+    if( (int)cksum==0 ){
+      fprintf( stderr,"[Warning] Event number shift : evtNo=%d(Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_chip, t_unit, event_number );
+      cnt_warning++;
+    }
+    if( unit_ndata!=n_time ){
+      fprintf( stderr, "[Warning] evtNo=%d : Wrong number of events in chip#%d, unit#%d : %d (correct value is %d)\n", event_number, t_chip,t_unit,unit_ndata,n_time );
+      cnt_warning++;
+    }
+    if( fl_message ) printf("   [Unit Header%d] Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(cksum=%d)\n",iunit,chip_id,unit_id,unit_ndata,event_number_unit,cksum);
     // unit data for each unit
     for( int idata=0; idata<unit_ndata; idata++ ){
       unsigned short* tmp_time = (unsigned short*)&event_buf[index+byte_unit_header+idata*byte_unit_data+0];
@@ -228,21 +244,21 @@ int decode( unsigned char *event_buf, int length ){
       unsigned short  time     = ntohs(*tmp_time);
       unsigned short  data     = ntohl(*tmp_data);
       t_time = time;
-      if( fl_message > 1 ) printf( "%3d : (time=%d, data=%x) : ", idata, time, data );
+      if( fl_message > 1 ) printf( "%4d(t=%4d) : ",idata,time );
 
       for( int ibyte=0; ibyte<4; ibyte++ ){ // for-loop from large ch number to small ch number
 	unsigned char byte_data = event_buf[index+byte_unit_header+idata*byte_unit_data+2+ibyte];
-
-	if( fl_message > 1 ) std::cout << "("
-				       << (int )((unsigned char)(byte_data)) << " : "
-				       << (bool)((unsigned char)(byte_data & 0x80)) << " "
-				       << (bool)((unsigned char)(byte_data & 0x40)) << " "
-				       << (bool)((unsigned char)(byte_data & 0x20)) << " "
-				       << (bool)((unsigned char)(byte_data & 0x10)) << "  "
-				       << (bool)((unsigned char)(byte_data & 0x08)) << " "
-				       << (bool)((unsigned char)(byte_data & 0x04)) << " "
-				       << (bool)((unsigned char)(byte_data & 0x02)) << " "
-				       << (bool)((unsigned char)(byte_data & 0x01)) << ") ";
+	if( fl_message > 1 ) printf( " %2x(%d%d%d%d %d%d%d%d)",
+				     (int)((unsigned char)(byte_data)),
+				     (bool)((unsigned char)(byte_data & 0x80)),
+				     (bool)((unsigned char)(byte_data & 0x40)),
+				     (bool)((unsigned char)(byte_data & 0x20)),
+				     (bool)((unsigned char)(byte_data & 0x10)),
+				     (bool)((unsigned char)(byte_data & 0x08)),
+				     (bool)((unsigned char)(byte_data & 0x04)),
+				     (bool)((unsigned char)(byte_data & 0x02)),
+				     (bool)((unsigned char)(byte_data & 0x01))
+				     );
 	if( fl_message > 1 && ibyte==3 ) std::cout << std::endl;
 	
 	t_data[7+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x80)) ); // bit-flip correction // modified for ch-map correction @20161004
@@ -263,13 +279,15 @@ int decode( unsigned char *event_buf, int length ){
 	  }
 	}
       }
-      tree->Fill();
-      cnt_data += t_time_v.size();
-      nevt_success++;
-      init_tree();
+
     }
+    
     index += byte_unit_header+byte_unit_data*unit_ndata;
   }
+  tree->Fill();
+  cnt_hit += t_time_v.size();
+  cnt_event ++;
+  init_tree();
 
   return 0;
 }
@@ -312,18 +330,19 @@ int main( int argc, char *argv[] ){
     else decode( event_buf, n ); // save it in tree
   }
 
-  std::cout << "#event = "  << nevt_success << ", "
-	    << "#hit = "    << cnt_data
+  std::cout << "#event = "   << cnt_event   << ", "
+	    << "#hit = "     << cnt_hit     << ", "
+	    << "#warning = " << cnt_warning
 	    << std::endl;
   //std::ofstream outlog("tmp.log");
-  //outlog << cnt_data << std::endl;
+  //outlog << cnt_hit << std::endl;
   
   tree->Write();
   outfile.Close();
 
   delete_tree();
 
-  if( cnt_data ) return 0;
-  else           return 1; // no hit !
+  if( cnt_hit ) return 0;
+  else          return 1; // no hit !
   //return 0;
 }
