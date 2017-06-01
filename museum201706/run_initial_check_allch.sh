@@ -17,8 +17,8 @@ set CTRL_DAC = $4
 
 (cd slow_control; make || exit;)
 (cd exp_decoder;  make || exit;)
-(cd ana;          make || exit;) # tmpppp
-#./run_offset_all_off.sh # tmppp
+(cd ana;          make || exit;)
+./run_offset_all_off.sh
 
 set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
 if( ${CTRL_DAC} < 1 ) then

@@ -10,11 +10,11 @@ set CTRL_DAC = 0
 (cd slow_control; make || exit)
 
 set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
-      if( ${CTRL_DAC} < 1 ) then
-        set CTRL_DAC_BIT = `printf "L%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
-      else
-        set CTRL_DAC_BIT = `printf "H%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
-      endif
+if( ${CTRL_DAC} < 1 ) then
+    set CTRL_DAC_BIT = `printf "L%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
+else
+    set CTRL_DAC_BIT = `printf "H%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
+endif
 echo "   DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}"
 
 cd slow_control;
@@ -28,7 +28,8 @@ foreach IBOARD( ${BOARD_LIST} )
 	set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
 	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
 	# <Slow Control>
-        ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLL LLLLL${CTRL_DAC_BIT}LLHLL # default (all off)
+        ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default (all off)
+        #./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLL LLLLL${CTRL_DAC_BIT}LLHLL # digital output is ON
 	
 	while (1)
 	    ./slit128sc_chip  files/control_${IBOARD}_${CTRL_CHIP}.dat 192.168.${IBOARD}.${IP};

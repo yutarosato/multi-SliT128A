@@ -22,11 +22,11 @@ set CHIP_LIST  = "0 1 2 3"
 #./run_offset_all_off.sh # tmppp
 
 set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
-      if( ${CTRL_DAC} < 1 ) then
-        set CTRL_DAC_BIT = `printf "L%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
-      else
-        set CTRL_DAC_BIT = `printf "H%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
-      endif
+if( ${CTRL_DAC} < 1 ) then
+    set CTRL_DAC_BIT = `printf "L%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
+else
+    set CTRL_DAC_BIT = `printf "H%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
+endif
 echo "   DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}"
 
 cd slow_control;

@@ -358,8 +358,8 @@ int main( int argc, char *argv[] ){
 	    << "#hit = "     << cnt_hit     << ", "
 	    << "#warning = " << cnt_warning
 	    << std::endl;
-  //std::ofstream outlog("tmp.log");
-  //outlog << cnt_hit << std::endl;
+  std::ofstream outlog("tmp.log");
+  outlog << cnt_hit << std::endl;
   
   tree->Write();
   outfile.Close();
