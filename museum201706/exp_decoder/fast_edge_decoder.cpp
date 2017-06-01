@@ -17,7 +17,6 @@ const int n_chip =     4; // or 16 ?
 const int n_unit =     4;
 const int n_bit  =    32;
 const int n_time =  8192; // pow(2,13)
-//const int chip_id[n_chip] = {0,1,2,4};
 
 int t_now_ledge  [n_chip*n_unit*n_bit] = {0};
 int t_now_tedge  [n_chip*n_unit*n_bit] = {0};
@@ -27,12 +26,14 @@ int t_prev_tedge [n_chip*n_unit*n_bit] = {0};
 int t_event;
 
 // for read
+std::vector<int>* t_board_v;
 std::vector<int>* t_chip_v;
 std::vector<int>* t_unit_v;
 std::vector<int>* t_bit_v;
 std::vector<int>* t_time_v;
 
 // for write
+std::vector<int> t2_board_v;
 std::vector<int> t2_chip_v;
 std::vector<int> t2_unit_v;
 std::vector<int> t2_bit_v;
@@ -51,6 +52,7 @@ int   t_rf     = -999;
 int set_tree( TTree* tree ){
   tree->Branch( "event",       &t_event,  "event/I" );
   tree->Branch( "rf",          &t_rf,     "rf/I"    );
+  tree->Branch( "board",       &t2_board_v      );
   tree->Branch( "chip",        &t2_chip_v       );
   tree->Branch( "unit",        &t2_unit_v       );
   tree->Branch( "bit",         &t2_bit_v        );
@@ -76,6 +78,7 @@ int init_tree(){
     t_prev_tedge[i] = -999;
   }
   
+  t2_board_v.clear();
   t2_chip_v.clear();
   t2_unit_v.clear();
   t2_bit_v.clear();
@@ -91,6 +94,7 @@ int init_tree(){
 Int_t set_readbranch( TChain* tree ){
   tree->SetBranchAddress("event", &t_event   );
   tree->SetBranchAddress("rf",    &t_rf      );
+  tree->SetBranchAddress("board", &t_board_v );
   tree->SetBranchAddress("chip",  &t_chip_v  );
   tree->SetBranchAddress("unit",  &t_unit_v  );
   tree->SetBranchAddress("bit",   &t_bit_v   );
@@ -195,6 +199,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	    t2_tedge_v.push_back     ( t_now_tedge [*it_prev]       );
 	    t2_prev_ledge_v.push_back( t_prev_ledge[*it_prev]       );
 	    t2_prev_tedge_v.push_back( t_prev_tedge[*it_prev]       );
+	    //t2_board_v.push_back     ( rev_ch_map_board  (*it_prev) );
 	    t2_chip_v.push_back      ( rev_ch_map_chip   (*it_prev) );
 	    t2_unit_v.push_back      ( rev_ch_map_unit   (*it_prev) );
 	    t2_bit_v.push_back       ( rev_ch_map_bit    (*it_prev) );
