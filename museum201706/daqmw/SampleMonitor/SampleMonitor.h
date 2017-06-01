@@ -78,10 +78,6 @@ private:
   ////////// ROOT Histogram //////////
   TCanvas* m_canvas;
 
-  TH1I* m_hist_bit_1ch_1evt;
-  TH1I* m_hist_hit_1ch_1evt;
-  TH1I* m_hist_bit_1ch_int;
-  TH1I* m_hist_hit_1ch_int;
   TH2I* m_hist_bit_allch_1evt;
   TH2I* m_hist_hit_allch_1evt;
   TH2I* m_hist_bit_allch_int;
@@ -99,12 +95,10 @@ private:
   // external parameters
   int      m_monitor_update_rate;
   int      m_monitor_sampling_rate;
-  int      m_obs_chip;
-  int      m_obs_ch;
   int      th_width; // bin
   int      th_span;  // bin
 
-  static const int n_board = 4;
+  static const int n_board =     4;
   static const int n_chip  =     4;
   static const int n_unit  =     4;
   static const int n_bit   =    32;
