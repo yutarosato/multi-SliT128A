@@ -1,24 +1,23 @@
 #! /bin/tcsh -f
 
 if( $#argv < 3 )then
-    echo " Usage : $0 [board] [chip] [channel] [DAC]"
-    echo "Example: $0    2       0      60       31"
+    echo " Usage : $0 [board] [chip] [DAC]"
+    echo "Example: $0    2       0     31"
     echo "         board   : 2-5 & 3-6 (MuSEUM BT@201706)"
     echo "         chip    : 0~3"
-    echo "         channel : 0~127"
     echo "         DAC     : -31~31"
   exit 1
 endif
 
 set BOARD    = $1
 set CHIP     = $2
-set CHANNEL  = $3
-set CTRL_DAC = $4
+set CHANNEL  = 0
+set CTRL_DAC = $3
 
 (cd slow_control; make || exit;)
 (cd exp_decoder;  make || exit;)
 (cd ana;          make || exit;)
-./run_offset_all_off.sh
+./run_offset_all_off.sh # all off
 
 set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
 if( ${CTRL_DAC} < 1 ) then
@@ -40,7 +39,7 @@ foreach IBOARD( ${BOARD} )
 	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
 	# <Slow Control>
 	if( ${ICHIP} == ${CHIP} ) then
-	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLHLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLH # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
 	else
 	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default
 	endif
@@ -58,13 +57,15 @@ cd  ../
 set OUTNAME = "test.dat"
 
 # <Take Data>
-nc -d 192.168.${IBOARD}.${IP} > test.dat &
+nc -d 192.168.${IBOARD}.${IP} 24 > test.dat &
 sleep 2
+#sleep 6
+#sleep 12
 kill -9 $!
 
 # <Decode>
 cd exp_decoder;
-./multi-slit128da_exp_decoder ../test.root ../test.dat 0.0 0.0 ${CHANNEL} ${CTRL_DAC} # && rm -f ../test.dat
+./multi-slit128a_exp_decoder ../test.root ../test.dat 0.0 0.0 ${CHANNEL} ${CTRL_DAC} # && rm -f ../test.dat
 cd ../
 
 # <Plot>

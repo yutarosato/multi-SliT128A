@@ -40,7 +40,7 @@ foreach IBOARD( ${BOARD} )
 	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
 	# <Slow Control>
 	if( ${ICHIP} == ${CHIP} ) then
-	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLHLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
 	else
 	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default
 	endif
@@ -58,13 +58,13 @@ cd  ../
 set OUTNAME = "test.dat"
 
 # <Take Data>
-nc -d 192.168.${IBOARD}.${IP} > test.dat &
+nc -d 192.168.${IBOARD}.${IP} 24 > test.dat &
 sleep 2
 kill -9 $!
 
 # <Decode>
 cd exp_decoder;
-./multi-slit128da_exp_decoder ../test.root ../test.dat 0.0 0.0 ${CHANNEL} ${CTRL_DAC} # && rm -f ../test.dat
+./multi-slit128a_exp_decoder ../test.root ../test.dat 0.0 0.0 ${CHANNEL} ${CTRL_DAC} # && rm -f ../test.dat
 cd ../
 
 # <Plot>

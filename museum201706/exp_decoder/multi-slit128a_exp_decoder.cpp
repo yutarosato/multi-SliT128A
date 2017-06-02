@@ -19,7 +19,7 @@
 #include <TGraph.h>
 
 
-const int fl_message = 2; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
+const int fl_message = 1; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
@@ -204,11 +204,13 @@ int decode( unsigned char *event_buf, int length ){
   int n_active_unit = numofbits( unit_enable);
   
   if( fl_message ) printf("[Global Header] evtNo#%d,Board#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x=>N=%d)\n",event_number,(int)header_board_id,total_ndata,(int)nevent_overflow,unit_enable,n_active_unit);
+  /*
   if( total_ndata!=n_time*n_active_unit ){
     //fprintf( stderr, "      [Warning] evtNo=%d, board#%d : Wrong total number of events : %d (correct value is %d)\n", t_event_number, t_board, total_ndata,n_time*n_chip*n_unit );
     printf( "      [Warning] evtNo=%d, board#%d : Wrong total number of events : %d (correct value is %d)\n", t_event_number, t_board, total_ndata,n_time*n_chip*n_unit );
     cnt_warning++;
   }
+  */
 
   int index = byte_global_header;
   for( int iunit=0; iunit<n_chip*n_unit; iunit++ ){ // iterate for unit head/data
@@ -254,11 +256,13 @@ int decode( unsigned char *event_buf, int length ){
       printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_chip, t_unit, event_number );
       cnt_warning++;
     }
+    /*
     if( unit_ndata!=n_time && fl_active ){
       //fprintf( stderr, "      [Warning] evtNo=%d : Wrong number of events in board#%d, chip#%d, unit#%d : %d (correct value is %d)\n", event_number, t_board,t_chip,t_unit,unit_ndata,n_time );
       printf( "      [Warning] evtNo=%d : Wrong number of events in board#%d, chip#%d, unit#%d : %d (correct value is %d)\n", event_number, t_board,t_chip,t_unit,unit_ndata,n_time );
       cnt_warning++;
     }
+    */
 
     // unit data for each unit
     for( int idata=0; idata<unit_ndata; idata++ ){

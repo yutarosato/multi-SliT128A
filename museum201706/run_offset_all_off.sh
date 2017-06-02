@@ -28,8 +28,8 @@ foreach IBOARD( ${BOARD_LIST} )
 	set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
 	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
 	# <Slow Control>
-        #./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default (all off)
-        ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLL LLLLL${CTRL_DAC_BIT}LLHLL # digital output is ON
+        ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default (all off)
+        #./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLL LLLLL${CTRL_DAC_BIT}LLHLL # digital output is ON
 	
 	while (1)
 	    ./slit128sc_chip  files/control_${IBOARD}_${CTRL_CHIP}.dat 192.168.${IBOARD}.${IP};
