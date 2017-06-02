@@ -97,11 +97,6 @@ def READ_SLOW_CONTROL(rbcp, ip_address):
     data_genb = rbcp.read_registers(ip_address, address = 0x80000009, length = 1, id = 1)
     print "%s   : GLOBAL UNIT ENABLE" % data_genb.encode('hex')
     
-    data_zeroevtno_L = rbcp.read_registers(ip_address, address = 0x8000000A, length = 1, id = 1)
-    data_zeroevtno_H = rbcp.read_registers(ip_address, address = 0x8000000B, length = 1, id = 1)
-    num_zeroevtno_L  = data_zeroevtno_L.encode('hex')
-    num_zeroevtno_H  = data_zeroevtno_H.encode('hex')
-    print "%s%s : ZERO EVENT NO(->%d)" % (data_zeroevtno_H.encode('hex'),data_zeroevtno_L.encode('hex'), int(num_zeroevtno_L,16)+int(num_zeroevtno_H,16)*256)
     print "++++++++++++++++++++++++++++++++++++++++++++"
 
 def hl2digit(s):

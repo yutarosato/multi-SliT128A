@@ -88,7 +88,7 @@ int MTree::decode_data(const unsigned char* event_buf, int length)
 
   // board-ID
   unsigned char header_board_id = event_buf[0];
-  header_board_id = ( header_board_id >> 4 );
+  header_board_id = ( header_board_id & 0x0f );
   //printf("Board-ID : %d\n",(int)header_board_id);
   
   // over-flow event counter
