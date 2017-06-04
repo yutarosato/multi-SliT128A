@@ -1,8 +1,8 @@
 #! /bin/tcsh -f
 
 #set BOARD_LIST = "2 3 5 6"
-set BOARD_LIST = "2 5" # tmppp
-#set BOARD_LIST = "2" # tmppp
+#set BOARD_LIST = "2 5" # tmppp
+set BOARD_LIST = "2" # tmppp
 set CHIP_LIST  = "0 1 2 3"
 
 set CHANNEL  = 0
@@ -29,7 +29,7 @@ foreach IBOARD( ${BOARD_LIST} )
 	set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
 	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
 	# <Slow Control>
-        ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default (all off)
+        ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLH # test pulse(ON), digital output(ON)
 	
 	while (1)
 	    ./slit128sc_chip  files/control_${IBOARD}_${CTRL_CHIP}.dat 192.168.${IBOARD}.${IP};

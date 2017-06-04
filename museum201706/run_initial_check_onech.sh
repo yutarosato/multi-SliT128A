@@ -1,6 +1,6 @@
 #! /bin/tcsh -f
 
-if( $#argv < 3 )then
+if( $#argv < 4 )then
     echo " Usage : $0 [board] [chip] [channel] [DAC]"
     echo "Example: $0    2       0      60       31"
     echo "         board   : 2-5 & 3-6 (MuSEUM BT@201706)"
@@ -15,10 +15,10 @@ set CHIP     = $2
 set CHANNEL  = $3
 set CTRL_DAC = $4
 
-(cd slow_control; make || exit;)
-(cd exp_decoder;  make || exit;)
-(cd ana;          make || exit;)
-./run_offset_all_off.sh
+(cd slow_control; (make || exit;))
+(cd exp_decoder;  (make || exit;))
+(cd ana;          (make || exit;))
+./run_offset_all_off.sh # tmppp
 
 set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
 if( ${CTRL_DAC} < 1 ) then
@@ -58,17 +58,18 @@ cd  ../
 set OUTNAME = "test.dat"
 
 # <Take Data>
-nc -d 192.168.${IBOARD}.${IP} 24 > test.dat &
+nc -d 192.168.${BOARD}.${IP} 24 > test.dat &
 sleep 2
 kill -9 $!
 
 # <Decode>
 cd exp_decoder;
-./multi-slit128a_exp_decoder ../test.root ../test.dat 0.0 0.0 ${CHANNEL} ${CTRL_DAC} # && rm -f ../test.dat
+./multi-slit128a_exp_decoder_for_scurve ../test.root ../test.dat 0.0 0.0 ${BOARD} ${CHIP} ${CHANNEL} ${CTRL_DAC}
 cd ../
+
 
 # <Plot>
 cd ana;
 #./qc_allch ../test.root ${CHIP}
-./qc_onech ../test.root ${CHIP} ${CH} ${CH} ${CTRL_DAC}
+./qc_onech ../test.root ${BOARD} ${CHIP} ${CHANNEL} ${CTRL_DAC}
 

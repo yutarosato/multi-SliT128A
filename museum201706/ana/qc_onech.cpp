@@ -103,15 +103,15 @@ Int_t main( Int_t argc, Char_t** argv ){
   if( !(app.Argc()==6) )
     std::cerr << "Wrong input" << std::endl
 	      << "Usage : " << app.Argv(0)
-	      << " (char*)infilename (int)chip_id (int)obs_ch (int)tp_ch (int)dac" << std::endl
+	      << " (char*)infilename (int)board_id (int)chip_id (int)channel_id (int)dac" << std::endl
 	      << "[e.g]" << std::endl
-	      << app.Argv(0) << " test.root 0 60 60 30" << std::endl
+	      << app.Argv(0) << " test.root 2 0 60 30" << std::endl
 	      << std::endl, abort();
 
   Char_t* infilename = app.Argv(1);
-  Int_t   chip_id    = atoi( app.Argv(2) );
-  Int_t   obs_ch     = atoi( app.Argv(3) );
-  Int_t   tp_ch      = atoi( app.Argv(4) );
+  Int_t   board_id   = atoi( app.Argv(2) );
+  Int_t   chip_id    = atoi( app.Argv(3) );
+  Int_t   channel_id = atoi( app.Argv(4) );
   Int_t   dac        = atoi( app.Argv(5) );
   
   std::string basename = gSystem->BaseName( infilename );
@@ -130,19 +130,20 @@ Int_t main( Int_t argc, Char_t** argv ){
   hist_span   ->SetLineColor(2);
   hist_1ch_int->SetLineColor(2);
 
-  hist_nsig   ->SetName( Form("hist_%s_obsch%03d_tpch%03d_dac%d","nsig",   obs_ch,tp_ch,dac) );
-  hist_nring  ->SetName( Form("hist_%s_obsch%03d_tpch%03d_dac%d","nring",  obs_ch,tp_ch,dac) );
-  hist_width  ->SetName( Form("hist_%s_obsch%03d_tpch%03d_dac%d","width",  obs_ch,tp_ch,dac) );
-  hist_span   ->SetName( Form("hist_%s_obsch%03d_tpch%03d_dac%d","span",   obs_ch,tp_ch,dac) );
-  hist_1ch_int->SetName( Form("hist_%s_obsch%03d_tpch%03d_dac%d","1ch_int",obs_ch,tp_ch,dac) );
-  hist_wid_tim->SetName( Form("hist_%s_obsch%03d_tpch%03d_dac%d","wid_tim",obs_ch,tp_ch,dac) );
+  hist_nsig   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nsig",   channel_id,dac) );
+  hist_nring  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nring",  channel_id,dac) );
+  hist_width  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","width",  channel_id,dac) );
+  hist_span   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","span",   channel_id,dac) );
+  hist_1ch_int->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","1ch_int",channel_id,dac) );
+  hist_wid_tim->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","wid_tim",channel_id,dac) );
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   TChain* chain = new TChain("slit128A");
   chain->Add(infilename);
-  if( chain->GetEntries( Form("selch==%d && dac==%d",tp_ch,dac) )==0 ) return 0;
+  if( chain->GetEntries( Form("tpboard==%d && tpchip==%d && tpchannel==%d && dac==%d",board_id,chip_id,channel_id,dac) )==0 ) return 0;
+  std::cout << chain->GetEntries( Form("tpboard==%d && tpchip==%d && tpchannel==%d && dac==%d",board_id,chip_id,channel_id,dac) ) << std::endl;
   set_readbranch_scan(chain);
-  //set_readbranch(chain);
+  set_readbranch(chain);
 
   if( fl_message ) printf( "[input] %s : %d entries\n", infilename, (Int_t)chain->GetEntries() );
 
@@ -155,7 +156,6 @@ Int_t main( Int_t argc, Char_t** argv ){
   TH1I** hist_1ch_div = new TH1I*[ndiv];
   for( Int_t idiv=0; idiv<ndiv; idiv++ ){
     hist_1ch_div[idiv] = new TH1I( Form("hist_1ch_div%d",idiv), "hist;Time [bit];Channel", n_time/ndiv, idiv*n_time/ndiv, (idiv+1)*n_time/ndiv );
-    //hist_1ch_div[idiv] = new TH1I( Form("hist_1ch_div%d",idiv), "hist;Time [bit];Channel", n_time/ndiv/4.0, (idiv+0.75)*n_time/ndiv, (idiv+1)*n_time/ndiv ); // tmpp for more zoom view
     hist_1ch_div[idiv]->SetLineColor(2);    
     hist_1ch_div[idiv]->SetLabelSize(0.17,"XY");
   }
@@ -169,16 +169,18 @@ Int_t main( Int_t argc, Char_t** argv ){
     chain->GetEntry(ievt);
     hist_1ch  ->Reset();
     for( Int_t idiv=0; idiv<ndiv; idiv++ ) hist_1ch_div[idiv]->Reset();
-    if( dac    != t_dac   ) continue; // dac value
-    if( tp_ch  != t_selch ) continue; // test puse channel
+    if( dac         != t_dac       ) continue; // dac value
+    if( board_id    != t_tpboard   ) continue; // board
+    if( chip_id     != t_tpchip    ) continue; // chip
+    if( channel_id  != t_tpchannel ) continue; // channel
     for( Int_t ivec=0; ivec<t_unit_v->size(); ivec++ ){
-      if( chip_id!=t_chip_v->at(ivec) ) continue;
-      if( obs_ch != ch_map(t_unit_v->at(ivec),t_bit_v->at(ivec)) ) continue; // observed channel
+      if( board_id   != t_board_v->at(ivec)                          ) continue; // board
+      if( chip_id    != t_chip_v ->at(ivec)                          ) continue; // chip
+      if( channel_id != ch_map(t_unit_v->at(ivec),t_bit_v->at(ivec)) ) continue; // channel
       hist_1ch->Fill( t_time_v->at(ivec) );
       for( Int_t idiv=0; idiv<ndiv; idiv++ ) hist_1ch_div[idiv]->Fill( t_time_v->at(ivec) );
     }
 
-    std::cout << hist_1ch->GetEntries() << " entries" << std::endl;
     if( hist_1ch->GetEntries()==0 ){
       hist_nsig->Fill(0);
       continue;
@@ -186,8 +188,8 @@ Int_t main( Int_t argc, Char_t** argv ){
 
     detect_signal( hist_1ch );
     
-    if( fl_message ) printf( "  [Event:%d,Chip:%d,Channel:(obs)%d,(tp)%d] %d entries\n",    t_event,chip_id,obs_ch,tp_ch, (Int_t)hist_1ch->Integral() );
-    hist_1ch->SetTitle( Form("Event : %d, Chip : %d, Channel : (obs)%d,(tp)%d, %d entries", t_event,chip_id,obs_ch,tp_ch, (Int_t)hist_1ch->Integral()) );
+    if( fl_message ) printf( "  [Event:%d,Board:%d,Chip:%d,Channel:%d] %d entries\n", t_event, board_id, chip_id, channel_id, (Int_t)hist_1ch->Integral() );
+    hist_1ch->SetTitle( Form("Event:%d, Board:%d, Chip:%d, Channel:%d, %d entries",   t_event, board_id, chip_id, channel_id, (Int_t)hist_1ch->Integral()) );
     
     if( cnt_show++ < fl_show ){
       can1->cd(1); hist_1ch->Draw();
@@ -196,15 +198,16 @@ Int_t main( Int_t argc, Char_t** argv ){
 	hist_1ch_div[idiv]->Draw();
       }
       can1->cd(1);
-      tex1->DrawTextNDC( 0.15, 0.92, Form("Event : %d, Chip : %d, Channel : (obs)%d,(tp)%d, DAC : %d (%d entries)", t_event,chip_id,obs_ch,tp_ch, dac, (Int_t)hist_1ch->Integral()) );
+      tex1->DrawTextNDC( 0.15, 0.92, Form("Event:%d, Board:%d, Chip:%d, Channel:%d, DAC : %d (%d entries)",
+					  t_event, board_id, chip_id, channel_id, dac, (Int_t)hist_1ch->Integral()) );
       can1->Update();
       can1->WaitPrimitive();
-      //if( cnt_show==1 ) can1->Print( Form("pic/%s_obsch%03d_tpch%03d_dac%d_can1.ps",basename.c_str(),obs_ch,tp_ch,dac) );
+      //if( cnt_show==1 ) can1->Print( Form("pic/%s_board%d_chip%d_channel%03d_dac%d_can1.ps",basename.c_str(),board_id,chip_id,channel_id,dac) );
     }
   }
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  TCanvas* can2 = new TCanvas( Form("can_obsch%03d_tpch%03d_dac%d",obs_ch,tp_ch,dac), Form("can2"), 1600, 800 );
+  TCanvas* can2 = new TCanvas( Form("can_board%d_chip%d_channel%03d_dac%d",board_id,chip_id,channel_id,dac), Form("can2"), 1600, 800 );
   sty->SetOptStat(1111111);
   can2->Draw();
   can2->Divide(3,2);
@@ -215,9 +218,9 @@ Int_t main( Int_t argc, Char_t** argv ){
   can2->cd(5); hist_1ch_int->Draw();
   can2->cd(6); hist_wid_tim->Draw("COLZ");
   can2->cd(4);
-  tex2->DrawTextNDC( 0.20, 0.75, Form("Chip = %d",         chip_id       ) );
-  tex2->DrawTextNDC( 0.20, 0.70, Form("Ch(obs) = %d",      obs_ch        ) );
-  tex2->DrawTextNDC( 0.20, 0.65, Form("Ch(tp) = %d",       tp_ch         ) );
+  tex2->DrawTextNDC( 0.20, 0.75, Form("Board = %d",        board_id      ) );
+  tex2->DrawTextNDC( 0.20, 0.70, Form("Chip = %d",         chip_id       ) );
+  tex2->DrawTextNDC( 0.20, 0.65, Form("Channel = %d",      channel_id    ) );
   tex2->DrawTextNDC( 0.20, 0.60, Form("DAC = %d",          dac           ) );
   tex2->DrawTextNDC( 0.20, 0.55, Form("span = %d",         th_span       ) );
   tex2->DrawTextNDC( 0.20, 0.50, Form("width = %d",        th_width      ) );
@@ -239,44 +242,32 @@ Int_t main( Int_t argc, Char_t** argv ){
   Double_t sig_widthE = hist_width->GetMeanError(); // hist_width->GetRMS();
   Double_t span       = hist_span ->GetMean();
   Double_t spanE      = hist_span ->GetMeanError(); // hist_span ->GetRMS();
-  std::cout << std::setw(15) << std::right << dac        << " "
-	    << std::setw(15) << std::right << t_vref     << " "
-	    << std::setw(15) << std::right << t_tpchg    << " "
-	    << std::setw(15) << std::right << sig_eff    << " "
-	    << std::setw(15) << std::right << sig_effE   << " "
-	    << std::setw(15) << std::right << ring_prob  << " "
-	    << std::setw(15) << std::right << ring_probE << " "
-	    << std::setw(15) << std::right << sig_width  << " "
-	    << std::setw(15) << std::right << sig_widthE << " "
-	    << std::setw(15) << std::right << span       << " "
-	    << std::setw(15) << std::right << spanE      << " "
-	    << std::setw(15) << std::right << obs_ch     << " "
-	    << std::setw(15) << std::right << tp_ch      << " "
-	    << " OBSCH" << obs_ch //  observed  channel-No
-	    << "TPCH"   << tp_ch  // test pulse channel-No
+  std::cout << std::setw(15) << std::right << dac         << " "
+	    << std::setw(15) << std::right << t_vref      << " "
+	    << std::setw(15) << std::right << t_tpchg     << " "
+	    << std::setw(15) << std::right << sig_eff     << " "
+	    << std::setw(15) << std::right << sig_effE    << " "
+	    << std::setw(15) << std::right << ring_prob   << " "
+	    << std::setw(15) << std::right << ring_probE  << " "
+	    << std::setw(15) << std::right << sig_width   << " "
+	    << std::setw(15) << std::right << sig_widthE  << " "
+	    << std::setw(15) << std::right << span        << " "
+	    << std::setw(15) << std::right << spanE       << " "
+	    << std::setw(15) << std::right << board_id    << " "
+	    << std::setw(15) << std::right << chip_id     << " "
+	    << std::setw(15) << std::right << channel_id  << " "
+	    << " BOARD"   << board_id   //  board-No
+	    << " CHIP"    << chip_id    //  chip-No
+	    << " CHANNEL" << channel_id //  channel-No
 	    << "HOGE"   << std::endl;
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  TTree* newtree = new TTree( Form("meta_obsch%03d_tpch%03d_dac%d",obs_ch,tp_ch,dac), "meta for timing" );
+  TTree* newtree = new TTree( Form("meta_board%d_chip%d_channel%03d_dac%d",board_id,chip_id,channel_id,dac), "meta for timing" );
   if( chain->GetEntries() ) chain->GetEntry(0);
   newtree->Branch( "dac",    &dac,     "dac/I"   );
   newtree->Branch( "tpchg",  &t_tpchg, "tpchg/F" );
   newtree->Fill();
 
-  /*
-  TFile outfile( Form("pic/%s_obsch%03d_tpch%03d_dac%d.root",basename.c_str(),obs_ch,tp_ch,dac), "RECREATE" );
-  // To save data size, some histogram might be omitted.
-  hist_nsig   ->Write();
-  hist_nring  ->Write();
-  hist_width  ->Write();
-  hist_span   ->Write();
-  hist_1ch_int->Write();
-  hist_wid_tim->Write();
-  newtree->Write();
-  //can2->Write();
-  outfile.Close();
-  can2->Print( Form("pic/%s_obsch%03d_tpch%03d_dac%d_can2.ps",basename.c_str(),obs_ch,tp_ch,dac) );
-  */
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   if( fl_message ) std::cout << "finish" << std::endl;

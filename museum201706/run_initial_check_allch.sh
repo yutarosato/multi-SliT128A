@@ -1,18 +1,17 @@
 #! /bin/tcsh -f
 
-if( $#argv < 3 )then
-    echo " Usage : $0 [board] [chip] [DAC]"
-    echo "Example: $0    2       0     31"
+if( $#argv < 2 )then
+    echo " Usage : $0 [board] [DAC]"
+    echo "Example: $0    2      31"
     echo "         board   : 2-5 & 3-6 (MuSEUM BT@201706)"
-    echo "         chip    : 0~3"
     echo "         DAC     : -31~31"
   exit 1
 endif
 
-set BOARD    = $1
-set CHIP     = $2
-set CHANNEL  = 0
-set CTRL_DAC = $3
+set BOARD     = $1
+set CHIP_LIST = "0 1 2 3"
+set CHANNEL   = 0
+set CTRL_DAC  = $3
 
 (cd slow_control; make || exit;)
 (cd exp_decoder;  make || exit;)
@@ -32,17 +31,13 @@ foreach IBOARD( ${BOARD} )
     set IP = 16
     @ IP += ${IBOARD}
     echo "Board#${IBOARD}, IP=192.168.${IBOARD}.${IP}"
-    foreach ICHIP( ${CHIP} )
+    foreach ICHIP( ${CHIP_LIST} )
 	set TMP_CHIP  = `echo "obase=2; ibase=10; ${ICHIP}" | bc`
 	set TMP_BOARD = `echo "obase=2; ibase=10; ${IBOARD}" | bc`
 	set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
 	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
 	# <Slow Control>
-	if( ${ICHIP} == ${CHIP} ) then
-	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLH # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
-	else
-	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default
-	endif
+	./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLH # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
 
 	while (1)
 	    ./slit128sc_chip  files/control_${IBOARD}_${CTRL_CHIP}.dat 192.168.${IBOARD}.${IP};
@@ -57,19 +52,16 @@ cd  ../
 set OUTNAME = "test.dat"
 
 # <Take Data>
-nc -d 192.168.${IBOARD}.${IP} 24 > test.dat &
+nc -d 192.168.${BOARD}.${IP} 24 > test.dat &
 sleep 2
-#sleep 6
-#sleep 12
 kill -9 $!
 
 # <Decode>
 cd exp_decoder;
-./multi-slit128a_exp_decoder ../test.root ../test.dat 0.0 0.0 ${CHANNEL} ${CTRL_DAC} # && rm -f ../test.dat
+./multi-slit128a_exp_decoder_for_scurve ../test.root ../test.dat 0.0 0.0 ${BOARD} 0 0 ${CTRL_DAC}
 cd ../
 
 # <Plot>
 cd ana;
-./qc_allch ../test.root ${CHIP}
-#./qc_onech ../test.root ${CHIP} ${CH} ${CH} ${CTRL_DAC}
+./qc_allch ../test.root ${BOARD}
 

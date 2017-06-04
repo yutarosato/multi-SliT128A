@@ -1,6 +1,6 @@
 #! /bin/tcsh -f
 
-if( $#argv < 3 )then
+if( $#argv < 4 )then
     echo " Usage : $0 [board] [chip] [channel] [DAC]"
     echo "Example: $0   0       0       60       31"
     echo "         board   : 2-5 & 3-6 (MuSEUM BT@201706)"
@@ -44,7 +44,7 @@ foreach IBOARD( ${BOARD} ) # tmppp
 	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
 	# <Slow Control>
 	if( ${ICHIP} == ${CHIP} ) then
-	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLHLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
 	else
 	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default
 	endif
@@ -59,7 +59,7 @@ foreach IBOARD( ${BOARD} ) # tmppp
 end #end board-loop
 
 #foreach IBOARD( ${BOARD_LIST} )
-foreach IBOARD( ${IBOARD} )
+foreach IBOARD( ${BOARD} )
     set IP = 16
     @ IP += ${IBOARD}
     while (1)
@@ -69,19 +69,19 @@ foreach IBOARD( ${IBOARD} )
 	endif
     end
     while (1)
-	./slit128sc_begin  192.168.${IBOARD}.${IP};
+	./slit128sc_fpga  192.168.${IBOARD}.${IP};
 	if( $? == 0 ) then
 	    break
 	endif
     end
     while (1)
-	./slit128sc_begin  192.168.${IBOARD}.${IP};
+	./slit128sc_check_status  192.168.${IBOARD}.${IP};
 	if( $? == 0 ) then
 	    break
 	endif
     end
     while (1)
-	./slit128sc_begin  192.168.${IBOARD}.${IP};
+	./slit128sc_end  192.168.${IBOARD}.${IP};
 	if( $? == 0 ) then
 	    break
 	endif

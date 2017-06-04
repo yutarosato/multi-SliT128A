@@ -42,6 +42,7 @@ const int n_unit = 4;
 const int n_bit  = 32;
 const int n_time =  8192; // pow(2,13)
 Int_t t_data[n_chip][n_unit][n_bit][n_time];
+std::vector<int>* t_board_v;
 std::vector<int>* t_chip_v;
 std::vector<int>* t_unit_v;
 std::vector<int>* t_bit_v;
@@ -49,7 +50,9 @@ std::vector<int>* t_time_v;
 
 Float_t t_vref;
 Float_t t_tpchg;
-Int_t   t_selch;
+Int_t   t_tpboard;
+Int_t   t_tpchip;
+Int_t   t_tpchannel;
 Int_t   t_dac;
 
 TStyle* Style(){
@@ -162,7 +165,8 @@ TStyle* Style(){
 }
 
 Int_t set_readbranch( TChain* tree ){
-  tree->SetBranchAddress("event", &t_event  );
+  tree->SetBranchAddress("event", &t_event   );
+  tree->SetBranchAddress("board", &t_board_v );
   tree->SetBranchAddress("chip",  &t_chip_v  );
   tree->SetBranchAddress("unit",  &t_unit_v  );
   tree->SetBranchAddress("bit",   &t_bit_v   );
@@ -172,7 +176,8 @@ Int_t set_readbranch( TChain* tree ){
 }
 
 Int_t set_readbranch( TTree* tree ){
-  tree->SetBranchAddress("event", &t_event  );
+  tree->SetBranchAddress("event", &t_event   );
+  tree->SetBranchAddress("board", &t_board_v );
   tree->SetBranchAddress("chip",  &t_chip_v  );
   tree->SetBranchAddress("unit",  &t_unit_v  );
   tree->SetBranchAddress("bit",   &t_bit_v   );
@@ -183,41 +188,51 @@ Int_t set_readbranch( TTree* tree ){
 
 Int_t set_readbranch_scan( TChain* tree ){
   set_readbranch( tree );
-  tree->SetBranchAddress("vref",  &t_vref  );
-  tree->SetBranchAddress("tpchg", &t_tpchg );
-  tree->SetBranchAddress("selch", &t_selch );
-  tree->SetBranchAddress("dac",   &t_dac   );
+  tree->SetBranchAddress("vref",      &t_vref       );
+  tree->SetBranchAddress("tpchg",     &t_tpchg      );
+  tree->SetBranchAddress("tpboard",   &t_tpboard    );
+  tree->SetBranchAddress("tpchip",    &t_tpchip     );
+  tree->SetBranchAddress("tpchannel", &t_tpchannel  );
+  tree->SetBranchAddress("dac",       &t_dac        );
 
   return 0;
 }
 
 Int_t set_readbranch_scan( TTree* tree ){
   set_readbranch( tree );
-  tree->SetBranchAddress("vref",  &t_vref  );
-  tree->SetBranchAddress("tpchg", &t_tpchg );
-  tree->SetBranchAddress("selch", &t_selch );
-  tree->SetBranchAddress("dac",   &t_dac   );
+  tree->SetBranchAddress("vref",      &t_vref       );
+  tree->SetBranchAddress("tpchg",     &t_tpchg      );
+  tree->SetBranchAddress("tpboard",   &t_tpboard    );
+  tree->SetBranchAddress("tpchip",    &t_tpchip     );
+  tree->SetBranchAddress("tpchannel", &t_tpchannel  );
+  tree->SetBranchAddress("dac",       &t_dac        );
 
   return 0;
 }
 
 Int_t set_tree( TTree* tree ){// for modify tree @20160822
   tree = new TTree("slit128A","slit128A");
-  tree->Branch( "event",  &t_event,  "event/I" );
-  tree->Branch( "chip",   &t_chip_v );
-  tree->Branch( "unit",   &t_unit_v );
-  tree->Branch( "bit",    &t_bit_v  );
-  tree->Branch( "time",   &t_time_v );
-  tree->Branch( "vref",   &t_vref,  "vref/F"  );
-  tree->Branch( "tpchg",  &t_tpchg, "tpchg/F" );
-  tree->Branch( "selch",  &t_selch, "selch/I" );
-  tree->Branch( "dac",    &t_dac,   "dac/I"   );
+  tree->Branch( "event",     &t_event,     "event/I"  );
+  tree->Branch( "board",     &t_board_v );
+  tree->Branch( "chip",      &t_chip_v  );
+  tree->Branch( "unit",      &t_unit_v  );
+  tree->Branch( "bit",       &t_bit_v   );
+  tree->Branch( "time",      &t_time_v  );
+  tree->Branch( "vref",      &t_vref,       "vref/F"      );
+  tree->Branch( "tpchg",     &t_tpchg,      "tpchg/F"     );
+  tree->Branch( "tpboard",   &t_tpboard,    "tpboard/I"   );
+  tree->Branch( "tpchip",    &t_tpchip,     "tpchip/I"    );
+  tree->Branch( "tpchannel", &t_tpchannel,  "tpchannel/I" );
+  tree->Branch( "dac",       &t_dac,        "dac/I"       );
 
   return 0;
 }
 
 Int_t ch_map( Int_t unit, Int_t bit ){
   return n_bit*unit + bit;
+}
+Int_t multi_ch_map( Int_t chip, Int_t unit, Int_t bit ){ // return Global Channel-No. (0-511 for 4ASIC)
+  return chip*n_unit*n_bit + n_bit*unit + bit;
 }
 
 TH1D* conv_graphtohist( TGraphErrors* graph, const Char_t* name, const Char_t* title ){

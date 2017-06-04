@@ -48,11 +48,14 @@ std::vector<int> t_chip_v;
 std::vector<int> t_unit_v;
 std::vector<int> t_bit_v;
 std::vector<int> t_time_v;
-
-float t_vref0  = -999;
-float t_vref1  = -999;
-float t_vref23 = -999;
-float t_hv     = -999;
+// for s-curve
+float t_vref      = -999;
+float t_tpchg     = -999;
+int   t_tpboard   = -999;
+int   t_tpchip    = -999;
+int   t_tpchannel = -999;
+int   t_dac       = -999;
+//
 
 int numofbits( int bits ){
   bits = (bits & 0x55555555) + (bits >>  1 & 0x55555555);
@@ -90,8 +93,7 @@ int fill_event_buf( FILE *fp, unsigned char *event_buf ){ // 0(correctly read on
   // mark "ee"
   unsigned char global_mark = event_buf[0];
   global_mark = ( global_mark >> 4 );
-  printf("Mark : %x\n",(int)global_mark);
-  
+  printf("************************************************Mark : %x\n",(int)global_mark);
   // over-flow event counter
   unsigned char nevent_overflow = event_buf[1];
   nevent_overflow = ( nevent_overflow >> 2 );
@@ -135,10 +137,14 @@ int set_tree(){
   tree->Branch( "unit",     &t_unit_v  );
   tree->Branch( "bit",      &t_bit_v   );
   tree->Branch( "time",     &t_time_v  );
-  tree->Branch( "vref0",    &t_vref0,        "vref0/F"  );
-  tree->Branch( "vref1",    &t_vref1,        "vref1/F"  );
-  tree->Branch( "vref23",   &t_vref23,       "vref23/F" );
-  tree->Branch( "hv",       &t_hv,           "hv/F"     );
+  // for s-curve
+  tree->Branch( "vref",      &t_vref,      "vref/F"      );
+  tree->Branch( "tpchg",     &t_tpchg,     "tpchg/F"     );
+  tree->Branch( "tpboard",   &t_tpboard,   "tpboard/I"   );
+  tree->Branch( "tpchip",    &t_tpchip,    "tpchip/I"    );
+  tree->Branch( "tpchannel", &t_tpchannel, "tpchannel/I" );
+  tree->Branch( "dac",       &t_dac,       "dac/I"       );
+  //
 
   return 0;
 }
@@ -312,6 +318,7 @@ int decode( unsigned char *event_buf, int length ){
     
     index += byte_unit_header+byte_unit_data*unit_ndata;
   }
+
   tree->Fill();
   cnt_hit += t_time_v.size();
   cnt_event ++;
@@ -329,22 +336,24 @@ int main( int argc, char *argv[] ){
   char *data_filename;
   char *out_filename;
 
-  if( argc<7 ){
+  if( argc<3 ){
     std::cerr << "Usage : "
 	      << argv[0] << "  "
-	      << "output_rootfile  input_binary_file  VREF0 VREF1 VREF23 HV" << std::endl;
+	      << "output_rootfile  input_binary_file  (vref) (tpchg) (tpboard) (tpchip) (tpchannel) (dac)" << std::endl; // for s-curve
     abort();    
   }else{
     out_filename = argv[1];
-
     data_filename = argv[2];
     fp = fopen( data_filename, "r" );
     if( fp == NULL ) err( EXIT_FAILURE, "fopen" );
-    
-    t_vref0  = atof(argv[3]);
-    t_vref1  = atof(argv[4]);
-    t_vref23 = atof(argv[5]);
-    t_hv     = atof(argv[6]);
+    // for s-curve
+    t_vref      = ( argc>3 ? atof(argv[3]) : -999 );
+    t_tpchg     = ( argc>4 ? atof(argv[4]) : -999 );
+    t_tpboard   = ( argc>5 ? atoi(argv[5]) : -999 );
+    t_tpchip    = ( argc>6 ? atoi(argv[6]) : -999 );
+    t_tpchannel = ( argc>7 ? atoi(argv[7]) : -999 );
+    t_dac       = ( argc>8 ? atoi(argv[8]) : -999 );
+    //
   }
 
   // open output file and define tree's branches
