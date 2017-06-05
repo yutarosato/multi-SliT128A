@@ -3,6 +3,8 @@
 #set BOARD_LIST = "2 3 5 6"
 set BOARD_LIST = "2 5" # tmppp
 #set BOARD_LIST = "2" # tmppp
+#set BOARD_LIST = "5" # tmppp
+#set BOARD_LIST = "3 6" # tmppp
 set CHIP_LIST  = "0 1 2 3"
 
 set CHANNEL  = 0
@@ -39,30 +41,9 @@ foreach IBOARD( ${BOARD_LIST} )
 	end
 	#sleep 0.001
     end #end chip-loop
-
-    while (1)
-	./slit128sc_begin  192.168.${IBOARD}.${IP};
-	if( $? == 0 ) then
-	    break
-	endif
-    end
-    while (1)
-	./slit128sc_fpga  192.168.${IBOARD}.${IP};
-	if( $? == 0 ) then
-	    break
-	endif
-    end
-    while (1)
-	./slit128sc_check_status  192.168.${IBOARD}.${IP};
-	if( $? == 0 ) then
-	    break
-	endif
-    end
-    while (1)
-	./slit128sc_end  192.168.${IBOARD}.${IP};
-	if( $? == 0 ) then
-	    break
-	endif
-    end
 end #end board-loop
 cd  ../
+
+foreach IBOARD( ${BOARD_LIST} )
+    ./run_fpga.sh ${IBOARD}
+end

@@ -20,6 +20,9 @@ maketree:maketree.o
 scurve:scurve.o
 	$(CXX) $(ROOTLIBS) -o $@ $^
 
+threshold_calib:threshold_calib.o
+	$(CXX) $(ROOTLIBS) -o $@ $^
+
 .cpp.o:
 	$(CXX) $(ROOTFLAGS) -c $< -o $@
 qc_allch.o             : setting.h qc_allch.cpp
@@ -27,6 +30,7 @@ qc_onech.o             : setting.h qc_onech.cpp
 cal_eff.o              : setting.h cal_eff.cpp
 maketree.o             : setting.h maketree.cpp
 scurve.o               : setting.h scurve.cpp
+threshold_calib.o      : setting.h threshold_calib.cpp
 
 .PHONY: clean
 clean:

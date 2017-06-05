@@ -16,7 +16,7 @@ set CTRL_DAC  = $3
 (cd slow_control; make || exit;)
 (cd exp_decoder;  make || exit;)
 (cd ana;          make || exit;)
-./run_offset_all_off.sh # all off
+#./run_offset_all_off.sh # all off
 
 set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
 if( ${CTRL_DAC} < 1 ) then
@@ -27,27 +27,26 @@ endif
 echo "   DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}"
 
 cd slow_control;
-foreach IBOARD( ${BOARD} )
-    set IP = 16
-    @ IP += ${IBOARD}
-    echo "Board#${IBOARD}, IP=192.168.${IBOARD}.${IP}"
-    foreach ICHIP( ${CHIP_LIST} )
-	set TMP_CHIP  = `echo "obase=2; ibase=10; ${ICHIP}" | bc`
-	set TMP_BOARD = `echo "obase=2; ibase=10; ${IBOARD}" | bc`
-	set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
-	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
-	# <Slow Control>
-	./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLH # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+set IP = 16
+@ IP += ${BOARD}
+echo "Board#${BOARD}, IP=192.168.${BOARD}.${IP}"
+foreach ICHIP( ${CHIP_LIST} )
+    set TMP_CHIP  = `echo "obase=2; ibase=10; ${ICHIP}" | bc`
+    set TMP_BOARD = `echo "obase=2; ibase=10; ${BOARD}" | bc`
+    set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
+    echo "    Chip#${ICHIP} (${CTRL_CHIP})"
+    # <Slow Control>
+    ./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLH # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
 
-	while (1)
-	    ./slit128sc_chip  files/control_${IBOARD}_${CTRL_CHIP}.dat 192.168.${IBOARD}.${IP};
-	    if( $? == 0 ) then
-		break
-	    endif
-	end
-    end #end chip-loop
-end #end board-loop
+    while (1)
+	./slit128sc_chip  files/control_${BOARD}_${CTRL_CHIP}.dat 192.168.${BOARD}.${IP};
+	if( $? == 0 ) then
+	    break
+	endif
+    end
+end #end chip-loop
 cd  ../
+./run_fpga.sh ${BOARD}
 
 set OUTNAME = "test.dat"
 

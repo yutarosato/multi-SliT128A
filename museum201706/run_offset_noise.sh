@@ -57,35 +57,9 @@ foreach IBOARD( ${BOARD} ) # tmppp
 	end
     end #end chip-loop
 end #end board-loop
+cd ..;
 
+./run_fpga.sh ${BOARD}
 #foreach IBOARD( ${BOARD_LIST} )
-foreach IBOARD( ${BOARD} )
-    set IP = 16
-    @ IP += ${IBOARD}
-    while (1)
-	./slit128sc_begin  192.168.${IBOARD}.${IP};
-	if( $? == 0 ) then
-	    break
-	endif
-    end
-    while (1)
-	./slit128sc_fpga  192.168.${IBOARD}.${IP};
-	if( $? == 0 ) then
-	    break
-	endif
-    end
-    while (1)
-	./slit128sc_check_status  192.168.${IBOARD}.${IP};
-	if( $? == 0 ) then
-	    break
-	endif
-    end
-    while (1)
-	./slit128sc_end  192.168.${IBOARD}.${IP};
-	if( $? == 0 ) then
-	    break
-	endif
-    end
-end #end board-loop
-
-cd  ../
+#    ./run_fpga.sh ${IBOARD}
+#end

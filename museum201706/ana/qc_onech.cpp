@@ -140,8 +140,8 @@ Int_t main( Int_t argc, Char_t** argv ){
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   TChain* chain = new TChain("slit128A");
   chain->Add(infilename);
-  if( chain->GetEntries( Form("tpboard==%d && tpchip==%d && tpchannel==%d && dac==%d",board_id,chip_id,channel_id,dac) )==0 ) return 0;
-  std::cout << chain->GetEntries( Form("tpboard==%d && tpchip==%d && tpchannel==%d && dac==%d",board_id,chip_id,channel_id,dac) ) << std::endl;
+  if( chain->GetEntries( Form("tpboard==%d && (tpchip==%d || tpchip<0) && tpchannel==%d && dac==%d",board_id,chip_id,channel_id,dac) )==0 ) return 0;
+  std::cout << chain->GetEntries( Form("tpboard==%d && (tpchip==%d || tpchip<0) && tpchannel==%d && dac==%d",board_id,chip_id,channel_id,dac) ) << std::endl;
   set_readbranch_scan(chain);
   set_readbranch(chain);
 
@@ -169,10 +169,10 @@ Int_t main( Int_t argc, Char_t** argv ){
     chain->GetEntry(ievt);
     hist_1ch  ->Reset();
     for( Int_t idiv=0; idiv<ndiv; idiv++ ) hist_1ch_div[idiv]->Reset();
-    if( dac         != t_dac       ) continue; // dac value
-    if( board_id    != t_tpboard   ) continue; // board
-    if( chip_id     != t_tpchip    ) continue; // chip
-    if( channel_id  != t_tpchannel ) continue; // channel
+    if( dac         != t_dac                   ) continue; // dac value
+    if( board_id    != t_tpboard               ) continue; // board
+    if( chip_id     != t_tpchip && t_tpchip>=0 ) continue; // chip
+    if( channel_id  != t_tpchannel             ) continue; // channel
     for( Int_t ivec=0; ivec<t_unit_v->size(); ivec++ ){
       if( board_id   != t_board_v->at(ivec)                          ) continue; // board
       if( chip_id    != t_chip_v ->at(ivec)                          ) continue; // chip

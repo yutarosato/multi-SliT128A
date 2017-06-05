@@ -6,7 +6,7 @@ set CHIP     = 0 # 0-3
 set VREF     = 170.0 # VREF value [mV]
 set TPCHG    = 1.15 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 
-set CHANNEL_LIST = 1 
+set CHANNEL_LIST = 12
 #set CHANNEL_LIST = `seq 122 124`
 #set CHANNEL_LIST = `seq 0 127`
 
@@ -45,11 +45,11 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	    break
          endif
       end
-
-      set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${BOARD}_${CHIP}_${CHANNEL}_${CTRL_DAC}"
+      cd ../
+      ./run_fpga.sh ${BOARD}
 
       # <Take Data>
-      cd ../;
+      set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${BOARD}_${CHIP}_${CHANNEL}_${CTRL_DAC}"
       mkdir -p binary_data
       nc -d 192.168.${BOARD}.${IP} 24 > binary_data/${OUTNAME}.dat &
       #sleep 3
