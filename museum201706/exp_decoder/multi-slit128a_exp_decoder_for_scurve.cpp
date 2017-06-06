@@ -68,6 +68,7 @@ int numofbits( int bits ){
 int read_n_bytes( FILE *fp, unsigned char *buf, int nbytes ){ // -1(fread err), 0(end file), +n(correctly read n-byte)
   int n;
   n = fread( buf, 1, nbytes, fp );
+  
   if( n==0 ){
     if( ferror(fp) ){
       warn("fread error");
@@ -75,6 +76,12 @@ int read_n_bytes( FILE *fp, unsigned char *buf, int nbytes ){ // -1(fread err), 
     }
     if( feof(fp) ) return 0;
   }
+  
+  // added @20170606
+  if( n < nbytes ){
+    return -1;
+  }
+  
   return n;
 }
 
@@ -365,7 +372,7 @@ int main( int argc, char *argv[] ){
   while( 1 ){
     n = fill_event_buf( fp, event_buf ); // read one event
     if( n < 0 ) break;
-    else decode( event_buf, n ); // save it in tree
+    else        decode( event_buf, n ); // save it in tree
     tmp_cnt++;
   }
 

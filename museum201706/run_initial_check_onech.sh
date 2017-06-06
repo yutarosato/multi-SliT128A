@@ -58,7 +58,7 @@ set OUTNAME = "test.dat"
 
 # <Take Data>
 nc -d 192.168.${BOARD}.${IP} 24 > test.dat &
-sleep 2
+sleep 5
 kill -9 $!
 
 # <Decode>

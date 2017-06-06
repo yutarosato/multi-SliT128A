@@ -49,16 +49,25 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	end # end loop for BOARD
 
 	# <Take Data>
-       echo "               Take Data"
+        echo "               Take Data"
 	mkdir -p binary_data
+	set PID = -999
 	foreach BOARD( ${BOARD_LIST} )
 	    echo "                   Board#${BOARD}"
 	    set IP = 16
 	    @ IP += ${BOARD}
 	    set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${BOARD}_${CHANNEL}_${CTRL_DAC}"
-	    timeout 3 nc 192.168.${BOARD}.${IP} 24 > binary_data/${OUTNAME}.dat
+	    nc -d 192.168.${BOARD}.${IP} 24 > binary_data/${OUTNAME}.dat &
+	    set PID = (${PID} $!)
 	end # end loop for BOARD
-	#sleep 3;
+	sleep 3;
+        echo "               Kill Process(nc)"
+	foreach IPID( ${PID} )
+	    if( ${IPID} < 0 ) then
+		continue;
+	    endif
+	    kill -9 ${IPID}
+	end # end loop for PID
 
 	# <Decode>
 	    echo "               Decode Data"

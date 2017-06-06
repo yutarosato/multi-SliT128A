@@ -74,6 +74,12 @@ int read_n_bytes( FILE *fp, unsigned char *buf, int nbytes ){ // -1(fread err), 
     }
     if( feof(fp) ) return 0;
   }
+
+  // added @20170606
+  if( n < nbytes ){
+    return -1;
+  }
+
   return n;
 }
 

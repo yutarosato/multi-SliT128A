@@ -80,8 +80,8 @@ def send_prepare_packet(rbcp, ip_address, base_addr):
     wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
 def ZERO_SUPPRESS(rbcp, ip_address):
-    data = struct.pack('>B', 0x00)
-    #data = struct.pack('>B', 0xFF) # tmpppp
+    #data = struct.pack('>B', 0x00)
+    data = struct.pack('>B', 0xFF) # tmpppp
     rbcp.write_registers(ip_address, address = 0x80000008, length = len(data), id = 16, data = data)
 
 def UNIT_ENABLE(rbcp, ip_address):
