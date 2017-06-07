@@ -43,9 +43,7 @@ SampleLogger::SampleLogger(RTC::Manager* manager)
       m_in_status(BUF_SUCCESS),
       m_update_rate(100),
       m_debug(!true),
-      m_vref0 (-999),
-      m_vref1 (-999),
-      m_vref23(-999),
+      m_vref  (-999),
       m_hv    (-999)
       
 {
@@ -181,20 +179,10 @@ int SampleLogger::parse_params(::NVList* list)
 	      std::cerr << "run summary table:"
 			<< m_runsummary << std::endl;
             }
-	    if (sname == "VREF0") {
-	      m_vref0 = atof(svalue.c_str());
-	      std::cerr << "VREF0:"
-			<< m_vref0 << std::endl;
-            }
-	    if (sname == "VREF1") {
-	      m_vref1 = atof(svalue.c_str());
-	      std::cerr << "VREF1:"
-			<< m_vref1 << std::endl;
-            }
-	    if (sname == "VREF23") {
-	      m_vref23 = atof(svalue.c_str());
-	      std::cerr << "VREF23:"
-			<< m_vref23 << std::endl;
+	    if (sname == "VREF") {
+	      m_vref = atof(svalue.c_str());
+	      std::cerr << "VREF:"
+			<< m_vref << std::endl;
             }
 	    if (sname == "HV") {
 	      m_hv = atof(svalue.c_str());
@@ -254,9 +242,7 @@ int SampleLogger::daq_start()
 	    std::ofstream run_summary_file;
 	    run_summary_file.open(m_runsummary.c_str(),std::ios::app);
 	    run_summary_file << std::right << std::setw(25) << fileUtils->get_file_name().c_str()
-			     << std::right << std::setw(10) << m_vref0
-			     << std::right << std::setw(10) << m_vref1
-			     << std::right << std::setw(10) << m_vref23
+			     << std::right << std::setw(10) << m_vref
 			     << std::right << std::setw(10) << m_hv
 			     << " : "
 			     << m_note.c_str()

@@ -19,7 +19,7 @@
                     <instName>SampleReader0.rtc</instName>
                     <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleReader/SampleReaderComp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
-                    <startOrd>4</startOrd>
+                    <startOrd>6</startOrd>
                     <inPorts>
                     </inPorts>
                     <outPorts>
@@ -30,13 +30,14 @@
                         <param pid="srcPort">24</param>
                     </params>
                 </component>
+
                 <component cid="SampleReader50">
                     <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleReader50.rtc</instName>
                     <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleReader5/SampleReader5Comp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
-                    <startOrd>3</startOrd>
+                    <startOrd>5</startOrd>
                     <inPorts>
                     </inPorts>
                     <outPorts>
@@ -47,13 +48,14 @@
                         <param pid="srcPort">24</param>
                     </params>
                 </component>
+
                 <component cid="Merger0">
                     <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>Merger0.rtc</instName>
                     <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/Merger/MergerComp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
-                    <startOrd>2</startOrd>
+                    <startOrd>4</startOrd>
                     <inPorts>
                         <inPort from="SampleReader0:samplereader_out" >collector_in0</inPort>
                         <inPort from="SampleReader50:samplereader_out5">collector_in1</inPort>
@@ -65,29 +67,65 @@
                         <param pid="separate_flag">0</param>
                     </params>
                 </component>
-                <component cid="SampleLogger0">
+
+		<component cid="Dispatcher0">
+		  <hostAddr>127.0.0.1</hostAddr>
+		  <hostPort>50000</hostPort>
+		  <instName>Dispatcher0.rtc</instName>
+		  <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/Dispatcher/DispatcherComp</execPath>
+		  <confFile>/tmp/daqmw/rtc.conf</confFile>
+		  <startOrd>3</startOrd>
+		  <inPorts>
+                    <inPort from="Merger0:slit_merger_out">dispatcher_in</inPort>
+		  </inPorts>
+		  <outPorts>
+                    <outPort>dispatcher_out1</outPort>
+                    <outPort>dispatcher_out2</outPort>
+		  </outPorts>
+		  <params/>
+		</component>
+
+		<component cid="SampleLogger0">
+		  <hostAddr>127.0.0.1</hostAddr>
+		  <hostPort>50000</hostPort>
+		  <instName>SampleLogger0.rtc</instName>
+		  <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleLogger/SampleLoggerComp</execPath>
+		  <confFile>/tmp/daqmw/rtc.conf</confFile>
+		  <startOrd>1</startOrd>
+		  <inPorts>
+                    <inPort from="Dispatcher0:dispatcher_out1">samplelogger_in</inPort>
+		  </inPorts>
+		  <outPorts/>
+		  <params>
+                    <param pid="dirName">../data/binary_data</param>
+                    <param pid="isLogging">yes</param>
+                    <param pid="maxFileSizeInMegaByte">1024</param>
+                    <param pid="runsummaryName">../data/run_summary.dat</param>
+                    <param pid="VREF">560</param>
+                    <param pid="HV">120</param>
+                    <param pid="NOTE">Beam Data</param>
+		  </params>
+		</component>
+
+                <component cid="SampleMonitor0">
                     <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
-                    <instName>SampleLogger0.rtc</instName>
-                    <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleLogger/SampleLoggerComp</execPath>
+                    <instName>SampleMonitor0.rtc</instName>
+                    <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleMonitor/SampleMonitorComp</execPath>
                     <confFile>/tmp/daqmw/rtc.conf</confFile>
-                    <startOrd>1</startOrd>
+                    <startOrd>2</startOrd>
                     <inPorts>
-                        <inPort from="Merger0:slit_merger_out">samplelogger_in</inPort>
+			<inPort from="Dispatcher0:dispatcher_out2">samplelogger_in</inPort>
                     </inPorts>
                     <outPorts>
                     </outPorts>
                     <params>
-                       <param pid="dirName">../data/binary_data</param>
-                       <param pid="isLogging">yes</param>
-                       <param pid="maxFileSizeInMegaByte">1024</param>
-                       <param pid="runsummaryName">../data/run_summary.dat</param>
-                       <param pid="VREF">60</param>
-                       <param pid="HV">120</param>
-                       <param pid="NOTE">TEST1 TEST2</param>
+                        <param pid="monitorUpdateRate">250</param>
+                        <param pid="monitorSamplingRate">25</param>
+                        <param pid="signal_width">15</param>
+                        <param pid="signal_span">50</param>
                     </params>
                 </component>
-
             </components>
         </daqGroup>
     </daqGroups>

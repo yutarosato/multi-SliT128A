@@ -13,13 +13,17 @@ class MTree{
   MTree();
   MTree( const Char_t* name );
   ~MTree();
+  void Reset();
    
  private:
-  static const int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
-  static const int n_chip =     4;
-  static const int n_unit =     4;
-  static const int n_bit  =    32;
-  static const int n_time =  8191; // pow(2,13)
+  static const int fl_message = 0; // 0(silent), 1(global header), 2(global header + unit header), 3(detailed message)
+
+  static const int n_board =    2;
+  static const int n_chip  =    4;
+  static const int n_unit  =    4;
+  static const int n_bit   =   32;
+  static const int n_time  = 8191; // pow(2,13)
+  static const int board_map[];
 
   static const int byte_global_header = 8;
   static const int byte_unit_header   = 6;
@@ -54,11 +58,12 @@ class MTree{
   //int unit_id_mapping( int unit );
   int bit_flip ( bool bit  );
   int numofbits( int  bits );
-  int ch_map         (           int unit, int bit ){ return n_bit*unit + bit; } // return Channel-No. (0-127)
-  int multi_ch_map   ( int chip, int unit, int bit ){ return chip*n_unit*n_bit + n_bit*unit + bit; } // return Global Channel-No. (0-511 for 4ASIC)
-  int rev_ch_map_chip( int gch ){ return (gch/(n_bit*n_unit)); } // return chip-No    from global Channel-No.
-  int rev_ch_map_ch  ( int gch ){ return (gch%(n_bit*n_unit)); } // return channel-No from global Channel-No.
-  
+  int channel_map       (                      int unit, int bit ){ return                                                            n_bit*unit + bit; } // return Channel-No. (0-127)
+  int global_channel_map(            int chip, int unit, int bit ){ return                                        chip*n_unit*n_bit + n_bit*unit + bit; } // return Global Channel-No. for multi-SliT128A board (0-511 for 4ASIC)
+  int world_channel_map ( int board, int chip, int unit, int bit ){ return board_map[board]*n_chip*n_unit*n_bit + chip*n_unit*n_bit + n_bit*unit + bit; } // return World  Channel-No. for multiple multi-SliT128A board(0-511*n for n board)
+
+  int rev_channel_map_chip   ( int global_channel ){ return (global_channel/(n_bit*n_unit)); } // return chip-No    from global Channel-No.
+  int rev_channel_map_channel( int global_channel ){ return (global_channel%(n_bit*n_unit)); } // return channel-No from global Channel-No.
 
  public:
   int set_readbranch();

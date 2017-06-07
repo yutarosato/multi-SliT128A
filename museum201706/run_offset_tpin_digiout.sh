@@ -1,12 +1,21 @@
 #! /bin/tcsh -f
 
+if( $#argv < 2 )then
+    echo " Usage : $0 [channel][DAC]"
+    echo "Example: $0     11     31"
+    echo "         channel : 0~127"
+    echo "         DAC     : -31~31"
+  exit 1
+endif
+
+set CHANNEL  = $1
+set CTRL_DAC = $2
+
 #set BOARD_LIST = "2 3 5 6"
 set BOARD_LIST = "2 5" # tmppp
 #set BOARD_LIST = "2" # tmppp
 set CHIP_LIST  = "0 1 2 3"
 
-set CHANNEL  = 0
-set CTRL_DAC = 0
 
 (cd slow_control; make || exit)
 
@@ -29,7 +38,7 @@ foreach IBOARD( ${BOARD_LIST} )
 	set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
 	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
 	# <Slow Control>
-        ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLL LLLLL${CTRL_DAC_BIT}LLHLL # digital output(ON)
+        ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL # digital output(ON)
 	
 	while (1)
 	    ./slit128sc_chip  files/control_${IBOARD}_${CTRL_CHIP}.dat 192.168.${IBOARD}.${IP};

@@ -1,5 +1,7 @@
 #include "MTree.h"
 
+const int MTree::board_map[] = {-999,-999,0,-999,-999,1}; // Board#2 -> [0], Board#5 -> [1]
+
 MTree::MTree(){
   m_tree = new TTree();
 }
@@ -10,6 +12,16 @@ MTree::MTree( const Char_t* name ){
 
 MTree::~MTree(){
   delete m_tree;
+  init_tree();
+  t2_board_v = 0;
+  t2_chip_v  = 0;
+  t2_unit_v  = 0;
+  t2_bit_v   = 0;
+  t2_time_v  = 0;
+}
+
+void MTree::Reset(){
+  m_tree->Reset();;
   init_tree();
   t2_board_v = 0;
   t2_chip_v  = 0;
@@ -80,7 +92,6 @@ int MTree::init_tree(){
 int MTree::decode_data(const unsigned char* event_buf, int length)
 {
   init_tree();
-
   // mark "ee"
   //unsigned char global_mark = event_buf[0];
   //global_mark = ( global_mark >> 4 );
@@ -90,7 +101,7 @@ int MTree::decode_data(const unsigned char* event_buf, int length)
   unsigned char header_board_id = event_buf[0];
   header_board_id = ( header_board_id & 0x0f );
   //printf("Board-ID : %d\n",(int)header_board_id);
-  
+
   // over-flow event counter
   unsigned char nevent_overflow = event_buf[1];
   nevent_overflow = ( nevent_overflow >> 2 );
@@ -113,22 +124,25 @@ int MTree::decode_data(const unsigned char* event_buf, int length)
   // unit enable
   unsigned short* tmp_unit_enable = (unsigned short*)&event_buf[6];
   int unit_enable = ntohs(*tmp_unit_enable);
-  printf("unit enable : %x\n", unit_enable);
+  //printf("unit enable : %x\n", unit_enable);
   int n_active_unit = numofbits( unit_enable);
-  
-  if( fl_message ) printf("[Global Header] evtNo#%d,Board#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x=>N=%d)\n",event_number,(int)header_board_id,total_ndata,(int)nevent_overflow,unit_enable,n_active_unit);
-  if( total_ndata!=n_time*n_active_unit ){
+
+  if( fl_message ) printf("[Global Header] evtNo#%d,Board#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x=>N=%d)\n",event_number,(int)header_board_id,(int)total_ndata,(int)nevent_overflow,unit_enable,n_active_unit);
+  /*
+  if( ((int)total_ndata)!=n_time*n_active_unit ){
     //fprintf( stderr, "      [Warning] evtNo=%d, board#%d : Wrong total number of events : %d (correct value is %d)\n", t_event, t_board, total_ndata,n_time*n_chip*n_unit );
     printf( "      [Warning] evtNo=%d, board#%d : Wrong total number of events : %d (correct value is %d)\n", t_event, t_board, total_ndata,n_time*n_chip*n_unit );
   }
-  
+  */
+
   int index = byte_global_header;
   for( int iunit=0; iunit<n_chip*n_unit; iunit++ ){ // iterate for unit head/data
     // unit header
     unsigned char board_id = event_buf[index+0]; board_id = ( (board_id & 0x78)>>3 );
-    unsigned char chip_id  = event_buf[index+0]; chip_id = ( chip_id & 0x7f );
+    unsigned char chip_id  = event_buf[index+0]; chip_id  = ( chip_id   & 0x07     );
     unsigned char unit_id  = event_buf[index+1];
     t_board = (int)board_id;
+
     t_chip  = (int)chip_id;
     t_unit  = (int)unit_id;
     //printf("board#%d, chip#%d, unit#%d\n",(int)board_id,(int)chip_id,(int)unit_id);
@@ -158,16 +172,18 @@ int MTree::decode_data(const unsigned char* event_buf, int length)
     */
 
     bool fl_active = ( (unit_enable & (0x0001 << iunit))>> iunit );
-    if( fl_message ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,event_number_unit,cksum,(int)fl_active);
+    if( fl_message>1 ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,event_number_unit,cksum,(int)fl_active);
 
     if( (int)cksum==0 && fl_active ){
       //fprintf( stderr,"      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
-      printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_chip, t_unit, event_number );
+      printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
     }
+    /*
     if( unit_ndata!=n_time && fl_active ){
       //fprintf( stderr, "      [Warning] evtNo=%d : Wrong number of events in board#%d, chip#%d, unit#%d : %d (correct value is %d)\n", event_number, t_board,t_chip,t_unit,unit_ndata,n_time );
       printf( "      [Warning] evtNo=%d : Wrong number of events in board#%d, chip#%d, unit#%d : %d (correct value is %d)\n", event_number, t_board,t_chip,t_unit,unit_ndata,n_time );
     }
+    */
 
     // unit data for each unit
     for( int idata=0; idata<unit_ndata; idata++ ){
@@ -176,11 +192,11 @@ int MTree::decode_data(const unsigned char* event_buf, int length)
       unsigned short  time     = ntohs(*tmp_time);
       unsigned short  data     = ntohl(*tmp_data);
       t_time = time;
-      if( fl_message > 1 ) printf( "%4d(t=%4d) : ",idata,time );
+      if( fl_message > 2 ) printf( "%4d(t=%4d) : ",idata,time );
 
       for( int ibyte=0; ibyte<4; ibyte++ ){ // for-loop from large ch number to small ch number
 	unsigned char byte_data = event_buf[index+byte_unit_header+idata*byte_unit_data+2+ibyte];
-	if( fl_message > 1 ) printf( " %2x(%d%d%d%d %d%d%d%d)",
+	if( fl_message > 2 ) printf( " %2x(%d%d%d%d %d%d%d%d)",
 				     (int)((unsigned char)(byte_data)),
 				     (bool)((unsigned char)(byte_data & 0x80)),
 				     (bool)((unsigned char)(byte_data & 0x40)),
@@ -191,7 +207,7 @@ int MTree::decode_data(const unsigned char* event_buf, int length)
 				     (bool)((unsigned char)(byte_data & 0x02)),
 				     (bool)((unsigned char)(byte_data & 0x01))
 				     );
-	if( fl_message > 1 && ibyte==3 ) std::cout << std::endl;
+	if( fl_message > 2 && ibyte==3 ) std::cout << std::endl;
 	
 	t_data[7+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x80)) ); // bit-flip correction // modified for ch-map correction @20161004
 	t_data[6+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x40)) ); // bit-flip correction // modified for ch-map correction @20161004

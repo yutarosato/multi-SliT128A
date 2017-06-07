@@ -55,9 +55,7 @@
                   <param pid="isLogging">yes</param>
                   <param pid="maxFileSizeInMegaByte">1024</param>
                   <param pid="runsummaryName">../data/run_summary.dat</param>
-                  <param pid="VREF0">560</param>
-                  <param pid="VREF1">460</param>
-                  <param pid="VREF23">360</param>
+                  <param pid="VREF">560</param>
                   <param pid="HV">120</param>
                   <param pid="NOTE">Beam Data</param>
                </params>
@@ -76,7 +74,7 @@
                <outPorts/>
                <params>
                         <param pid="monitorUpdateRate">250</param>
-                        <param pid="monitorSamplingRate">50</param>
+                        <param pid="monitorSamplingRate">125</param>
                         <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                </params>

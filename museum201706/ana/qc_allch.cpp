@@ -1,7 +1,7 @@
 #include "setting.h"
 
 const Bool_t fl_batch = !true; // should be false for quick check.
-const Int_t  fl_show  = 20;
+const Int_t  fl_show  = 5;
 
 Int_t main( Int_t argc, Char_t** argv ){
   gROOT->SetBatch(fl_batch);
@@ -39,14 +39,14 @@ Int_t main( Int_t argc, Char_t** argv ){
     for( Int_t ivec=0; ivec<t_unit_v->size(); ivec++ ){
       if( board_id != t_board_v->at(ivec) ) continue; // select specified board
       
-      std::cout << "time = " << t_time_v->at(ivec) << ", board = " << t_board_v->at(ivec) << ", chip = " << t_chip_v->at(ivec) << ", unit = " << t_unit_v->at(ivec) << ", bit = " << t_bit_v->at(ivec) << " -> " << multi_ch_map(t_chip_v->at(ivec),t_unit_v->at(ivec),t_bit_v->at(ivec)) << std::endl;
+      //std::cout << "time = " << t_time_v->at(ivec) << ", board = " << t_board_v->at(ivec) << ", chip = " << t_chip_v->at(ivec) << ", unit = " << t_unit_v->at(ivec) << ", bit = " << t_bit_v->at(ivec) << " -> " << multi_ch_map(t_chip_v->at(ivec),t_unit_v->at(ivec),t_bit_v->at(ivec)) << std::endl;
       hist    ->Fill( t_time_v->at(ivec), multi_ch_map(t_chip_v->at(ivec),t_unit_v->at(ivec),t_bit_v->at(ivec)) );
       hist_int->Fill( t_time_v->at(ivec), multi_ch_map(t_chip_v->at(ivec),t_unit_v->at(ivec),t_bit_v->at(ivec)) );
     }
 
 
     if( fl_show>cnt_show ){
-      printf( "  [Event:%d,Board%:d] %d entries\n", t_event, board_id, (Int_t)hist->Integral() );
+      printf( "  [Event:%d,Board%d] %d entries\n", t_event, board_id, (Int_t)hist->Integral() );
       hist    ->SetTitle( Form("Event : %d, Board : %d, %d entries", t_event,board_id, (Int_t)hist->Integral()) );
       hist_int->SetTitle( Form("Board : %d, Integration of %d events", board_id, cnt_show) );
       can->cd(1);

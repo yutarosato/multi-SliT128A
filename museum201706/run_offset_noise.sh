@@ -30,36 +30,29 @@ endif
 echo "   DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}"
 
 cd slow_control;
-#foreach IBOARD( ${BOARD_LIST} )
-foreach IBOARD( ${BOARD} ) # tmppp
-    set IP = 16
-    @ IP += ${IBOARD}
-    echo "Board#${IBOARD}, IP=192.168.${IBOARD}.${IP}"
-    #foreach ICHIP( 0 1 2 3 )
-    #foreach ICHIP( 0 ) # tmppp
-    foreach ICHIP( ${CHIP} ) # tmppp
-	set TMP_CHIP  = `echo "obase=2; ibase=10; ${ICHIP}" | bc`
-	set TMP_BOARD = `echo "obase=2; ibase=10; ${IBOARD}" | bc`
-	set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
-	echo "    Chip#${ICHIP} (${CTRL_CHIP})"
-	# <Slow Control>
-	if( ${ICHIP} == ${CHIP} ) then
-	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
-	else
-	    ./make_control ${IBOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default
-	endif
+
+set IP = 16
+@ IP += ${BOARD}
+echo "Board#${BOARD}, IP=192.168.${BOARD}.${IP}"
+
+
+set TMP_CHIP  = `echo "obase=2; ibase=10; ${CHIP}"  | bc`
+set TMP_BOARD = `echo "obase=2; ibase=10; ${BOARD}" | bc`
+set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
+echo "    Chip#${CHIP} (${CTRL_CHIP})"
+# <Slow Control>
+if( ${CHIP} == ${CHIP} ) then
+    ./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+else
+    ./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default
+endif
 	
-	while (1)
-	    ./slit128sc_chip  files/control_${IBOARD}_${CTRL_CHIP}.dat 192.168.${IBOARD}.${IP};
-	    if( $? == 0 ) then
-		break
-	    endif
-	end
-    end #end chip-loop
-end #end board-loop
+while (1)
+    ./slit128sc_chip  files/control_${BOARD}_${CTRL_CHIP}.dat 192.168.${BOARD}.${IP};
+    if( $? == 0 ) then
+	break
+    endif
+end
 cd ..;
 
 ./run_fpga.sh ${BOARD}
-#foreach IBOARD( ${BOARD_LIST} )
-#    ./run_fpga.sh ${IBOARD}
-#end

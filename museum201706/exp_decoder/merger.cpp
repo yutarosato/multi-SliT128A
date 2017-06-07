@@ -13,7 +13,7 @@
 #include <TFile.h>
 
 const int fl_message = 1; // 0(simple message), 1(normal message), 2(detailed message)
-const int n_board = 2;
+const int n_board    = 2;
 const int board_list[n_board] = {2,5};
 //const int n_board = 4;
 //const int board_list[n_board] = {2,5,3,6};
@@ -109,6 +109,7 @@ int main( int argc, Char_t** argv ){
   printf( "[input] %s : %d entries\n", infilename, (int)tree->GetEntries() );
   std::cout << tree->GetEntries() << " events(" << infilename << ") -> " << outfilename << std::endl;
 
+  TFile* rootf   = new TFile( outfilename, "RECREATE" );
   TTree* newtree = new TTree( "slit128A", "slit128A" );
   set_tree( newtree );
 
@@ -122,7 +123,7 @@ int main( int argc, Char_t** argv ){
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   int cnt_board = 0;
   int cnt_evt = 0;
-  int prev_event    = -999;
+  int prev_event = -999;
   std::multimap<int, int>::iterator it_last = map.end();
   it_last--;
 
@@ -163,14 +164,12 @@ int main( int argc, Char_t** argv ){
     }
   } // END EVENT-LOOP sorted by event number
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  std::cout << "AAAA" << std::endl;
 
-  TFile* rootf = new TFile( outfilename, "RECREATE" );
   newtree->Write();
   rootf->Close();
 
   delete tree;
-  delete newtree;
+  //delete newtree;
   delete rootf;
 
   return 0;

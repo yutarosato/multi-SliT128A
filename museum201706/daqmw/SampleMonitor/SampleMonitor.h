@@ -18,7 +18,6 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TGraph.h"
-#include "TGraphErrors.h"
 #include "TTree.h"
 #include "TCanvas.h"
 #include "TStyle.h"
@@ -71,26 +70,26 @@ private:
   //int online_analyze();
 
   int fill_data    (const unsigned char* event_buf, const int size);
-  int detect_signal();
-  
+  int detect_signal( int iboard );
+
   BufferStatus m_in_status;
   
   ////////// ROOT Histogram //////////
-  TCanvas* m_canvas;
 
-  TH2I* m_hist_bit_allch_1evt;
-  TH2I* m_hist_hit_allch_1evt;
-  TH2I* m_hist_bit_allch_int;
-  TH2I* m_hist_hit_allch_int;
+  TCanvas** m_canvas;
 
-  TH1I* m_hist_nbit;
-  TH1I* m_hist_nhit;
-  TH1I* m_hist_width;
-  TH1I* m_hist_time;
+  TH2I** m_hist_bit_allch_1evt;
+  TH2I** m_hist_hit_allch_1evt;
+  TH2I** m_hist_bit_allch_int;
+  TH2I** m_hist_hit_allch_int;
 
-  TGraph*        m_graph_nbit;
-  TGraphErrors*  m_graph_nhit;
+  TH1I** m_hist_nbit;
+  TH1I** m_hist_nhit;
+  TH1I** m_hist_width;
+  TH1I** m_hist_time;
 
+  TGraph**  m_graph_nbit;
+  TGraph**  m_graph_nhit;
   
   // external parameters
   int      m_monitor_update_rate;
@@ -98,11 +97,13 @@ private:
   int      th_width; // bin
   int      th_span;  // bin
 
-  static const int n_board =     4;
-  static const int n_chip  =     4;
-  static const int n_unit  =     4;
-  static const int n_bit   =    32;
-  static const int n_time  =  8191; // pow(2,13)
+  static const int n_board =    2;
+  static const int n_chip  =    4;
+  static const int n_unit  =    4;
+  static const int n_bit   =   32;
+  static const int n_time  = 8191; // pow(2,13)
+  static const int board_map[];
+  static const int rev_board_map[];
 
   static const int byte_global_header = 8;
   static const int byte_unit_header   = 6;
@@ -115,17 +116,10 @@ private:
   unsigned int  m_event_byte_size;
 
   static const int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
-  /*
-  static const int n_chip =     4;
-  static const int n_unit =     4;
-  static const int n_bit  =    32;
-  static const int n_time =  8192; // pow(2,13)
-  */
 
   MTree* m_tree;
-  int    m_nevt_success;
-  int    m_nevt_fail;
   bool   m_debug;
+  int    m_sequence_number[n_board];
   
   int t_event;
   std::vector<int> t_chip_v; // for write

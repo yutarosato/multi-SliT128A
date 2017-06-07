@@ -19,7 +19,7 @@
 #include <TGraph.h>
 
 
-const int fl_message = 2; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
+const int fl_message = 1; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
@@ -50,10 +50,8 @@ std::vector<int> t_bit_v;
 std::vector<int> t_time_v;
 
 // for beam test
-float t_vref0  = -999;
-float t_vref1  = -999;
-float t_vref23 = -999;
-float t_hv     = -999;
+float t_vref = -999;
+float t_hv   = -999;
 //
 
 int numofbits( int bits ){
@@ -143,9 +141,7 @@ int set_tree(){
   tree->Branch( "bit",      &t_bit_v   );
   tree->Branch( "time",     &t_time_v  );
   // for beam test
-  tree->Branch( "vref0",    &t_vref0,  "vref0/F"  );
-  tree->Branch( "vref1",    &t_vref1,  "vref1/F"  );
-  tree->Branch( "vref23",   &t_vref23, "vref23/F" );
+  tree->Branch( "vref",     &t_vref,   "vref/F"   );
   tree->Branch( "hv",       &t_hv,     "hv/F"     );
   //
   return 0;
@@ -211,7 +207,7 @@ int decode( unsigned char *event_buf, int length ){
   //printf("unit enable : %x\n", unit_enable);
   int n_active_unit = numofbits( unit_enable);
   
-  if( fl_message ) printf("[Global Header] evtNo#%d,Board#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x=>N=%d)\n",event_number,(int)header_board_id,total_ndata,(int)nevent_overflow,unit_enable,n_active_unit);
+  if( fl_message ) printf("[Global Header] evtNo#%d,Board#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x=>N=%d)\n",event_number,(int)header_board_id,(int)total_ndata,(int)nevent_overflow,unit_enable,n_active_unit);
   /*
   if( total_ndata!=n_time*n_active_unit ){
     //fprintf( stderr, "      [Warning] evtNo=%d, board#%d : Wrong total number of events : %d (correct value is %d)\n", t_event_number, t_board, total_ndata,n_time*n_chip*n_unit );
@@ -261,7 +257,7 @@ int decode( unsigned char *event_buf, int length ){
 
     if( (int)cksum==0 && fl_active ){
       //fprintf( stderr,"      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
-      printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_chip, t_unit, event_number );
+      printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
       cnt_warning++;
     }
     /*
@@ -340,7 +336,7 @@ int main( int argc, char *argv[] ){
   if( argc<3 ){
     std::cerr << "Usage : "
 	      << argv[0] << "  "
-	      << "output_rootfile  input_binary_file  (VREF0) (VREF1) (VREF23) (HV)" << std::endl; // for beam test
+	      << "output_rootfile  input_binary_file  (VREF) (HV)" << std::endl; // for beam test
     abort();    
   }else{
     out_filename = argv[1];
@@ -348,10 +344,8 @@ int main( int argc, char *argv[] ){
     fp = fopen( data_filename, "r" );
     if( fp == NULL ) err( EXIT_FAILURE, "fopen" );
     // for beam test
-    t_vref0  = ( argc>3 ? atof(argv[3]) : -999 );
-    t_vref1  = ( argc>4 ? atof(argv[4]) : -999 );
-    t_vref23 = ( argc>5 ? atof(argv[5]) : -999 );
-    t_hv     = ( argc>6 ? atof(argv[6]) : -999 );
+    t_vref  = ( argc>3 ? atof(argv[3]) : -999 );
+    t_hv    = ( argc>4 ? atof(argv[4]) : -999 );
   }
 
   // open output file and define tree's branches

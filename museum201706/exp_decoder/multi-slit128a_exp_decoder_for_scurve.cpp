@@ -216,7 +216,7 @@ int decode( unsigned char *event_buf, int length ){
   //printf("unit enable : %x\n", unit_enable);
   int n_active_unit = numofbits( unit_enable);
   
-  if( fl_message ) printf("[Global Header] evtNo#%d,Board#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x=>N=%d)\n",event_number,(int)header_board_id,total_ndata,(int)nevent_overflow,unit_enable,n_active_unit);
+  if( fl_message ) printf("[Global Header] evtNo#%d,Board#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x=>N=%d)\n",event_number,(int)header_board_id,(int)total_ndata,(int)nevent_overflow,unit_enable,n_active_unit);
   /*
   if( total_ndata!=n_time*n_active_unit ){
     //fprintf( stderr, "      [Warning] evtNo=%d, board#%d : Wrong total number of events : %d (correct value is %d)\n", t_event_number, t_board, total_ndata,n_time*n_chip*n_unit );
@@ -266,7 +266,7 @@ int decode( unsigned char *event_buf, int length ){
 
     if( (int)cksum==0 && fl_active ){
       //fprintf( stderr,"      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
-      printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_chip, t_unit, event_number );
+      printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
       cnt_warning++;
     }
     /*

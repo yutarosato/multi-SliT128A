@@ -146,7 +146,7 @@ int SampleReader5::daq_start()
     try {
         // Create socket and connect to data server.
         m_sock = new DAQMW::Sock();
-        m_sock->connect(m_srcAddr, m_srcPort);
+	m_sock->connect(m_srcAddr, m_srcPort);
 	m_sock->setOptRecvTimeOut(10.0); // sec
     } catch (DAQMW::SockException& e) {
         std::cerr << "Sock Fatal Error : " << e.what() << std::endl;
@@ -201,10 +201,10 @@ int SampleReader5::read_data_from_detectors()
 
   status = m_sock->readAll(&m_data[0], GLOBAL_HEADER_SIZE);
   if( status == DAQMW::Sock::ERROR_FATAL ){
-    std::cerr << "### ERROR: m_sock->readAll:A" << std::endl;
+    std::cerr << "### ERROR: m_sock->readAll" << std::endl;
     fatal_error_report(USER_DEFINED_ERROR1, "SOCKET FATAL ERROR");
   }else if( status == DAQMW::Sock::ERROR_TIMEOUT ){
-    std::cerr << "### Timeout: m_sock->readAll:A" << std::endl;
+    std::cerr << "### Timeout: m_sock->readAll" << std::endl;
     fatal_error_report(USER_DEFINED_ERROR2, "SOCKET TIMEOUT");
   }else{
     event_data_len += GLOBAL_HEADER_SIZE;
@@ -218,27 +218,42 @@ int SampleReader5::read_data_from_detectors()
 
   // read unit header+data
   int nread = UNIT_HEADER_SIZE*N_CHIP*N_UNIT + UNIT_DATA_SIZE*total_ndata;
-  //std::cout << "total data length (global header + unit header + unit data) = " << byte_unit_header*n_chip*n_unit + byte_unit_data*total_ndata << std::endl;
-  int step = 10000;
-  int times = nread/10000;
-  int remain = nread%step;
+  /*
+  status = m_sock->readAll(&m_data[event_data_len], nread);
+  if( status == DAQMW::Sock::ERROR_FATAL ){
+    std::cerr << "### ERROR: m_sock->readAll" << std::endl;
+    fatal_error_report(USER_DEFINED_ERROR1, "SOCKET FATAL ERROR");
+  }else if( status == DAQMW::Sock::ERROR_TIMEOUT ){
+    std::cerr << "### Timeout: m_sock->readAll" << std::endl;
+    fatal_error_report(USER_DEFINED_ERROR2, "SOCKET TIMEOUT");
+  }else{
+    event_data_len += nread;
+  }
+  */
 
-    //status = m_sock->readAll(&m_data[event_data_len], nread);
-    //event_data_len += nread;
-  for( int istep=0; istep<=times; istep++ ){
-    if( istep==times ) status = m_sock->readAll( &m_data[event_data_len], remain );
-    else               status = m_sock->readAll( &m_data[event_data_len], step   );
+  int step = 1024;
+  //std::cout << nread << " bytes" << std::endl;
+  //std::cout << nread/step << " times" << std::endl;
+  //std::cout << nread%step << " remain" << std::endl;
+  for( int istep=0; istep <= nread/step; istep++ ){
+    if     (   istep == nread/step && nread%step    ) status = m_sock->readAll(&m_data[event_data_len], nread%step);
+    else if( istep == nread/step && nread%step==0   ) break;
+    else                                              status = m_sock->readAll(&m_data[event_data_len], step);
+    
     if( status == DAQMW::Sock::ERROR_FATAL ){
-      std::cerr << "### ERROR: m_sock->readAll:B" << std::endl;
+      std::cerr << "### ERROR: m_sock->readAll" << std::endl;
       fatal_error_report(USER_DEFINED_ERROR1, "SOCKET FATAL ERROR");
     }else if( status == DAQMW::Sock::ERROR_TIMEOUT ){
-      std::cerr << "### Timeout: m_sock->readAll:B" << std::endl;
+      std::cerr << "### Timeout: m_sock->readAll" << std::endl;
       fatal_error_report(USER_DEFINED_ERROR2, "SOCKET TIMEOUT");
     }else{
-      if( istep==times ) event_data_len += remain;
-      else               event_data_len += step;
+      if( istep == nread/step ) event_data_len += nread%step;
+      else                      event_data_len += step;
     }
   }
+  
+  //std::cout << "total data length (global header + unit header + unit data) = " << GLOBAL_HEADER_SIZE + nread
+  //<< " : event_data_len = " << event_data_len << std::endl; // tmppppppp
 
   return event_data_len;	  
 }
