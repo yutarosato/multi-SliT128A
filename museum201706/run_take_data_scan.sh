@@ -77,7 +77,7 @@ foreach CHANNEL( ${CHANNEL_LIST} )
       endif
 
       # skip at early-point
-      set NOHIT = `cat tmp.log`
+      set NOHIT = `cat tmp_nhit.log`
       echo ${NOHIT}
       cd ../
       if( ${NOHIT} >= 35000 )then

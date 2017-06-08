@@ -15,9 +15,10 @@ set CHIP     = $2
 set CHANNEL  = $3
 set CTRL_DAC = $4
 
-(cd slow_control; (make || exit;))
-(cd exp_decoder;  (make || exit;))
-(cd ana;          (make || exit;))
+(cd slow_control;   (make || exit;))
+(cd exp_decoder;    (make || exit;))
+(cd ana;            (make || exit;))
+(cd readslit-0.0.0; (make || exit;))
 #./run_offset_all_off.sh # tmppp
 
 set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
@@ -60,6 +61,9 @@ set OUTNAME = "test.dat"
 nc -d 192.168.${BOARD}.${IP} 24 > test.dat &
 sleep 3
 kill -9 $!
+#cd readslit-0.0.0/;
+#./readslit -t 3 192.168.${BOARD}.${IP} 24 test.dat
+#cd ../
 
 # <Decode>
 cd exp_decoder;

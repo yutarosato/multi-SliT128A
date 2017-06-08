@@ -6,7 +6,7 @@ set CHIP_LIST    = "0 1 2 3" # 0-3
 set CHANNEL_LIST = "12"
 #set CHANNEL_LIST = `seq 0 127`
 set VREF         = 170.0 # VREF value [mV]
-set TPCHG        = 1.55 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+set TPCHG        = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 
 ###########################################
 (cd slow_control; make || exit;)
@@ -96,7 +96,7 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	endif
 
 	# skip at early-point
-	set NOHIT = `cat tmp.log`
+	set NOHIT = `cat tmp_nhit.log`
 	echo ${NOHIT}
 	cd ../
 	if( ${NOHIT} >= 35000 )then
