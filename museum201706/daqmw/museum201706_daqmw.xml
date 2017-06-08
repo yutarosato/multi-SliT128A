@@ -108,7 +108,7 @@
 		</component>
 
                 <component cid="SampleMonitor0">
-                    <hostAddr>192.168.10.1</hostAddr>
+                    <hostAddr>192.168.10.2</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleMonitor0.rtc</instName>
                     <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleMonitor/SampleMonitorComp</execPath>
