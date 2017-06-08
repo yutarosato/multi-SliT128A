@@ -121,7 +121,7 @@
                     </outPorts>
                     <params>
                         <param pid="monitorUpdateRate">250</param>
-                        <param pid="monitorSamplingRate">25</param>
+                        <param pid="monitorSamplingRate">250</param>
                         <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                     </params>
