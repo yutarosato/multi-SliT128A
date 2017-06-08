@@ -8,7 +8,7 @@
 <!-- If you use run.py, set confFile as /tmp/daqmw/rtc.conf           -->
 <configInfo>
     <daqOperator>
-        <hostAddr>192.168.10.2</hostAddr>
+        <hostAddr>192.168.10.1</hostAddr>
     </daqOperator>
     <daqGroups>
         <daqGroup gid="group0">
@@ -108,7 +108,7 @@
 		</component>
 
                 <component cid="SampleMonitor0">
-                    <hostAddr>192.168.10.2</hostAddr>
+                    <hostAddr>192.168.10.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleMonitor0.rtc</instName>
                     <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleMonitor/SampleMonitorComp</execPath>
