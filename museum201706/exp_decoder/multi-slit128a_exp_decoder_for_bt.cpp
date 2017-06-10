@@ -48,10 +48,11 @@ std::vector<int> t_chip_v;
 std::vector<int> t_unit_v;
 std::vector<int> t_bit_v;
 std::vector<int> t_time_v;
+std::vector<int> t_fl_fall_v;   // added @20170610
 
 // for beam test
-float t_vref = -999;
-float t_hv   = -999;
+float t_vref     = -999;
+float t_hv       = -999;
 //
 
 int numofbits( int bits ){
@@ -93,20 +94,26 @@ int fill_event_buf( FILE *fp, unsigned char *event_buf ){ // 0(correctly read on
   memcpy( &event_buf[event_data_len], tmpbuf, byte_global_header );
   event_data_len += byte_global_header;
   /*
-  // mark "ee"
+  // mark "e"
   unsigned char global_mark = event_buf[0];
   global_mark = ( global_mark >> 4 );
   printf("************************************************Mark : %x\n",(int)global_mark);
+  // flag for bit fall
+  unsigned char bit_fall = event_buf[1];
+  bit_fall = ( bit_fall >> 7 );
+  printf("bit-fall : %x\n",(int)bit_fall);
+
   // over-flow event counter
   unsigned char nevent_overflow = event_buf[1];
+  nevent_overflow = ( nevent_overflow & 0x7F);
   nevent_overflow = ( nevent_overflow >> 2 );
   printf("over-flow : %x\n",(int)nevent_overflow);
   */
   // ndata 
   unsigned long tmp_total_ndata = *(unsigned long*)&event_buf[1];
-  tmp_total_ndata = ((tmp_total_ndata & 0xffffff01)  );
-  unsigned long total_ndata = ntohl(tmp_total_ndata);
-  total_ndata = (total_ndata >> 8);
+  tmp_total_ndata = ( tmp_total_ndata & 0xffffff01 );
+  unsigned long total_ndata = ntohl( tmp_total_ndata );
+  total_ndata = ( total_ndata >> 8 );
   //printf("# of total unit data (only unit data) : %x (%d)\n",total_ndata,total_ndata);
   /*
   // event number
@@ -135,13 +142,14 @@ int set_tree(){
   tree = new TTree("slit128A","slit128A");
   tree->Branch( "event",    &t_event_number,    "event/I"    );
   tree->Branch( "overflow", &t_nevent_overflow, "overflow/I" );
-  tree->Branch( "board",    &t_board_v );
-  tree->Branch( "chip",     &t_chip_v  );
-  tree->Branch( "unit",     &t_unit_v  );
-  tree->Branch( "bit",      &t_bit_v   );
-  tree->Branch( "time",     &t_time_v  );
+  tree->Branch( "board",    &t_board_v    );
+  tree->Branch( "chip",     &t_chip_v     );
+  tree->Branch( "unit",     &t_unit_v     );
+  tree->Branch( "bit",      &t_bit_v      );
+  tree->Branch( "time",     &t_time_v     );
+  tree->Branch( "fl_fall",  &t_fl_fall_v  );
   // for beam test
-  tree->Branch( "vref",     &t_vref,   "vref/F"   );
+  tree->Branch( "vref",    &t_vref,  "vref/F"  );
   tree->Branch( "hv",       &t_hv,     "hv/F"     );
   //
   return 0;
@@ -154,12 +162,13 @@ int init_tree(){
   t_unit_v.clear();
   t_bit_v.clear();
   t_time_v.clear();
-  
+  t_fl_fall_v.clear();
+
   return 0;
 }
 
 int delete_tree(){
-  tree;
+  //tree;
   return 0;
 }
 
@@ -172,7 +181,7 @@ int bit_flip( bool bit ){
 
 int decode( unsigned char *event_buf, int length ){
 
-  // mark "ee"
+  // mark "e"
   //unsigned char global_mark = event_buf[0];
   //global_mark = ( global_mark >> 4 );
   //printf("Mark : %x\n",(int)global_mark);
@@ -182,8 +191,14 @@ int decode( unsigned char *event_buf, int length ){
   header_board_id = ( header_board_id & 0x0f );
   //printf("Board-ID : %d\n",(int)header_board_id);
 
+  // flag for bit fall
+  unsigned char bit_fall = event_buf[1];
+  bit_fall = ( bit_fall >> 7 );
+  //printf("bit-fall : %x\n",(int)bit_fall);
+
   // over-flow event counter
   unsigned char nevent_overflow = event_buf[1];
+  nevent_overflow = ( nevent_overflow & 0x7F);
   nevent_overflow = ( nevent_overflow >> 2 );
   t_nevent_overflow = nevent_overflow;
   //printf("over-flow : %x\n",(int)nevent_overflow);
@@ -207,7 +222,7 @@ int decode( unsigned char *event_buf, int length ){
   //printf("unit enable : %x\n", unit_enable);
   int n_active_unit = numofbits( unit_enable);
   
-  if( fl_message ) printf("[Global Header] evtNo#%d,Board#%d,Ndata(%d),N_OF(%d),Unit_Enb(%x=>N=%d)\n",event_number,(int)header_board_id,(int)total_ndata,(int)nevent_overflow,unit_enable,n_active_unit);
+  if( fl_message ) printf("[Global Header] evtNo#%d,Board#%d,Ndata(%d),N_OF(%d),Bit_Fall(%d),Unit_Enb(%x=>N=%d)\n",event_number,(int)header_board_id,(int)total_ndata,(int)nevent_overflow,bit_fall,unit_enable,n_active_unit);
   /*
   if( total_ndata!=n_time*n_active_unit ){
     //fprintf( stderr, "      [Warning] evtNo=%d, board#%d : Wrong total number of events : %d (correct value is %d)\n", t_event_number, t_board, total_ndata,n_time*n_chip*n_unit );
@@ -233,10 +248,17 @@ int decode( unsigned char *event_buf, int length ){
     unsigned short unit_ndata = ntohs(tmp_unit_ndata);
     //printf("# of unit unit data (only unit data) : %x (%d)\n",unit_ndata,unit_ndata);
 
+    // bit-fall
+    unsigned char unit_bit_fall = event_buf[index+2];
+    unit_bit_fall = ( unit_bit_fall & 0x80 );
+    unit_bit_fall = ( unit_bit_fall >> 7 );
+    t_fl_fall_v.push_back( (int)unit_bit_fall );
     
     // event number
     unsigned short* tmp_event_number_unit = (unsigned short*)&event_buf[index+4];
     int event_number_unit = ntohs(*tmp_event_number_unit);
+
+    // check-sum for event number
     unsigned char cksum = event_buf[index+2];
     cksum = ( cksum & 0x40 );
     cksum = ( cksum >> 6 );
@@ -253,7 +275,7 @@ int decode( unsigned char *event_buf, int length ){
     */
 
     bool fl_active = ( (unit_enable & (0x0001 << iunit))>> iunit );
-    if( fl_message>1 ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,event_number_unit,cksum,(int)fl_active);
+    if( fl_message>1 ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),Bit_Fall(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,unit_bit_fall,event_number_unit,cksum,(int)fl_active);
 
     if( (int)cksum==0 && fl_active ){
       //fprintf( stderr,"      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
@@ -316,6 +338,7 @@ int decode( unsigned char *event_buf, int length ){
     
     index += byte_unit_header+byte_unit_data*unit_ndata;
   }
+
   tree->Fill();
   cnt_hit += t_time_v.size();
   cnt_event ++;
@@ -355,10 +378,12 @@ int main( int argc, char *argv[] ){
 
   int tmp_cnt = 0;
   while( 1 ){
+    if( tmp_cnt % 100 == 0 ) std::cout << " " << tmp_cnt << " event..." << std::endl; 
     n = fill_event_buf( fp, event_buf ); // read one event
     if( n < 0 ) break;
-    else decode( event_buf, n ); // save it in tree
+    else        decode( event_buf, n ); // save it in tree
     tmp_cnt++;
+    //    if( tmp_cnt > 19 ) break;
   }
 
   std::cout << "#event = "   << cnt_event   << ", "

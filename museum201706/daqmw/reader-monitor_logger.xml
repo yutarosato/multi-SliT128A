@@ -52,7 +52,7 @@
                <outPorts/>
                <params>
                   <param pid="dirName">../data/binary_data</param>
-                  <param pid="isLogging">yes</param>
+                  <param pid="isLogging">no</param>
                   <param pid="maxFileSizeInMegaByte">1024</param>
                   <param pid="runsummaryName">../data/run_summary.dat</param>
                   <param pid="VREF">560</param>
