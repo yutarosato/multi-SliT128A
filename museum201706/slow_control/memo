@@ -1,5 +1,0 @@
-./slit_sc_chip control_xxxxxx.dat 192.168.10.1X #16 chips
-./slit_sc_begin 192.168.10.1X # 4 boards
-./slit_sc_fpga  192.168.10.1X # 4 boards
-./slit_sc_check 192.168.10.1X # 4 boards
-./slit_sc_end   192.168.10.1X # 4 boards

@@ -1,18 +1,19 @@
 #! /bin/tcsh -f
 
 set HEADNAME = "output"
-set BOARD    = 2 # (2,5), (3,6)
-set CHIP     = 0 # 0-3
-set VREF     = 170.0 # VREF value [mV]
-set TPCHG    = 1.15 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+set BOARD    = 5 # (2,5), (3,6)
+set CHIP     = 1 # 0-3
+set VREF     = 450.0 # VREF value [mV]
+set TPCHG    = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 
-set CHANNEL_LIST = 12
+set CHANNEL_LIST = 15
 #set CHANNEL_LIST = `seq 122 124`
 #set CHANNEL_LIST = `seq 0 127`
 
 ###########################################
-(cd slow_control; make || exit;)
-(cd exp_decoder;  make || exit;)
+(cd slow_control;   (make || exit;))
+(cd exp_decoder;    (make || exit;))
+(cd readslit-0.0.0; (make || exit;))
 ./run_offset_all_off.sh
 
 set TMP_CHIP  = `echo "obase=2; ibase=10; ${CHIP}" | bc`
@@ -50,11 +51,13 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 
       # <Take Data>
       set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${BOARD}_${CHIP}_${CHANNEL}_${CTRL_DAC}"
-      mkdir -p binary_data
-      nc -d 192.168.${BOARD}.${IP} 24 > binary_data/${OUTNAME}.dat &
+      #mkdir -p binary_data
+      #nc -d 192.168.${BOARD}.${IP} 24 > binary_data/${OUTNAME}.dat &
       #sleep 3
-      sleep 4
-      kill -9 $!
+      #kill -9 $!
+      cd readslit-0.0.0/;
+      ./readslit -t 3 192.168.${BOARD}.${IP} 24 ../binary_data/${OUTNAME}.dat
+      cd ../
 
       # <Decode>
       mkdir -p root_data

@@ -1,6 +1,6 @@
 #! /bin/tcsh -f
 
-set INFILE = `ls dat_scurve/*.dat` # default
+set INFILE = `ls dat_scurve/output*.dat` # default
 
 #set BOARD_LIST = 2;
 #set CHIP_LIST  = 0;

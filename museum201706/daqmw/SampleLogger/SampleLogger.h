@@ -63,7 +63,9 @@ private:
   BufferStatus m_in_status;
   int m_update_rate;
   bool m_debug;
-  double m_vref;
+  double m_rf;
+  double m_vref2;
+  double m_vref5;
   double m_hv;
   std::string m_note;
 };

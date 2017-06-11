@@ -9,8 +9,9 @@ set VREF         = 170.0 # VREF value [mV]
 set TPCHG        = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 
 ###########################################
-(cd slow_control; make || exit;)
-(cd exp_decoder;  make || exit;)
+(cd slow_control;   (make || exit;))
+(cd exp_decoder;    (make || exit;))
+(cd readslit-0.0.0; (make || exit;))
 
 foreach CHANNEL( ${CHANNEL_LIST} )
     set CNT=0
@@ -57,17 +58,20 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	    set IP = 16
 	    @ IP += ${BOARD}
 	    set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${BOARD}_${CHANNEL}_${CTRL_DAC}"
-	    nc -d 192.168.${BOARD}.${IP} 24 > binary_data/${OUTNAME}.dat &
-	    set PID = (${PID} $!)
+	    #nc -d 192.168.${BOARD}.${IP} 24 > binary_data/${OUTNAME}.dat &
+	    #set PID = (${PID} $!)
+	    cd readslit-0.0.0/;
+	    ./readslit -t 3 192.168.${BOARD}.${IP} 24 ../binary_data/${OUTNAME}.dat &
+	    cd ../
 	end # end loop for BOARD
 	sleep 3;
-        echo "               Kill Process(nc)"
-	foreach IPID( ${PID} )
-	    if( ${IPID} < 0 ) then
-		continue;
-	    endif
-	    kill -9 ${IPID}
-	end # end loop for PID
+        #echo "               Kill Process(nc)"
+	#foreach IPID( ${PID} )
+	#    if( ${IPID} < 0 ) then
+	#	continue;
+	#    endif
+	#    kill -9 ${IPID}
+	#end # end loop for PID
 
 	# <Decode>
 	    echo "               Decode Data"

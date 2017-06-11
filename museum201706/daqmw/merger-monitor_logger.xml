@@ -101,7 +101,9 @@
                     <param pid="isLogging">yes</param>
                     <param pid="maxFileSizeInMegaByte">1024</param>
                     <param pid="runsummaryName">../data/run_summary.dat</param>
-                    <param pid="VREF">560</param>
+                    <param pid="RF">560</param>
+                    <param pid="VREF2">560</param>
+                    <param pid="VREF5">560</param>
                     <param pid="HV">120</param>
                     <param pid="NOTE">Beam Data</param>
 		  </params>

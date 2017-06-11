@@ -13,9 +13,10 @@ set CHIP_LIST = "0 1 2 3"
 set CHANNEL   = 0
 set CTRL_DAC  = $3
 
-(cd slow_control; make || exit;)
-(cd exp_decoder;  make || exit;)
-(cd ana;          make || exit;)
+(cd slow_control;   (make || exit;))
+(cd exp_decoder;    (make || exit;))
+(cd ana;            (make || exit;))
+(cd readslit-0.0.0; (make || exit;))
 #./run_offset_all_off.sh # all off
 
 set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
@@ -51,13 +52,16 @@ cd  ../
 set OUTNAME = "test.dat"
 
 # <Take Data>
-nc -d 192.168.${BOARD}.${IP} 24 > test.dat &
-sleep 2
-kill -9 $!
+#nc -d 192.168.${BOARD}.${IP} 24 > test.dat &
+#sleep 2
+#kill -9 $!
+cd readslit-0.0.0/;
+./readslit -t 3 192.168.${BOARD}.${IP} 24 ../test.dat
+cd ../
 
 # <Decode>
 cd exp_decoder;
-./multi-slit128a_exp_decoder_for_scurve ../test.root ../test.dat 0.0 0.0 ${BOARD} 0 0 ${CTRL_DAC}
+./multi-slit128a_exp_decoder_for_scurve ../test.root ../test.dat 0.0 0.0 ${BOARD} -999 -999 ${CTRL_DAC}
 cd ../
 
 # <Plot>

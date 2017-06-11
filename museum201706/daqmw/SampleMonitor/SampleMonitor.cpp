@@ -96,7 +96,6 @@ SampleMonitor::SampleMonitor(RTC::Manager* manager)
 
   sty->cd();
 
-  m_canvas              = new TCanvas*[n_board];
   m_hist_bit_allch_1evt = new TH2I*   [n_board];
   m_hist_hit_allch_1evt = new TH2I*   [n_board];
   m_hist_bit_allch_int  = new TH2I*   [n_board];
@@ -108,8 +107,6 @@ SampleMonitor::SampleMonitor(RTC::Manager* manager)
   m_graph_nbit          = new TGraph* [n_board];
   m_graph_nhit          = new TGraph* [n_board];
   for( int iboard=0; iboard<n_board; iboard++ ){
-    m_canvas             [iboard] = 0;
-    m_canvas             [iboard] = 0;
     m_hist_bit_allch_1evt[iboard] = 0;
     m_hist_hit_allch_1evt[iboard] = 0;
     m_hist_bit_allch_int [iboard] = 0;
@@ -147,10 +144,8 @@ RTC::ReturnCode_t SampleMonitor::onExecute(RTC::UniqueId ec_id)
 int SampleMonitor::daq_dummy()
 {
 
-  for( int iboard=0; iboard<n_board; iboard++ ){
-    if( m_canvas[iboard] ){
-      m_canvas[iboard]->Update();
-    }
+  if( m_canvas ){
+    m_canvas->Update();
   }
   // daq_dummy() will be invoked again after 10 msec.
   // This sleep reduces X servers' load.
@@ -240,11 +235,10 @@ int SampleMonitor::daq_start()
   else          m_tree->Reset(); // tmppppp
 
   
-  for( int iboard=0; iboard<n_board; iboard++ ){
-    m_canvas[iboard] = new TCanvas( Form("c1_%d",iboard), Form("c1_%d",iboard), 0, 0, 1800, 900);
-    m_canvas[iboard]->Divide(4,2);
-    m_canvas[iboard]->Draw();
-  }
+  m_canvas = new TCanvas( "c1", "c1", 0, 0, 1800, 1050);
+  m_canvas->Divide(4,4);
+  m_canvas->Draw();
+
 
   int    m_hist_xbin = 8192;
   double m_hist_xmin = 0.0;
@@ -291,10 +285,8 @@ int SampleMonitor::daq_stop()
 
   unsigned int runNumber = m_daq_service0.getRunNo();
   
-  for( int iboard=0; iboard<n_board; iboard++ ){
-    //m_canvas[iboard]->Print( Form("monitor_pic/run%d_board%d.eps", runNumber,rev_board_map[iboard]) );
-    m_canvas[iboard]->Print( Form("monitor_pic/run%d_board%d.png", runNumber,rev_board_map[iboard]) );
-  }
+  //m_canvas->Print( Form("monitor_pic/run%d.eps", runNumber) );
+  m_canvas->Print( Form("monitor_pic/run%d.png", runNumber) );
 
   reset_InPort();
   
@@ -480,6 +472,7 @@ int SampleMonitor::daq_run()
 
   memcpy(&m_recv_data[0], &m_in_data.data[HEADER_BYTE_SIZE], m_event_byte_size);
   reset_obj();
+  
   fill_data( &m_recv_data[0], m_event_byte_size );
 
   // Draw
@@ -504,9 +497,10 @@ int SampleMonitor::daq_run()
 }
 
 int SampleMonitor::delete_obj(){
+  if( m_canvas ){ delete m_canvas; m_canvas = 0; }
   for( int iboard=0; iboard<n_board; iboard++ ){
     m_sequence_number[iboard] = 0;
-    if( m_canvas             [iboard] ){ delete m_canvas[iboard]; m_canvas[iboard] = 0; }
+
     if( m_hist_bit_allch_1evt[iboard] ){ delete m_hist_bit_allch_1evt[iboard]; m_hist_bit_allch_1evt[iboard] = 0; }
     if( m_hist_hit_allch_1evt[iboard] ){ delete m_hist_hit_allch_1evt[iboard]; m_hist_hit_allch_1evt[iboard] = 0; }
     if( m_hist_bit_allch_int [iboard] ){ delete m_hist_bit_allch_int [iboard]; m_hist_bit_allch_int [iboard] = 0; }
@@ -523,18 +517,19 @@ int SampleMonitor::delete_obj(){
 }
 
 int SampleMonitor::draw_obj(){
+  const int n_plot = 8;
   for( int iboard=0; iboard<n_board; iboard++ ){
-    m_canvas[iboard]->cd(1); m_hist_bit_allch_1evt[iboard]->Draw("COLZ");
-    m_canvas[iboard]->cd(2); m_hist_bit_allch_int [iboard]->Draw("COLZ");
-    m_canvas[iboard]->cd(3); if( m_graph_nbit[iboard]->GetN() ){ m_graph_nbit[iboard]->Draw("AP"); }
-    m_canvas[iboard]->cd(4); if( m_graph_nhit[iboard]->GetN() ){ m_graph_nhit[iboard]->Draw("AP"); }
-    m_canvas[iboard]->cd(5)->SetLogy();
-    m_canvas[iboard]->cd(5); m_hist_time          [iboard] ->Draw();
-    m_canvas[iboard]->cd(6); m_hist_width         [iboard] ->Draw();
-    m_canvas[iboard]->cd(7); m_hist_nbit          [iboard] ->Draw();
-    m_canvas[iboard]->cd(8); m_hist_nhit          [iboard] ->Draw();
-    m_canvas[iboard]->Update();
+    m_canvas->cd(1+n_plot*iboard); m_hist_bit_allch_1evt[iboard]->Draw("COLZ");
+    m_canvas->cd(2+n_plot*iboard); m_hist_bit_allch_int [iboard]->Draw("COLZ");
+    m_canvas->cd(3+n_plot*iboard); if( m_graph_nbit[iboard]->GetN() ){ m_graph_nbit[iboard]->Draw("AP"); }
+    m_canvas->cd(4+n_plot*iboard); if( m_graph_nhit[iboard]->GetN() ){ m_graph_nhit[iboard]->Draw("AP"); }
+    m_canvas->cd(5+n_plot*iboard)->SetLogy();
+    m_canvas->cd(5+n_plot*iboard); m_hist_time [iboard] ->Draw();
+    m_canvas->cd(6+n_plot*iboard); m_hist_width[iboard] ->Draw();
+    m_canvas->cd(7+n_plot*iboard); m_hist_nbit [iboard] ->Draw();
+    m_canvas->cd(8+n_plot*iboard); m_hist_nhit [iboard] ->Draw();
   }
+    m_canvas->Update();
 
 
   return 0;

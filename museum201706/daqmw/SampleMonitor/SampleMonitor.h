@@ -76,7 +76,7 @@ private:
   
   ////////// ROOT Histogram //////////
 
-  TCanvas** m_canvas;
+  TCanvas* m_canvas;
 
   TH2I** m_hist_bit_allch_1evt;
   TH2I** m_hist_hit_allch_1evt;

@@ -82,7 +82,9 @@
                        <param pid="isLogging">yes</param>
                        <param pid="maxFileSizeInMegaByte">1024</param>
                        <param pid="runsummaryName">../data/run_summary.dat</param>
-                       <param pid="VREF">60</param>
+                       <param pid="RF">0</param>
+                       <param pid="VREF2">60</param>
+                       <param pid="VREF5">60</param>
                        <param pid="HV">120</param>
                        <param pid="NOTE">TEST1 TEST2</param>
                     </params>

@@ -58,12 +58,12 @@ cd  ../
 set OUTNAME = "test.dat"
 
 # <Take Data>
-nc -d 192.168.${BOARD}.${IP} 24 > test.dat &
-sleep 3
-kill -9 $!
-#cd readslit-0.0.0/;
-#./readslit -t 3 192.168.${BOARD}.${IP} 24 test.dat
-#cd ../
+#nc -d 192.168.${BOARD}.${IP} 24 > test.dat &
+#sleep 3
+#kill -9 $!
+cd readslit-0.0.0/;
+./readslit -t 3 192.168.${BOARD}.${IP} 24 ../test.dat
+cd ../
 
 # <Decode>
 cd exp_decoder;

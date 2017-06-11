@@ -388,7 +388,6 @@ int main( int argc, char *argv[] ){
   TFile outfile( out_filename, "RECREATE" );
   set_tree();
   init_tree();
-
   int tmp_cnt = 0;
   while( 1 ){
     n = fill_event_buf( fp, event_buf ); // read one event

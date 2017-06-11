@@ -6,31 +6,32 @@ const Bool_t fl_batch   = !true; // should be false for quick check.
 const Int_t  fl_show    = 5;
 
 // axis ragnge
-const Int_t nsig_max = 15;
-const Int_t nring_max= 20;
-const Int_t width_max= 300;
+const Int_t nsig_max   =  15;
+const Int_t nring_max  =  20;
+const Int_t width_max  = 300;
+const Int_t nnoise_max =  50;
 
 // setup
-const Int_t nsig_exp =    8; // # of signals per event (probably 8 @200kHz)
-//const Int_t nsig_exp =    2; // # of signals per event (8@200kHz)
-const Int_t span_exp = 1000; // 200kHz -> 5us -> 1000 bit
+const Int_t nsig_exp     =    8; // # of signals per event (probably 8 @200kHz)
+const Int_t span_exp     = 1000; // 200kHz -> 5us -> 1000 bit
+const Int_t origin_time  =  280;
+const Int_t origin_range =   50;
 
 // signal definition
 const Int_t    th_span       =   450;
 const Int_t    th_width      =     5;
 const Int_t    th_window     =    20;
 const Int_t    mask_prompt   =    50;
-const Double_t th_eff_before =   2.0; // >=1.0 is no-cut
-const Double_t th_eff_after  =  -1.0; // <=0.0 is no-cut
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-TH1I* hist_nsig    = new TH1I( "hist_nsig",    "hist_nsig;#signal/events",          nsig_max,           0,    nsig_max );
-TH1I* hist_nring   = new TH1I( "hist_nring",   "hist_nring;#ringing/signals",      nring_max,           0,   nring_max );
-TH1I* hist_width   = new TH1I( "hist_width",   "hist_width;signal width",          width_max,           0,   width_max );
-TH1I* hist_span    = new TH1I( "hist_span",    "hist_span;span between signals",          40, span_exp-20, span_exp+20 );
-TH1I* hist_1ch_int = new TH1I( "hist_1ch_int", "hist_1ch_int;Time [bit]",             n_time,           0,      n_time ); 
+TH1I* hist_nsig    = new TH1I( "hist_nsig",    "hist_nsig;#signal/events",          nsig_max,           0,    nsig_max  );
+TH1I* hist_nring   = new TH1I( "hist_nring",   "hist_nring;#ringing/signals",      nring_max,           0,   nring_max  );
+TH1I* hist_nnoise  = new TH1I( "hist_nnoise",  "hist_nnoise;#noise/events",        nnoise_max,          0,   nnoise_max );
+TH1I* hist_width   = new TH1I( "hist_width",   "hist_width;signal width",          width_max,           0,   width_max  );
+TH1I* hist_span    = new TH1I( "hist_span",    "hist_span;span between signals",          40, span_exp-20, span_exp+20  );
+TH1I* hist_1ch_int = new TH1I( "hist_1ch_int", "hist_1ch_int;Time [bit]",             n_time,           0,      n_time  ); 
 TH2I* hist_wid_tim = new TH2I( "hist_wid_tim", "hist_wid_tim;Time [bit];Width [bit]", n_time,           0,      n_time, width_max, 0,   width_max );
 
 Int_t detect_signal( TH1I* hist ){
@@ -42,6 +43,7 @@ Int_t detect_signal( TH1I* hist ){
   Bool_t fl_start         = true;
   Int_t  cnt_nsig         = 0;
   Int_t  cnt_nring        = 0;
+  Int_t  cnt_nnoise       = 0;
 
   for( Int_t ibin=0; ibin<hist->GetNbinsX(); ibin++ ){
     if( hist->GetBinContent(ibin+1) && !fl_bin ){ // edge(up)
@@ -67,29 +69,49 @@ Int_t detect_signal( TH1I* hist ){
 
       if( mask_prompt > ibin ){ // remove prompt noise
 	;
-      }else if( entry_eff_before <= th_eff_before && entry_eff_after >= th_eff_after && ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
-	hist_width  ->Fill( width     );
-	hist_1ch_int->Fill( bin_start );
-	hist_wid_tim->Fill( bin_start, width );
-	if( !fl_start ){
-	  hist_nring->Fill( cnt_nring );
-	  hist_span ->Fill( span );
+      }else{
+	std::cout << std::endl;
+	std::cout << "bin_start = " << bin_start << std::endl;
+	Int_t origin = bin_start;
+	while( origin> span_exp ){
+	  origin -= span_exp;
 	}
-	bin_start_before = bin_start;
-	if( fl_message > 1 ) std::cout << " ------> nsig" << std::endl;
-	cnt_nsig++;
-	cnt_nring = 0;
-	fl_start = false;
-      }else{ // ringing
-	cnt_nring++;
+	std::cout << "origin = " << origin << std::endl;
+	if( origin > origin_time && origin < origin_time + origin_range ){ // signal window
+	  std::cout << "    => signal window" << std::endl;
+	  std::cout << "                width = " << width << std::endl;
+	  std::cout << "                span  = " << span  << std::endl;
+	  if( ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
+	    hist_width  ->Fill( width     );
+	    hist_1ch_int->Fill( bin_start );
+	    hist_wid_tim->Fill( bin_start, width );
+	    if( !fl_start ){
+	      hist_nring->Fill( cnt_nring );
+	      hist_span ->Fill( span );
+	    }
+	    bin_start_before = bin_start;
+	    if( fl_message > 1 ) std::cout << " ------> nsig" << std::endl;
+	    cnt_nsig++;
+	    cnt_nring = 0;
+	    fl_start = false;
+	  }else{ // ringing
+	    cnt_nring++;
+	  }
+	}else{ // noise
+	  std::cout << "    => noise" << std::endl;
+	  cnt_nnoise++;
+	}
       }
-    }
+    }      
   }
 
-  if( fl_message ) std::cout << " ------> nsig = " << cnt_nsig << ", "
-			     << "nring = " << cnt_nring << std::endl;
-  hist_nring->Fill( cnt_nring );
-  hist_nsig ->Fill( cnt_nsig );
+  if( fl_message ) std::cout << " ------> "
+			     << "nsig = "   << cnt_nsig   << ", "
+			     << "nring = "  << cnt_nring  << ", "
+			     << "nnoise = " << cnt_nnoise << std::endl;
+  hist_nring->Fill ( cnt_nring  );
+  hist_nsig ->Fill ( cnt_nsig   );
+  hist_nnoise->Fill( cnt_nnoise );
 
   return 0;
 }
@@ -126,12 +148,14 @@ Int_t main( Int_t argc, Char_t** argv ){
 
   hist_nsig   ->SetLineColor(2);
   hist_nring  ->SetLineColor(2);
+  hist_nnoise ->SetLineColor(2);
   hist_width  ->SetLineColor(2);
   hist_span   ->SetLineColor(2);
   hist_1ch_int->SetLineColor(2);
 
   hist_nsig   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nsig",   channel_id,dac) );
   hist_nring  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nring",  channel_id,dac) );
+  hist_nnoise ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nnoise", channel_id,dac) );
   hist_width  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","width",  channel_id,dac) );
   hist_span   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","span",   channel_id,dac) );
   hist_1ch_int->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","1ch_int",channel_id,dac) );
@@ -182,7 +206,8 @@ Int_t main( Int_t argc, Char_t** argv ){
     }
 
     if( hist_1ch->GetEntries()==0 ){
-      hist_nsig->Fill(0);
+      hist_nsig  ->Fill(0);
+      hist_nnoise->Fill(0);
       continue;
     }
 
@@ -217,6 +242,7 @@ Int_t main( Int_t argc, Char_t** argv ){
   can2->cd(4); hist_span   ->Draw();
   can2->cd(5); hist_1ch_int->Draw();
   can2->cd(6); hist_wid_tim->Draw("COLZ");
+  //can2->cd(6); hist_nnoise->Draw();
   can2->cd(4);
   tex2->DrawTextNDC( 0.20, 0.75, Form("Board = %d",        board_id      ) );
   tex2->DrawTextNDC( 0.20, 0.70, Form("Chip = %d",         chip_id       ) );
@@ -225,8 +251,6 @@ Int_t main( Int_t argc, Char_t** argv ){
   tex2->DrawTextNDC( 0.20, 0.55, Form("span = %d",         th_span       ) );
   tex2->DrawTextNDC( 0.20, 0.50, Form("width = %d",        th_width      ) );
   tex2->DrawTextNDC( 0.20, 0.45, Form("window = %d",       th_window     ) );
-  tex2->DrawTextNDC( 0.20, 0.40, Form("eff(before) = %.2f",th_eff_before ) );
-  tex2->DrawTextNDC( 0.20, 0.35, Form("eff(after) = %.2f", th_eff_after  ) );
   can2->Update();
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // triming noise data // tmppppp

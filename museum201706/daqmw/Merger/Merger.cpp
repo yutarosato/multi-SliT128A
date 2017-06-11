@@ -46,7 +46,7 @@ Merger::Merger(RTC::Manager* manager)
       m_nextread_ID(0),
       m_recv_byte_size(0),
       m_stop_flag(0),
-      m_debug(false)
+      m_debug(!true)
 {
     // Registration: InPort/OutPort/Service
     // Set InPort buffers

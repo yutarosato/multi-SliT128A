@@ -43,8 +43,10 @@ SampleLogger::SampleLogger(RTC::Manager* manager)
       m_in_status(BUF_SUCCESS),
       m_update_rate(100),
       m_debug(!true),
-      m_vref  (-999),
-      m_hv    (-999)
+      m_rf   (-999),
+      m_vref2(-999),
+      m_vref5(-999),
+      m_hv   (-999)
       
 {
     // Registration: InPort/OutPort/Service
@@ -179,10 +181,20 @@ int SampleLogger::parse_params(::NVList* list)
 	      std::cerr << "run summary table:"
 			<< m_runsummary << std::endl;
             }
-	    if (sname == "VREF") {
-	      m_vref = atof(svalue.c_str());
-	      std::cerr << "VREF:"
-			<< m_vref << std::endl;
+	    if (sname == "RF") {
+	      m_rf = atof(svalue.c_str());
+	      std::cerr << "RF:"
+			<< m_rf << std::endl;
+            }
+	    if (sname == "VREF2") {
+	      m_vref2 = atof(svalue.c_str());
+	      std::cerr << "VREF2:"
+			<< m_vref2 << std::endl;
+            }
+	    if (sname == "VREF5") {
+	      m_vref5 = atof(svalue.c_str());
+	      std::cerr << "VREF5:"
+			<< m_vref5 << std::endl;
             }
 	    if (sname == "HV") {
 	      m_hv = atof(svalue.c_str());
@@ -242,7 +254,9 @@ int SampleLogger::daq_start()
 	    std::ofstream run_summary_file;
 	    run_summary_file.open(m_runsummary.c_str(),std::ios::app);
 	    run_summary_file << std::right << std::setw(25) << fileUtils->get_file_name().c_str()
-			     << std::right << std::setw(10) << m_vref
+			     << std::right << std::setw(10) << m_rf
+			     << std::right << std::setw(10) << m_vref2
+			     << std::right << std::setw(10) << m_vref5
 			     << std::right << std::setw(10) << m_hv
 			     << " : "
 			     << m_note.c_str()

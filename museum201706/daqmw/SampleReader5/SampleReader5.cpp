@@ -254,7 +254,7 @@ int SampleReader5::read_data_from_detectors()
   
   //std::cout << "total data length (global header + unit header + unit data) = " << GLOBAL_HEADER_SIZE + nread
   //<< " : event_data_len = " << event_data_len << std::endl; // tmppppppp
-
+  
   return event_data_len;	  
 }
 

@@ -43,7 +43,7 @@ Dispatcher::Dispatcher(RTC::Manager* manager)
       m_out1_timeout_counter(0),
       m_out2_timeout_counter(0),
       m_inport_recv_data_size(0),
-      m_debug(false)
+      m_debug(!true)
 {
     // Registration: InPort/OutPort/Service
 
