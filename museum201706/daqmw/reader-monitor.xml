@@ -43,8 +43,7 @@
                     <outPorts>
                     </outPorts>
                     <params>
-                        <param pid="monitorUpdateRate">250</param>
-                        <param pid="monitorSamplingRate">125</param>
+                        <param pid="monitorRate">150</param>
                         <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                     </params>
