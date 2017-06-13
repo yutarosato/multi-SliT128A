@@ -9,6 +9,8 @@ multi-slit128a_exp_decoder_for_scurve:multi-slit128a_exp_decoder_for_scurve.o $(
 	$(CXX) $(ROOTLIBS) -o $@ $^
 multi-slit128a_exp_decoder_for_bt:multi-slit128a_exp_decoder_for_bt.o $(other)
 	$(CXX) $(ROOTLIBS) -o $@ $^
+multi-slit128a_exp_decoder_for_bt_with_fall_info:multi-slit128a_exp_decoder_for_bt_with_fall_info.o $(other)
+	$(CXX) $(ROOTLIBS) -o $@ $^
 merger:merger.o $(other)
 	$(CXX) $(ROOTLIBS) -o $@ $^
 fast_edge_decoder:fast_edge_decoder.o $(other)
@@ -17,8 +19,9 @@ fast_edge_decoder:fast_edge_decoder.o $(other)
 .cpp.o:
 	$(CXX) $(ROOTFLAGS) -c $< -o $@
 
-multi-slit128a_exp_decoder_for_scurve.o   : multi-slit128a_exp_decoder_for_scurve.cpp
-multi-slit128a_exp_decoder_for_bt.o       : multi-slit128a_exp_decoder_for_bt.cpp
+multi-slit128a_exp_decoder_for_scurve.o            : multi-slit128a_exp_decoder_for_scurve.cpp
+multi-slit128a_exp_decoder_for_bt.o                : multi-slit128a_exp_decoder_for_bt.cpp
+multi-slit128a_exp_decoder_for_bt_with_fall_info.o : multi-slit128a_exp_decoder_for_bt_with_fall_info.cpp
 merger.o                       : merger.cpp
 fast_edge_decoder.o            : fast_edge_decoder.cpp
 

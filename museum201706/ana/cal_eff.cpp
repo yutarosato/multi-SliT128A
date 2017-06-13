@@ -2,8 +2,8 @@
 
 // message and plot
 const Int_t  fl_message = 0;
-const Bool_t fl_batch   = !true; // should be false for quick check.
-const Int_t  fl_show    = 5;
+const Bool_t fl_batch   = true; // should be false for quick check.
+const Int_t  fl_show    = 100;
 
 // axis ragnge
 const Int_t nsig_max   =  15;
@@ -14,18 +14,16 @@ const Int_t nnoise_max =  50;
 // setup
 const Int_t nsig_exp     =    8; // # of signals per event (probably 8 @200kHz)
 const Int_t span_exp     = 1000; // 200kHz -> 5us -> 1000 bit
-const Int_t origin_time  =  280;
-const Int_t origin_range =   50;
+const Int_t origin_time  =     0; // not useful
+const Int_t origin_range =  1000; // not useful
 
 // signal definition
 const Int_t    th_span       =   450;
 const Int_t    th_width      =     5;
-//const Int_t    th_width      =    10; // tmpppp
 const Int_t    th_window     =    20;
 const Int_t    mask_prompt   =    50;
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 
 TH1I* hist_nsig    = new TH1I( "hist_nsig",    "hist_nsig;#signal/events",          nsig_max,           0,    nsig_max  );
 TH1I* hist_nring   = new TH1I( "hist_nring",   "hist_nring;#ringing/signals",      nring_max,           0,   nring_max  );
@@ -71,17 +69,12 @@ Int_t detect_signal( TH1I* hist ){
       if( mask_prompt > ibin ){ // remove prompt noise
 	;
       }else{
-	std::cout << std::endl;
-	std::cout << "bin_start = " << bin_start << std::endl;
 	Int_t origin = bin_start;
 	while( origin> span_exp ){
 	  origin -= span_exp;
 	}
-	std::cout << "origin = " << origin << std::endl;
+
 	if( origin > origin_time && origin < origin_time + origin_range ){ // signal window
-	  std::cout << "    => signal window" << std::endl;
-	  std::cout << "                width = " << width << std::endl;
-	  std::cout << "                span  = " << span  << std::endl;
 	  if( ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
 	    hist_width  ->Fill( width     );
 	    hist_1ch_int->Fill( bin_start );
@@ -99,7 +92,6 @@ Int_t detect_signal( TH1I* hist ){
 	    cnt_nring++;
 	  }
 	}else{ // noise
-	  std::cout << "    => noise" << std::endl;
 	  cnt_nnoise++;
 	}
       }
@@ -284,6 +276,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	    << " BOARD"   << board_id   //  board-No
 	    << " CHIP"    << chip_id    //  chip-No
 	    << " CHANNEL" << channel_id //  channel-No
+	    << "HOGEEEE"
 	    << std::endl;
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -4,8 +4,19 @@ set HEADNAME     = "output"
 #set BOARD_LIST   = "2 5" # (2,5), (3,6)
 set BOARD_LIST   = "5" # (2,5), (3,6)
 set CHIP_LIST    = "0 1 2 3" # 0-3
-set VREF         = 200.0 # VREF value [mV]
+set VREF         = 400.0 # VREF value [mV]
 set TPCHG        = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+# 1.0 MIP = 279.0 mV
+###########################################
+# 0.3 MIP =  83.7 mV
+# 0.4 MIP = 111.6 mV
+# 0.5 MIP = 139.5 mV
+# 0.6 MIP = 167.4 mV
+# 0.7 MIP = 195.3 mV
+# 0.8 MIP = 223.2 mV
+# 0.9 MIP = 251.1 mV
+# 1.0 MIP = 279.0 mV
+
 
 ###########################################
 (cd slow_control;   (make || exit;))
@@ -102,11 +113,14 @@ while ( ${CTRL_DAC} <= 31 )
     set NOHIT = `cat tmp_nhit.log`
     echo ${NOHIT}
     cd ../
-    if( ${NOHIT} >= 35000 )then
-	@ CTRL_DAC += 2
-    else
-	@ CTRL_DAC += 2 # tmpppp
-    endif
+
+#    if( ${NOHIT} >= 35000 )then
+#	@ CTRL_DAC += 2
+#    else
+#	@ CTRL_DAC += 2 # tmpppp
+#    endif
+
+    @ CTRL_DAC += 2 # tmpppp
 end # end loop for DAC
 
 

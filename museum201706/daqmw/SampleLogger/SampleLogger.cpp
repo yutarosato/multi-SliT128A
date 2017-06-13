@@ -46,7 +46,9 @@ SampleLogger::SampleLogger(RTC::Manager* manager)
       m_rf   (-999),
       m_vref2(-999),
       m_vref5(-999),
-      m_hv   (-999)
+      m_hv   (-999),
+      m_rf_freq(-999),
+      m_rf_power(-999)
       
 {
     // Registration: InPort/OutPort/Service
@@ -201,6 +203,16 @@ int SampleLogger::parse_params(::NVList* list)
 	      std::cerr << "HV:"
 			<< m_hv << std::endl;
             }
+	    if (sname == "RF_FREQ") {
+	      m_rf_freq = atof(svalue.c_str());
+	      std::cerr << "RF(Freq):"
+			<< m_rf_freq << std::endl;
+            }
+	    if (sname == "RF_POWER") {
+	      m_rf_power = atof(svalue.c_str());
+	      std::cerr << "RF(Power):"
+			<< m_rf_power << std::endl;
+            }
 	    if (sname == "NOTE") {
 	      m_note = svalue;
 	      std::cerr << "NOTE:"
@@ -258,6 +270,8 @@ int SampleLogger::daq_start()
 			     << std::right << std::setw(10) << m_vref2
 			     << std::right << std::setw(10) << m_vref5
 			     << std::right << std::setw(10) << m_hv
+			     << std::right << std::setw(10) << m_rf_freq
+			     << std::right << std::setw(10) << m_rf_power
 			     << " : "
 			     << m_note.c_str()
 			     << std::endl;

@@ -1,12 +1,13 @@
 #! /bin/tcsh -f
 
 set HEADNAME = "output"
-set BOARD    = 5 # (2,5), (3,6)
+set BOARD    = 2 # (2,5), (3,6)
 set CHIP     = 1 # 0-3
-set VREF     = 450.0 # VREF value [mV]
+set VREF     = 300.0 # VREF value [mV]
 set TPCHG    = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 
-set CHANNEL_LIST = 15
+#set CHANNEL_LIST = 15
+set CHANNEL_LIST = "15 47 79 111"
 #set CHANNEL_LIST = `seq 122 124`
 #set CHANNEL_LIST = `seq 0 127`
 

@@ -67,6 +67,8 @@ private:
   double m_vref2;
   double m_vref5;
   double m_hv;
+  double m_rf_freq;
+  double m_rf_power;
   std::string m_note;
 };
 

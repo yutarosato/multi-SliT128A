@@ -13,6 +13,7 @@ using DAQMW::FatalType::DATAPATH_DISCONNECTED;
 using DAQMW::FatalType::OUTPORT_ERROR;
 using DAQMW::FatalType::USER_DEFINED_ERROR1;
 using DAQMW::FatalType::USER_DEFINED_ERROR2;
+using DAQMW::FatalType::USER_DEFINED_ERROR3;
 
 // Module specification
 // Change following items to suit your component's spec.
@@ -147,7 +148,7 @@ int SampleReader5::daq_start()
         // Create socket and connect to data server.
         m_sock = new DAQMW::Sock();
 	m_sock->connect(m_srcAddr, m_srcPort);
-	m_sock->setOptRecvTimeOut(10.0); // sec
+	m_sock->setOptRecvTimeOut(20.0); // sec
     } catch (DAQMW::SockException& e) {
         std::cerr << "Sock Fatal Error : " << e.what() << std::endl;
         fatal_error_report(USER_DEFINED_ERROR1, "SOCKET FATAL ERROR");
@@ -210,15 +211,23 @@ int SampleReader5::read_data_from_detectors()
     event_data_len += GLOBAL_HEADER_SIZE;
   }
 
+  // mark "e"
+  unsigned char global_mark = m_data[0];
+  global_mark = ( global_mark >> 4 );
+  if( (int)global_mark != 14 ){
+    std::cerr << "### ERROR: wrong data : " << (int)global_mark << std::endl;
+    fatal_error_report(USER_DEFINED_ERROR3, "WRONG DATA");
+  }
+
   // ndata 
   unsigned long tmp_total_ndata = *(unsigned long*)&m_data[1];
   tmp_total_ndata = ((tmp_total_ndata & 0xffffff01)  );
   unsigned long total_ndata = ntohl(tmp_total_ndata);
   total_ndata = (total_ndata >> 8);
-
+  
   // read unit header+data
   int nread = UNIT_HEADER_SIZE*N_CHIP*N_UNIT + UNIT_DATA_SIZE*total_ndata;
-  /*
+  ///*
   status = m_sock->readAll(&m_data[event_data_len], nread);
   if( status == DAQMW::Sock::ERROR_FATAL ){
     std::cerr << "### ERROR: m_sock->readAll" << std::endl;
@@ -229,12 +238,9 @@ int SampleReader5::read_data_from_detectors()
   }else{
     event_data_len += nread;
   }
-  */
-
+  //*/
+  /*
   int step = 1024;
-  //std::cout << nread << " bytes" << std::endl;
-  //std::cout << nread/step << " times" << std::endl;
-  //std::cout << nread%step << " remain" << std::endl;
   for( int istep=0; istep <= nread/step; istep++ ){
     if     (   istep == nread/step && nread%step    ) status = m_sock->readAll(&m_data[event_data_len], nread%step);
     else if( istep == nread/step && nread%step==0   ) break;
@@ -251,10 +257,11 @@ int SampleReader5::read_data_from_detectors()
       else                      event_data_len += step;
     }
   }
+  */
   
   //std::cout << "total data length (global header + unit header + unit data) = " << GLOBAL_HEADER_SIZE + nread
   //<< " : event_data_len = " << event_data_len << std::endl; // tmppppppp
-  
+
   return event_data_len;	  
 }
 

@@ -2,7 +2,7 @@
 
 // message and plot
 const Int_t  fl_message = 0;
-const Bool_t fl_batch   = !true; // should be false for quick check.
+const Bool_t fl_batch   = true; // should be false for quick check.
 const Int_t  fl_show    = 1;
 const Bool_t fl_save    = true;
 
@@ -12,13 +12,14 @@ const Int_t nring_max= 20;
 const Int_t width_max= 300;
 
 // setup
-const Int_t nsig_exp =    8; // # of signals per event (probably 8 @200kHz)
-const Int_t span_exp = 1000; // 200kHz -> 5us -> 1000 bit
+const Int_t nsig_exp     =    8; // # of signals per event (probably 8 @200kHz)
+const Int_t span_exp     = 1000; // 200kHz -> 5us -> 1000 bit
+const Int_t origin_time  =     0; // not useful
+const Int_t origin_range =  1000; // not useful
 
 // signal definition
 const Int_t    th_span       =   450;
-//const Int_t    th_width      =     5;
-const Int_t    th_width      =    15; // tmpppp
+const Int_t    th_width      =     5;
 const Int_t    th_window     =    20;
 const Int_t    mask_prompt   =    50;
 const Double_t th_eff_before =   2.0; // >=1.0 is no-cut
@@ -45,6 +46,7 @@ Int_t detect_signal( TH1I* hist, Int_t ich ){
   Bool_t fl_start         = true;
   Int_t  cnt_nsig         = 0;
   Int_t  cnt_nring        = 0;
+  Int_t  cnt_nnoise       = 0;
 
   for( Int_t ibin=0; ibin<hist->GetNbinsX(); ibin++ ){
     if( hist->GetBinContent(ibin+1) && !fl_bin ){ // edge(up)
@@ -68,23 +70,35 @@ Int_t detect_signal( TH1I* hist, Int_t ich ){
 				   << ", eff(before) = "  << entry_eff_before
 				   << ", eff(after) = "   << entry_eff_after  << std::endl;
 
+
       if( mask_prompt > ibin ){ // remove prompt noise
 	;
-      }else if( entry_eff_before <= th_eff_before && entry_eff_after >= th_eff_after && ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
-	hist_width  [ich]->Fill( width     );
-	hist_1ch_int[ich]->Fill( bin_start );
-	hist_wid_tim[ich]->Fill( bin_start, width );
-	if( !fl_start ){
-	  hist_nring[ich]->Fill( cnt_nring );
-	  hist_span [ich]->Fill( span );
+      }else{
+	Int_t origin = bin_start;
+	while( origin> span_exp ){
+	  origin -= span_exp;
 	}
-	bin_start_before = bin_start;
-	if( fl_message > 1 ) std::cout << " ------> nsig" << std::endl;
-	cnt_nsig++;
-	cnt_nring = 0;
-	fl_start = false;
-      }else{ // ringing
-	cnt_nring++;
+
+	if( origin > origin_time && origin < origin_time + origin_range ){ // signal window
+	  if( ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
+	    hist_width  [ich]->Fill( width     );
+	    hist_1ch_int[ich]->Fill( bin_start );
+	    hist_wid_tim[ich]->Fill( bin_start, width );
+	    if( !fl_start ){
+	      hist_nring[ich]->Fill( cnt_nring );
+	      hist_span [ich]->Fill( span );
+	    }
+	    bin_start_before = bin_start;
+	    if( fl_message > 1 ) std::cout << " ------> nsig" << std::endl;
+	    cnt_nsig++;
+	    cnt_nring = 0;
+	    fl_start = false;
+	  }else{ // ringing
+	    cnt_nring++;
+	  }
+	}else{ // noise
+	  cnt_nnoise++;
+	}
       }
     }
   }

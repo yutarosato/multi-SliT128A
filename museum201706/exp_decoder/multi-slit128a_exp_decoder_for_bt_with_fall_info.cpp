@@ -165,10 +165,10 @@ int set_tree(){
   tree->Branch( "rf_freq",   &t_rf_freq, "rf_freq/F"   );
   tree->Branch( "rf_power",  &t_rf_power, "rf_power/F" );
   // bit fall
-  tree->Branch( "fall_board", &t_board_v );
-  tree->Branch( "fall_chip",  &t_chip_v  );
-  tree->Branch( "fall_unit",  &t_unit_v  );
-  tree->Branch( "fall_time",  &t_time_v  );
+  tree->Branch( "fall_board", &t_fall_board_v );
+  tree->Branch( "fall_chip",  &t_fall_chip_v  );
+  tree->Branch( "fall_unit",  &t_fall_unit_v  );
+  tree->Branch( "fall_time",  &t_fall_time_v  );
   //
   return 0;
 }
@@ -181,6 +181,10 @@ int init_tree(){
   t_bit_v.clear();
   t_time_v.clear();
   t_fl_fall_v.clear();
+  t_fall_board_v.clear();
+  t_fall_chip_v.clear();
+  t_fall_unit_v.clear();
+  t_fall_time_v.clear();
 
   return 0;
 }

@@ -47,6 +47,8 @@ class MTree{
   int t_bit;
   int t_time;
   int t_data[n_bit];
+  int t_fl_fall;
+  int t_cksum;
 
   std::vector<int>* t2_board_v; // for read
   std::vector<int>* t2_chip_v;
@@ -84,6 +86,8 @@ class MTree{
   std::vector<int> get_unit (){ return t_unit_v;  }
   std::vector<int> get_bit  (){ return t_bit_v;   }
   std::vector<int> get_time (){ return t_time_v;  }
+  int getcksum  (){ return t_cksum;   }
+  int getfl_fall(){ return t_fl_fall; }
 
 };
 

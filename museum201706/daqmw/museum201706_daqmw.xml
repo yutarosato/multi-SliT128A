@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+3<?xml version="1.0"?>
 <!-- DON'T REMOVE THE ABOVE LINE.                                     -->
 <!-- DON'T PUT ANY LINES ABOVE THE 1ST LINE.                          -->
 <!-- Sample config.xml to run SampleReader and SampleMonitor.         -->
@@ -8,13 +8,13 @@
 <!-- If you use run.py, set confFile as /tmp/daqmw/rtc.conf           -->
 <configInfo>
     <daqOperator>
-        <hostAddr>192.168.10.1</hostAddr>
+        <hostAddr>127.0.0.1</hostAddr>
     </daqOperator>
     <daqGroups>
         <daqGroup gid="group0">
             <components>
                 <component cid="SampleReader0">
-                    <hostAddr>192.168.10.1</hostAddr>
+                    <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleReader0.rtc</instName>
                     <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleReader/SampleReaderComp</execPath>
@@ -32,7 +32,7 @@
                 </component>
 
                 <component cid="SampleReader50">
-                    <hostAddr>192.168.10.1</hostAddr>
+                    <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleReader50.rtc</instName>
                     <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleReader5/SampleReader5Comp</execPath>
@@ -50,7 +50,7 @@
                 </component>
 
                 <component cid="Merger0">
-                    <hostAddr>192.168.10.1</hostAddr>
+                    <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>Merger0.rtc</instName>
                     <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/Merger/MergerComp</execPath>
@@ -69,7 +69,7 @@
                 </component>
 
 		<component cid="Dispatcher0">
-		  <hostAddr>192.168.10.1</hostAddr>
+		  <hostAddr>127.0.0.1</hostAddr>
 		  <hostPort>50000</hostPort>
 		  <instName>Dispatcher0.rtc</instName>
 		  <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/Dispatcher/DispatcherComp</execPath>
@@ -86,7 +86,7 @@
 		</component>
 
 		<component cid="SampleLogger0">
-		  <hostAddr>192.168.10.1</hostAddr>
+		  <hostAddr>127.0.0.1</hostAddr>
 		  <hostPort>50000</hostPort>
 		  <instName>SampleLogger0.rtc</instName>
 		  <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleLogger/SampleLoggerComp</execPath>
@@ -112,7 +112,7 @@
 		</component>
 
                 <component cid="SampleMonitor0">
-                    <hostAddr>192.168.10.1</hostAddr>
+                    <hostAddr>127.0.0.1</hostAddr>
                     <hostPort>50000</hostPort>
                     <instName>SampleMonitor0.rtc</instName>
                     <execPath>/home/SliT/g-2/elech/multi-SliT128A/museum201706/daqmw/SampleMonitor/SampleMonitorComp</execPath>
@@ -124,8 +124,7 @@
                     <outPorts>
                     </outPorts>
                     <params>
-                        <param pid="monitorUpdateRate">250</param>
-                        <param pid="monitorSamplingRate">250</param>
+                        <param pid="monitorRate">250</param>
                         <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                     </params>

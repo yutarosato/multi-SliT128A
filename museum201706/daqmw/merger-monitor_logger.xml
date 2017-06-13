@@ -101,9 +101,9 @@
                     <param pid="isLogging">yes</param>
                     <param pid="maxFileSizeInMegaByte">8192</param>
                     <param pid="runsummaryName">../data/run_summary.dat</param>
-                    <param pid="RF">560</param>
-                    <param pid="VREF2">560</param>
-                    <param pid="VREF5">560</param>
+                    <param pid="RF">0</param>
+                    <param pid="VREF2">200</param>
+                    <param pid="VREF5">300</param>
                     <param pid="HV">120</param>
                     <param pid="RF_FREQ">0</param>
                     <param pid="RF_POWER">0</param>
@@ -124,8 +124,7 @@
                     <outPorts>
                     </outPorts>
                     <params>
-                        <param pid="monitorUpdateRate">250</param>
-                        <param pid="monitorSamplingRate">250</param>
+                        <param pid="monitorRate">250</param>
                         <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                     </params>

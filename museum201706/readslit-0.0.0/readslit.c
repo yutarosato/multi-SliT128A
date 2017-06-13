@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
         }
 
         // read header part
-	fprintf(stderr,"START READN : %d\n", cnt++);
+	//fprintf(stderr,"START READN : %d\n", cnt++);
         n = readn(sockfd, &buf[0], GLOBAL_HEADER_SIZE);
         if (n != GLOBAL_HEADER_SIZE) {
             errx(1, "readn for header fail.  %d bytes request, %d bytes read", GLOBAL_HEADER_SIZE, n);

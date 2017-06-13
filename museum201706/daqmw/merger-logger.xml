@@ -78,17 +78,17 @@
                     <outPorts>
                     </outPorts>
                     <params>
-                       <param pid="dirName">../data/binary_data</param>
+                       <param pid="dirName">/home/SliT/g-2/elech/multi-SliT128A/museum201706/data/binary_data</param>
                        <param pid="isLogging">yes</param>
                        <param pid="maxFileSizeInMegaByte">8192</param>
                        <param pid="runsummaryName">../data/run_summary.dat</param>
                        <param pid="RF">0</param>
-                       <param pid="VREF2">60</param>
-                       <param pid="VREF5">60</param>
+                       <param pid="VREF2">600</param>
+                       <param pid="VREF5">600</param>
                        <param pid="HV">120</param>
                        <param pid="RF_FREQ">0</param>
                        <param pid="RF_POWER">0</param>
-                       <param pid="NOTE">TEST1 TEST2</param>
+                       <param pid="NOTE">TEST RUN</param>
                     </params>
                 </component>
 

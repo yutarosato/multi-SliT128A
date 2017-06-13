@@ -13,21 +13,21 @@ MTree::MTree( const Char_t* name ){
 MTree::~MTree(){
   delete m_tree;
   init_tree();
-  t2_board_v = 0;
-  t2_chip_v  = 0;
-  t2_unit_v  = 0;
-  t2_bit_v   = 0;
-  t2_time_v  = 0;
+  t2_board_v   = 0;
+  t2_chip_v    = 0;
+  t2_unit_v    = 0;
+  t2_bit_v     = 0;
+  t2_time_v    = 0;
 }
 
 void MTree::Reset(){
-  m_tree->Reset();;
+  m_tree->Reset();
   init_tree();
-  t2_board_v = 0;
-  t2_chip_v  = 0;
-  t2_unit_v  = 0;
-  t2_bit_v   = 0;
-  t2_time_v  = 0;
+  t2_board_v   = 0;
+  t2_chip_v    = 0;
+  t2_unit_v    = 0;
+  t2_bit_v     = 0;
+  t2_time_v    = 0;
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -49,30 +49,34 @@ int MTree::numofbits( int bits ){
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 int MTree::set_readbranch(){
-  m_tree->SetBranchAddress("event", &t_event    );
-  m_tree->SetBranchAddress("board", &t2_board_v );
-  m_tree->SetBranchAddress("chip",  &t2_chip_v  );
-  m_tree->SetBranchAddress("unit",  &t2_unit_v  );
-  m_tree->SetBranchAddress("bit",   &t2_bit_v   );
-  m_tree->SetBranchAddress("time",  &t2_time_v  );
+  m_tree->SetBranchAddress("event",   &t_event      );
+  m_tree->SetBranchAddress("fl_fall", &t_fl_fall    );
+  m_tree->SetBranchAddress("cksum",   &t_cksum      );
+  m_tree->SetBranchAddress("board",   &t2_board_v   );
+  m_tree->SetBranchAddress("chip",    &t2_chip_v    );
+  m_tree->SetBranchAddress("unit",    &t2_unit_v    );
+  m_tree->SetBranchAddress("bit",     &t2_bit_v     );
+  m_tree->SetBranchAddress("time",    &t2_time_v    );
 
-  t2_board_v->clear();
-  t2_chip_v ->clear();
-  t2_unit_v ->clear();
-  t2_bit_v  ->clear();
-  t2_time_v ->clear();
+  t2_board_v  ->clear();
+  t2_chip_v   ->clear();
+  t2_unit_v   ->clear();
+  t2_bit_v    ->clear();
+  t2_time_v   ->clear();
 
   return 0;
 }
 
 int MTree::set_writebranch(){
   m_tree->Branch( "event",    &t_event,           "event/I"    );
+  m_tree->Branch( "fl_fall",  &t_fl_fall,         "fl_fall/I"  );
+  m_tree->Branch( "cksum",    &t_cksum,           "cksum/I"    );
   m_tree->Branch( "overflow", &t_nevent_overflow, "overflow/I" );
-  m_tree->Branch( "board",    &t_board_v );
-  m_tree->Branch( "chip",     &t_chip_v  );
-  m_tree->Branch( "unit",     &t_unit_v  );
-  m_tree->Branch( "bit",      &t_bit_v   );
-  m_tree->Branch( "time",     &t_time_v  );
+  m_tree->Branch( "board",    &t_board_v   );
+  m_tree->Branch( "chip",     &t_chip_v    );
+  m_tree->Branch( "unit",     &t_unit_v    );
+  m_tree->Branch( "bit",      &t_bit_v     );
+  m_tree->Branch( "time",     &t_time_v    );
   
   return 0;
 }
@@ -92,7 +96,7 @@ int MTree::init_tree(){
 int MTree::decode_data(const unsigned char* event_buf, int length)
 {
   init_tree();
-  // mark "ee"
+  // mark "e"
   //unsigned char global_mark = event_buf[0];
   //global_mark = ( global_mark >> 4 );
   //printf("Mark : %x\n",(int)global_mark);
@@ -102,8 +106,15 @@ int MTree::decode_data(const unsigned char* event_buf, int length)
   header_board_id = ( header_board_id & 0x0f );
   //printf("Board-ID : %d\n",(int)header_board_id);
 
+  // flag for bit fall
+  unsigned char bit_fall = event_buf[1];
+  bit_fall = ( bit_fall >> 7 );
+  t_fl_fall = (int)bit_fall;
+  //printf("bit-fall : %x\n",(int)bit_fall);
+
   // over-flow event counter
   unsigned char nevent_overflow = event_buf[1];
+  nevent_overflow = ( nevent_overflow & 0x7F);
   nevent_overflow = ( nevent_overflow >> 2 );
   t_nevent_overflow = nevent_overflow;
   //printf("over-flow : %x\n",(int)nevent_overflow);
@@ -135,6 +146,7 @@ int MTree::decode_data(const unsigned char* event_buf, int length)
   }
   */
 
+  t_cksum = 1;
   int index = byte_global_header;
   for( int iunit=0; iunit<n_chip*n_unit; iunit++ ){ // iterate for unit head/data
     // unit header
@@ -159,6 +171,7 @@ int MTree::decode_data(const unsigned char* event_buf, int length)
     unsigned char cksum = event_buf[index+2];
     cksum = ( cksum & 0x40 );
     cksum = ( cksum >> 6 );
+    if( (int)cksum==0 ) t_cksum = 0;
 
     //printf("event number(cksum) : %d(%d)\n", event_number_unit,cksum);
     /*

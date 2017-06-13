@@ -24,7 +24,6 @@
 #include "TApplication.h"
 #include "TString.h"
 #include "TStyle.h"
-#include "TText.h"
 
 #include "../MTree/MTree.h"
 
@@ -91,13 +90,10 @@ private:
 
   TGraph**  m_graph_nbit;
   TGraph**  m_graph_nhit;
-
-  // warning/error message
-  TText * m_tex_error;   // (red)
-  TText * m_tex_warning; // (blue)
   
   // external parameters
-  int      m_monitor_rate;
+  int      m_monitor_update_rate;
+  int      m_monitor_sampling_rate;
   int      th_width; // bin
   int      th_span;  // bin
 
@@ -124,10 +120,6 @@ private:
   MTree* m_tree;
   bool   m_debug;
   int    m_sequence_number[n_board];
-
-  int    m_cksum   [n_board];
-  int    m_fl_fall [n_board];
-  int    m_overflow[n_board];
   
   int t_event;
   std::vector<int> t_chip_v; // for write

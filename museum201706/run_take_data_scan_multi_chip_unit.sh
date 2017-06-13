@@ -2,11 +2,15 @@
 
 set HEADNAME     = "output"
 set BOARD_LIST   = "2" # (2,5), (3,6)
+set BOARD_LIST   = "5" # (2,5), (3,6)
 set CHIP_LIST    = "0 1 2 3" # 0-3
-#set CHANNEL_LIST = "15"
-set CHANNEL_LIST = `seq 0 127`
-set VREF         = 300.0 # VREF value [mV]
+#set CHANNEL_LIST = "12"
+#set CHANNEL_LIST = `seq 0 31`
+set CHANNEL_LIST = $1
+#set VREF         = 300.0 # VREF value [mV]
+set VREF         = 400.0 # VREF value [mV]
 set TPCHG        = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+# 1 MIP = 279 mV @ 8 divider
 
 ###########################################
 (cd slow_control;   (make || exit;))
@@ -34,7 +38,8 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	    set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
 	    set IP = 16
 	    @ IP += ${BOARD}
-	    ./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLLLLLLLLLL # other DAC = 0 # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+	    #./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLLLLLLLLLL # other DAC = 0 # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+	    ./make_control_unit ${BOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLLLLLLLLLLLLL # other DAC = 0 # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
 	    while (1)
 		./slit128sc_chip  files/control_${BOARD}_${CTRL_CHIP}.dat 192.168.${BOARD}.${IP};
 		if( $? == 0 ) then
@@ -45,6 +50,7 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	end # end loop for CHIP
 	end # end loop for BOARD
 	cd ../;
+
 	foreach BOARD( ${BOARD_LIST} )
 	    ./run_fpga.sh ${BOARD}
 	end # end loop for BOARD
@@ -64,7 +70,8 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	    ./readslit -t 3 192.168.${BOARD}.${IP} 24 ../binary_data/${OUTNAME}.dat &
 	    cd ../
 	end # end loop for BOARD
-	sleep 3;
+	sleep 2;
+	#sleep 3;
         #echo "               Kill Process(nc)"
 	#foreach IPID( ${PID} )
 	#    if( ${IPID} < 0 ) then
@@ -82,10 +89,12 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	foreach BOARD( ${BOARD_LIST} )
 	    echo "                   Board#${BOARD}"
 	    set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${BOARD}_${CHANNEL}_${CTRL_DAC}"
-	    ./multi-slit128a_exp_decoder_for_scurve ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${VREF} ${TPCHG} ${BOARD} -999 ${CHANNEL} ${CTRL_DAC}
-	    set TMPNOHIT = $?
-	    @ NOHIT += ${TMPNOHIT};
-	    rm -f ../binary_data/${OUTNAME}.dat
+	    echo "./multi-slit128a_exp_decoder_for_scurve ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${VREF} ${TPCHG} ${BOARD} -999 -999 ${CTRL_DAC}" >> tmp.sh
+	    set TMPNOHIT = 1
+	    #./multi-slit128a_exp_decoder_for_scurve ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${VREF} ${TPCHG} ${BOARD} -999 -999 ${CTRL_DAC}
+	    #set TMPNOHIT = $?
+	    #@ NOHIT += ${TMPNOHIT};
+	    #rm -f ../binary_data/${OUTNAME}.dat
 	end # end loop for BOARD
 
 	if( ${NOHIT} == 0 )then
@@ -111,4 +120,5 @@ foreach CHANNEL( ${CHANNEL_LIST} )
     end # end loop for DAC
 end # end loop for Channel
 
-hadd -f root_data/${HEADNAME}_${VREF}_${TPCHG}.root root_data/${HEADNAME}_${VREF}_${TPCHG}_*.root && mv root_data/${HEADNAME}_${VREF}_${TPCHG}_*.root root_data/tmp/.
+#hadd -f root_data/${HEADNAME}_${VREF}_${TPCHG}.root root_data/${HEADNAME}_${VREF}_${TPCHG}_*.root && mv root_data/${HEADNAME}_${VREF}_${TPCHG}_*.root root_data/tmp/.
+hadd -f root_data/${HEADNAME}_${VREF}_${TPCHG}_${BOARD_LIST}_${CHANNEL_LIST}.root root_data/${HEADNAME}_${VREF}_${TPCHG}_${BOARD_LIST}_${CHANNEL_LIST}_*.root && mv root_data/${HEADNAME}_${VREF}_${TPCHG}_${BOARD_LIST}_${CHANNEL_LIST}_*.root root_data/tmp/.
