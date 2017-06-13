@@ -360,14 +360,14 @@ int SampleMonitor::fill_data(const unsigned char* event_buf, const int size)
     m_hist_bit_allch_int [board_map[board_id]]->Fill( time, global_channel );
   }
 
-  detect_signal(board_map[board_id]); // tmppppp
-  /*
+  //detect_signal(board_map[board_id]); // tmppppp
+
   // input to graph
   m_graph_nbit[board_map[board_id]]->SetPoint     ( m_graph_nbit[board_map[board_id]]->GetN(),  m_sequence_number[board_map[board_id]], m_hist_bit_allch_int[board_map[board_id]]->GetEntries()-prev_nbit[board_map[board_id]] );
   m_graph_nhit[board_map[board_id]]->SetPoint     ( m_graph_nhit[board_map[board_id]]->GetN(),  m_sequence_number[board_map[board_id]], m_hist_hit_allch_int[board_map[board_id]]->GetEntries()-prev_nhit[board_map[board_id]] );
   m_hist_nbit [board_map[board_id]]->Fill( m_hist_bit_allch_int[board_map[board_id]]->GetEntries()-prev_nbit[board_map[board_id]] );
   m_hist_nhit [board_map[board_id]]->Fill( m_hist_hit_allch_int[board_map[board_id]]->GetEntries()-prev_nhit[board_map[board_id]] );
-  */
+
   return 0;
 }
 
