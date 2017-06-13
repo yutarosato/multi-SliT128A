@@ -374,7 +374,7 @@ int main( int argc, char *argv[] ){
   char *data_filename;
   char *out_filename;
 
-  if( argc<7 ){
+  if( argc<3 ){
     std::cerr << "Usage : "
 	      << argv[0] << "  "
 	      << "output_rootfile  input_binary_file  (RF) (VREF2) (VREF5)  (HV) (RF_FREQ) (RF_POWER)" << std::endl; // for beam test

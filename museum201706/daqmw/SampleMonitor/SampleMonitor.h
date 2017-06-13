@@ -70,7 +70,7 @@ private:
   unsigned int read_InPort();
   //int online_analyze();
 
-  int fill_data    (const unsigned char* event_buf, const int size);
+  int fill_data    (const unsigned char* event_buf, const int size, int board_id);
   int detect_signal( int iboard );
 
   BufferStatus m_in_status;

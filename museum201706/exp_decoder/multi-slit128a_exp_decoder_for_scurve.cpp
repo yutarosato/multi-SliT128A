@@ -19,7 +19,7 @@
 #include <TGraph.h>
 
 
-const int fl_message = 1; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
+const int fl_message = 3; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;

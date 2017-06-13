@@ -228,8 +228,10 @@ int SampleMonitor::daq_start()
   else          m_tree->Reset(); // tmppppp
 
   
-  m_canvas = new TCanvas( "c1", "c1", 0, 0, 1800, 1050);
+  m_canvas = new TCanvas( "c1", "c1", 0, 0, 1800, 900);
+  //m_canvas = new TCanvas( "c1", "c1", 0, 0, 1400, 700);
   m_canvas->Divide(4,4);
+  //m_canvas->Divide(4,2);
   m_canvas->Draw();
 
 
@@ -327,9 +329,9 @@ int SampleMonitor::reset_InPort()
 }
 
 
-int SampleMonitor::fill_data(const unsigned char* event_buf, const int size)
+int SampleMonitor::fill_data(const unsigned char* event_buf, const int size, int board_id)
 {
-
+  if( m_debug ) std::cerr << "START FILL_DATA" << std::endl;
   if( m_tree->decode_data(event_buf, size) ){
     std::cerr << "[ERROR] NOT succeeded in decoding" << std::endl;
     return 1;
@@ -342,11 +344,8 @@ int SampleMonitor::fill_data(const unsigned char* event_buf, const int size)
     prev_nhit[iboard] = m_hist_hit_allch_int[iboard]->GetEntries();
   }
 
-  int board_id = 0;
-
-  for( Int_t ivec=0; ivec<m_tree->getnhit(); ivec++ ){ // read 1 event data
-        board_id       = m_tree->get_board().at(ivec);
-    int chip_id        = m_tree->get_chip ().at(ivec);
+   for( Int_t ivec=0; ivec<m_tree->getnhit(); ivec++ ){ // read 1 event data
+     int chip_id        = m_tree->get_chip ().at(ivec);
     int unit_id        = m_tree->get_unit ().at(ivec);
     int time           = m_tree->get_time ().at(ivec);
     int global_channel = m_tree->global_channel_map( chip_id,unit_id,m_tree->get_bit().at(ivec) );
@@ -359,14 +358,14 @@ int SampleMonitor::fill_data(const unsigned char* event_buf, const int size)
     m_hist_bit_allch_1evt[board_map[board_id]]->Fill( time, global_channel );
     m_hist_bit_allch_int [board_map[board_id]]->Fill( time, global_channel );
   }
-
-  //detect_signal(board_map[board_id]); // tmppppp
-
+  if (m_debug) std::cerr << "START DETECT_SIGNAL" << std::endl;
+  if( board_id < 0 ) return 0;
+  detect_signal(board_map[board_id]); // tmppppp
   // input to graph
   m_graph_nbit[board_map[board_id]]->SetPoint     ( m_graph_nbit[board_map[board_id]]->GetN(),  m_sequence_number[board_map[board_id]], m_hist_bit_allch_int[board_map[board_id]]->GetEntries()-prev_nbit[board_map[board_id]] );
-  m_graph_nhit[board_map[board_id]]->SetPoint     ( m_graph_nhit[board_map[board_id]]->GetN(),  m_sequence_number[board_map[board_id]], m_hist_hit_allch_int[board_map[board_id]]->GetEntries()-prev_nhit[board_map[board_id]] );
+  //m_graph_nhit[board_map[board_id]]->SetPoint     ( m_graph_nhit[board_map[board_id]]->GetN(),  m_sequence_number[board_map[board_id]], m_hist_hit_allch_int[board_map[board_id]]->GetEntries()-prev_nhit[board_map[board_id]] );
   m_hist_nbit [board_map[board_id]]->Fill( m_hist_bit_allch_int[board_map[board_id]]->GetEntries()-prev_nbit[board_map[board_id]] );
-  m_hist_nhit [board_map[board_id]]->Fill( m_hist_hit_allch_int[board_map[board_id]]->GetEntries()-prev_nhit[board_map[board_id]] );
+  //m_hist_nhit [board_map[board_id]]->Fill( m_hist_hit_allch_int[board_map[board_id]]->GetEntries()-prev_nhit[board_map[board_id]] );
 
   return 0;
 }
@@ -463,7 +462,7 @@ int SampleMonitor::daq_run()
   header_board_id = ( header_board_id & 0x0f );
   int board_id    = (int)header_board_id;
 
-  // mark "ee"
+  // mark "e"
   unsigned char global_mark = m_in_data.data[HEADER_BYTE_SIZE];
   global_mark = ( global_mark >> 4 );
   //printf("Mark : %x\n",(int)global_mark);
@@ -474,47 +473,26 @@ int SampleMonitor::daq_run()
   }
 
   m_sequence_number[board_map[board_id]]++;
-  /*
-  std::cout << "m_sequence_number = "
-	    << m_sequence_number[0] << ", "
-	    << m_sequence_number[1] << std::endl;
-  */
-  if( ( m_sequence_number[board_map[board_id]]%m_monitor_rate != 0 )
-      || 
-      (
-       ( (m_sequence_number[board_map[board_id]]/m_monitor_rate)%(n_board+1) != board_map[board_id] ) // sampling
-       &&
-       ( board_id!=rev_board_map[0] || (m_sequence_number[0]/m_monitor_rate)%(n_board+1) != n_board ) // draw update       
-       )
-      ){
-    inc_sequence_num();                      // increase sequence num.
-    inc_total_data_size(m_event_byte_size);  // increase total data byte size
-    return 0;
-  }
-  /*
-  std::cout << "sampling" << std::endl;
-  std::cout << (m_sequence_number[board_map[board_id]]/m_monitor_rate)%(n_board+1) << " : " <<  board_map[board_id] << std::endl;
-  std::cout << (m_sequence_number[0]/m_monitor_rate)%(n_board+1) << " : " << n_board << std::endl;
-  */
-  memcpy(&m_recv_data[0], &m_in_data.data[HEADER_BYTE_SIZE], m_event_byte_size);
-  reset_obj();
+  if( m_debug ) std::cerr << "m_sequence_number = "
+			  << m_sequence_number[0] << ", "
+			  << m_sequence_number[1] << " : " << board_id << std::endl;
 
-  fill_data( &m_recv_data[0], m_event_byte_size );
-
-  m_cksum   [board_map[board_id]] = m_tree->getcksum();
-  m_fl_fall [board_map[board_id]] = m_tree->getfl_fall();
-  m_overflow[board_map[board_id]] = m_tree->getoverflow();
-  
-
-  // Draw
-  if( board_id==rev_board_map[0] &&  (m_sequence_number[0]/m_monitor_rate)%(n_board+1) == n_board ){
-    std::cout << "draw" << std::endl;
+  if( ( m_sequence_number[board_map[board_id]]%m_monitor_rate == 0 ) && 
+      (m_sequence_number[board_map[board_id]]/m_monitor_rate)%(n_board+1) == board_map[board_id]+1 ){ // sampling
+    if( m_debug ) std::cerr << "START FILL : " << board_id << std::endl;
+    memcpy(&m_recv_data[0], &m_in_data.data[HEADER_BYTE_SIZE], m_event_byte_size);
+    reset_obj();
+    fill_data( &m_recv_data[0], m_event_byte_size, board_id );
+  }else if( ( m_sequence_number[board_map[board_id]]%m_monitor_rate == 0 ) &&
+	    board_id==rev_board_map[0] && (m_sequence_number[0]/m_monitor_rate)%(n_board+1) == 0 ){ // draw
+    if( m_debug ) std::cerr << "START DRAW : " << board_id << std::endl;    
     for( int iboard=0; iboard<n_board; iboard++ ){
       m_hist_bit_allch_1evt[iboard]->SetTitle( Form("Bit (%d events, board#%d);Time [bit];Channel", m_sequence_number[iboard],rev_board_map[iboard] ) );
       m_hist_hit_allch_1evt[iboard]->SetTitle( Form("Hit (%d events, board#%d);Time [bit];Channel", m_sequence_number[iboard],rev_board_map[iboard] ) );
       m_hist_bit_allch_int [iboard]->SetTitle( Form("Bit (Integral of %d events, board#%d);Time [bit];Channel", (int)(m_sequence_number[iboard]/m_monitor_rate),rev_board_map[iboard]) );
       m_hist_hit_allch_int [iboard]->SetTitle( Form("Hit (Integral of %d events, board#%d);Time [bit];Channel", (int)(m_sequence_number[iboard]/m_monitor_rate),rev_board_map[iboard]) );
     }
+    
     draw_obj();
     m_canvas->cd(1);
     for( int iboard=0; iboard<n_board; iboard++ ){
@@ -522,10 +500,8 @@ int SampleMonitor::daq_run()
       if( m_fl_fall [iboard]==1 ) m_tex_error->DrawTextNDC( 0.15, 0.82-iboard*0.05, Form("[ ERROR :    fall-bit      ] board#%d",board_id) );
       if( m_overflow[iboard]    ) m_tex_error->DrawTextNDC( 0.15, 0.72-iboard*0.05, Form("[ ERROR :    over-flow     ] board#%d",board_id) );
     }
+    
   }
-  
-  std::cout << std::endl;
-  
   
   /////////////////////////////////////////////////////////////
   inc_sequence_num();                      // increase sequence num.
@@ -558,6 +534,7 @@ int SampleMonitor::delete_obj(){
 }
 
 int SampleMonitor::draw_obj(){
+  ///*
   const int n_plot = 8;
   for( int iboard=0; iboard<n_board; iboard++ ){
     m_canvas->cd(1+n_plot*iboard); m_hist_bit_allch_1evt[iboard]->Draw("COLZ");
@@ -570,6 +547,17 @@ int SampleMonitor::draw_obj(){
     m_canvas->cd(7+n_plot*iboard); m_hist_nbit [iboard] ->Draw();
     m_canvas->cd(8+n_plot*iboard); m_hist_nhit [iboard] ->Draw();
   }
+  //*/
+  /*
+    m_canvas->cd(1); m_hist_bit_allch_1evt[0]->Draw("COLZ");
+    m_canvas->cd(2); m_hist_bit_allch_1evt[1]->Draw("COLZ");
+    m_canvas->cd(3); m_hist_bit_allch_int [0]->Draw("COLZ");
+    m_canvas->cd(4); m_hist_bit_allch_int [1]->Draw("COLZ");
+    m_canvas->cd(5); if( m_graph_nbit[0]->GetN() ){ m_graph_nbit[0]->Draw("AP"); }
+    m_canvas->cd(6); if( m_graph_nbit[1]->GetN() ){ m_graph_nbit[1]->Draw("AP"); }
+    m_canvas->cd(7); m_hist_nbit[0]->Draw();
+    m_canvas->cd(8); m_hist_nbit[1]->Draw();
+  */
     m_canvas->Update();
 
 

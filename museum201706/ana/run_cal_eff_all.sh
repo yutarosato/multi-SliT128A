@@ -1,11 +1,12 @@
 #! /bin/tcsh -f
 
 #set FILE_LIST = `ls ../root_data/*.root`
-set FILE_LIST = `ls ../root_data/output_*_5.root`
+set FILE_LIST = `ls ../root_data/output_400.0_*_5.root`
 
 set BOARD_LIST   = "5"
 #set BOARD_LIST   = "2 5"
-set DAC_LIST  = `seq -31 31`
+#set DAC_LIST  = `seq -31 31`
+set DAC_LIST  = 9
 
 set LOCAL = "1" # "0" if you use batch ques in KEKCC, 
 ################################################################################################

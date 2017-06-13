@@ -235,6 +235,9 @@ Int_t multi_ch_map( Int_t chip, Int_t unit, Int_t bit ){ // return Global Channe
   return chip*n_unit*n_bit + n_bit*unit + bit;
 }
 
+Int_t rev_ch_map_chip   ( int global_channel ){ return (global_channel/(n_bit*n_unit)); } // return chip-No    from global Channel-No.
+Int_t rev_ch_map_channel( int global_channel ){ return (global_channel%(n_bit*n_unit)); } // return channel-No from global Channel-No.
+
 TH1D* conv_graphtohist( TGraphErrors* graph, const Char_t* name, const Char_t* title ){
   TH1D* hist = new TH1D( name, title, 30, 0, 0 );
   for( Int_t ip=0; ip<graph->GetN(); ip++ ) hist->Fill( graph->GetY()[ip] );

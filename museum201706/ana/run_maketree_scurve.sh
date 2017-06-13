@@ -35,7 +35,7 @@ foreach CHIP( ${CHIP_LIST} )
 foreach CHANNEL( ${CHANNEL_LIST} )
   set CHANNEL_NAME = `printf "%03d" $CHANNEL`
   set TABLE_BASE_CHANNEL = "${TABLE_BASE}_board${BOARD}_chip${CHIP}_channel${CHANNEL_NAME}"
-  grep "BOARD${BOARD} CHIP${CHIP} CHANNEL${CHANNEL}" ${TABLE} | sed "s|BOARD${BOARD} CHIP${CHIP} CHANNEL${CHANNEL}||g" > ${TABLE_BASE_CHANNEL}.dat
+  grep "BOARD${BOARD} CHIP${CHIP} CHANNEL${CHANNEL}HOGEEEE" ${TABLE} | sed "s|BOARD${BOARD} CHIP${CHIP} CHANNEL${CHANNEL}HOGEEEE||g" > ${TABLE_BASE_CHANNEL}.dat
   cat ${TABLE_BASE_CHANNEL}.dat | awk '{print $2" "$3}' | sort | uniq | nl -v 0 > ${TABLE_BASE_CHANNEL}_tab.dat
   cat ${TABLE_BASE_CHANNEL}.dat | awk '{print $2}'      | sort | uniq | nl -v 0 > ${TABLE_BASE_CHANNEL}_tab_vref.dat
   cat ${TABLE_BASE_CHANNEL}.dat | awk '{print $3}'      | sort | uniq | nl -v 0 > ${TABLE_BASE_CHANNEL}_tab_tpchg.dat

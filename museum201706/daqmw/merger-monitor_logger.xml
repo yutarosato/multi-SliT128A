@@ -124,7 +124,7 @@
                     <outPorts>
                     </outPorts>
                     <params>
-                        <param pid="monitorRate">250</param>
+                        <param pid="monitorRate">75</param>
                         <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                     </params>

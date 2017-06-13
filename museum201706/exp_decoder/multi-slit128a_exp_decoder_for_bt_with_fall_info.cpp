@@ -378,7 +378,7 @@ int main( int argc, char *argv[] ){
   char *data_filename;
   char *out_filename;
 
-  if( argc<7 ){
+  if( argc<3 ){
     std::cerr << "Usage : "
 	      << argv[0] << "  "
 	      << "output_rootfile  input_binary_file  (RF) (VREF2) (VREF5)  (HV) (RF_FREQ) (RF_POWER)" << std::endl; // for beam test
@@ -395,7 +395,6 @@ int main( int argc, char *argv[] ){
     t_hv       = ( argc>6 ? atof(argv[6]) : -999 );
     t_rf_freq  = ( argc>7 ? atof(argv[7]) : -999 );
     t_rf_power = ( argc>8 ? atof(argv[8]) : -999 );
-
   }
 
   // open output file and define tree's branches
@@ -404,7 +403,7 @@ int main( int argc, char *argv[] ){
   init_tree();
 
   int tmp_cnt = 0;
-  while( 1 ){
+  While( 1 ){
     if( tmp_cnt % 100 == 0 ) std::cout << " " << tmp_cnt << " event..." << std::endl; 
     n = fill_event_buf( fp, event_buf ); // read one event
     if( n < 0 ) break;
