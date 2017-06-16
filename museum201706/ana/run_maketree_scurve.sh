@@ -5,11 +5,11 @@
 
 
 ##################################################
-#set INFILE = `ls ../data/scurve_data/201706131507/board2/ana/dat_scurve/*.dat`
+#set INFILE = `ls ../scurve_data/201706??????/board2/ana/dat_scurve/*.dat`
 #set BOARD_LIST = 2;
 #set CHIP_LIST  = "0 1";
 ##################################################
-set INFILE = `ls ../data/scurve_data/201706141300/board5/ana/dat_scurve/*.dat`
+set INFILE = `ls ../scurve_data/201706??????/board5/ana/dat_scurve/*.dat`
 set BOARD_LIST = 5;
 set CHIP_LIST  = "1";
 ##################################################

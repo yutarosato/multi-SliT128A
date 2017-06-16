@@ -1,7 +1,7 @@
 #include "setting.h"
 
-const Bool_t   fl_batch = !true;
-const Double_t ref_chg  = 1.54; // [fC] // reference points for estimation of noise and s-curve
+const Bool_t   fl_batch = true;
+const Double_t ref_chg  = 1.92; // [fC] // reference points for estimation of noise and s-curve
 const Int_t    nch      = 128;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -61,7 +61,7 @@ Int_t main( Int_t argc, Char_t** argv ){
   TCanvas* can0 = new TCanvas("can0", "can0", 1200, 800);
   can0->Divide(2,2);
   can0->cd(1);
-  gPad->DrawFrame(0.0, -45, 2.2, 45, ";Injected Charge [fC];Threshold DAC");
+  gPad->DrawFrame(0.0, -45, 2.7, 45, ";Injected Charge [fC];Threshold DAC");
   
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // <Read Data and Input to TGraphErrors>
@@ -85,6 +85,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	tmp_div = fabs(tmp_chg-ref_chg);
       }
     }
+
     if( tmp_div > 0.1 ) std::cerr << "[WARNING] reference point is not accurate : ch " << ch << std::endl;
     TGraphErrors* g_gain_vref = (TGraphErrors*)infile->Get( "g_gain_vref_0" );
     if( g_gain_vref==NULL ) std::cerr << "[ABORT] can not find g_gain_vref_0 in " << app.Argv(ifile+1) << std::endl, abort();
@@ -94,13 +95,21 @@ Int_t main( Int_t argc, Char_t** argv ){
     v_gain   [ch] = fit_func->GetParameter(1);
     v_gainE  [ch] = fit_func->GetParError (1);
     //v_offset [ch] = fit_func->GetParameter(0);
-    v_offset [ch] = fit_func->GetParameter(0) + fit_func->GetParameter(1)*1.54; // tmpppp
+    v_offset [ch] = fit_func->GetParameter(0) + fit_func->GetParameter(1)*1.92; // tmpppp
     v_offsetE[ch] = fit_func->GetParError (0);
+
+    //if( fit_func->GetNDF()<=1 || v_gain[ch] < 0 || v_gain[ch] > 10000 || v_gainE[ch] > 10000 ){ // tmpppp
+    if( v_gain[ch] < 0 || v_gain[ch] > 10000 || v_gainE[ch] > 50 || v_offsetE[ch] > 50 ){ // tmpppp
+      v_gain   [ch] = 0;
+      v_gainE  [ch] = 0;
+      v_offset [ch] = 0;
+      v_offsetE[ch] = 0;
+    }
+
     g_gain_vref->Draw("Psame");
     g_chi2->SetPoint( g_chi2->GetN(), ch, g_gain_vref->GetRMS(2) ); // tmppppppp
 
     TGraphErrors* g_scurve = (TGraphErrors*)infile->Get( Form("scurve_%d_0", ref_point) );
-
 
     if( g_scurve==NULL ) std::cerr << "[ABORT] can not find scurve in " << app.Argv(ifile+1) << std::endl, abort();
     Double_t tmp_gain   = g_gain_vref->GetFunction("pol1")->GetParameter(1);
@@ -112,6 +121,10 @@ Int_t main( Int_t argc, Char_t** argv ){
 					 pow( tmp_widthE/tmp_width, 2 ) + 
 					 pow( tmp_gainE /tmp_gain,  2 )
 					 );
+    if( tmp_noise<0 || tmp_gain==0 || tmp_noise > 1.5 || tmp_noiseE > 1.5){ // tmppppp
+      tmp_noise  = 0;
+      tmp_noiseE = 0;
+    }
     v_noise [ch] = tmp_noise;
     v_noiseE[ch] = tmp_noiseE;
 
@@ -162,8 +175,8 @@ Int_t main( Int_t argc, Char_t** argv ){
 
   can1->cd(4);
   h_noise->Draw();
-  h_noise->Fit("gaus","L","same");
-  //h_noise->Fit("gaus","LR","same",0.010,0.20); // tmpppp
+  //h_noise->Fit("gaus","L","same");
+  h_noise->Fit("gaus","LR","same",0.050,1.00); // tmpppp
   can1->cd(5);
   h_offset->Print();
   h_offset->Draw();
@@ -182,29 +195,31 @@ Int_t main( Int_t argc, Char_t** argv ){
   for( Int_t ich=0; ich<nch; ich++ ){
     std::cout << std::setw( 5) << std::right << v_ch   [ich] << "   "
 	      << std::setw( 3) << std::right << fl_alive[ich] << "   "
-	      << std::setw( 8) << std::left  << Form("%.4f",v_noise  [ich])
-	      << std::setw(10) << std::left  << Form("%.4f",v_noiseE [ich])
-	      << std::setw( 8) << std::left  << Form("%.3f",v_offset [ich])
-	      << std::setw(10) << std::left  << Form("%.3f",v_offsetE[ich])
-	      << std::setw( 8) << std::left  << Form("%.3f",v_gain   [ich])
-	      << std::setw(10) << std::left  << Form("%.3f",v_gainE  [ich])
+	      << std::setw( 8) << std::left  << Form(" %.4f",v_noise  [ich])
+	      << std::setw(10) << std::left  << Form(" %.4f",v_noiseE [ich])
+	      << std::setw( 8) << std::left  << Form(" %.3f",v_offset [ich])
+	      << std::setw(10) << std::left  << Form(" %.3f",v_offsetE[ich])
+	      << std::setw( 8) << std::left  << Form(" %.3f",v_gain   [ich])
+	      << std::setw(10) << std::left  << Form(" %.3f",v_gainE  [ich])
 	      << std::endl;
 
     fout << std::setw( 5) << std::right << v_ch    [ich] << "   "
 	 << std::setw( 3) << std::right << fl_alive[ich] << "   "
-	 << std::setw( 8) << std::left  << Form("%.4f",v_noise  [ich])
-	 << std::setw(10) << std::left  << Form("%.4f",v_noiseE [ich])
-	 << std::setw( 8) << std::left  << Form("%.3f",v_offset [ich])
-	 << std::setw(10) << std::left  << Form("%.3f",v_offsetE[ich])
-	 << std::setw( 8) << std::left  << Form("%.3f",v_gain   [ich])
-	 << std::setw(10) << std::left  << Form("%.3f",v_gainE  [ich])
+	 << std::setw( 8) << std::left  << Form(" %.4f",v_noise  [ich])
+	 << std::setw(10) << std::left  << Form(" %.4f",v_noiseE [ich])
+	 << std::setw( 8) << std::left  << Form(" %.3f",v_offset [ich])
+	 << std::setw(10) << std::left  << Form(" %.3f",v_offsetE[ich])
+	 << std::setw( 8) << std::left  << Form(" %.3f",v_gain   [ich])
+	 << std::setw(10) << std::left  << Form(" %.3f",v_gainE  [ich])
 	 << std::endl;
 
   }
   can0->Update();
   can0->Print("pic/threshold_calib_can0.eps");
+  can0->Print("pic/threshold_calib_can0.root");
   can1->Update();
   can1->Print("pic/threshold_calib_can1.eps");
+  can1->Print("pic/threshold_calib_can1.root");
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
