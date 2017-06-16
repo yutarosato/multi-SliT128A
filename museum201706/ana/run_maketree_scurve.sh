@@ -1,20 +1,33 @@
 #! /bin/tcsh -f
 
-set INFILE = `ls dat_scurve/output*.dat` # default
+#set INFILE = `ls ../data/scurve_data/20170614????/board5/ana/dat_scurve/*.dat`
+#set INFILE = `ls ../data/scurve_data/201706{131507,141140}/board2/ana/dat_scurve/*.dat`
 
+
+##################################################
+#set INFILE = `ls ../data/scurve_data/201706131507/board2/ana/dat_scurve/*.dat`
 #set BOARD_LIST = 2;
-#set CHIP_LIST  = 0;
-#set CHANNEL_LIST = `seq 0 127`
-#set CHANNEL_LIST = "1"
+#set CHIP_LIST  = "0 1";
+##################################################
+set INFILE = `ls ../data/scurve_data/201706141300/board5/ana/dat_scurve/*.dat`
+set BOARD_LIST = 5;
+set CHIP_LIST  = "1";
+##################################################
 
-if( $#argv < 3 )then
-    echo " Usage : $0 [board] [chip] [channel]"
-    echo "Example: $0   2       3       127"
-  exit 1
-endif
-set BOARD_LIST   = $1
-set CHIP_LIST    = $2
-set CHANNEL_LIST = $3
+#set BOARD_LIST = 5;
+#set CHIP_LIST  = "1 2 3";
+#set BOARD_LIST = 2;
+#set CHIP_LIST  = "0 1 3";
+set CHANNEL_LIST = `seq 0 127`
+
+#if( $#argv < 3 )then
+#    echo " Usage : $0 [board] [chip] [channel]"
+#    echo "Example: $0   2       3       127"
+#  exit 1
+#endif
+#set BOARD_LIST   = $1
+#set CHIP_LIST    = $2
+#set CHANNEL_LIST = $3
 
 ################################################
 
@@ -28,6 +41,12 @@ set TABLE_BASE = ${TABLE_DIR}/`basename ${TABLE} .dat`
 cat ${INFILE} | grep -v "nan" > ${TABLE}
 wc -l ${INFILE}
 wc -l ${TABLE}
+
+
+#set HEAD_BASE = `basename ${TABLE} .dat`
+#(cat pic/${HEAD_BASE}_*_can1_*.ps > pic/${HEAD_BASE}_can1.ps) && ps2pdf pic/${HEAD_BASE}_can1.ps pic/${HEAD_BASE}_can1.pdf  && rm -f pic/${HEAD_BASE}_*can1*.ps
+#(cat pic/${HEAD_BASE}_*_can2.ps   > pic/${HEAD_BASE}_can2.ps) && ps2pdf pic/${HEAD_BASE}_can2.ps pic/${HEAD_BASE}_can2.pdf  && rm -f pic/${HEAD_BASE}_*can2*.ps
+#exit
 
 
 foreach BOARD( ${BOARD_LIST} )
@@ -49,6 +68,6 @@ end
 end
 end
 
-#set HEAD_BASE = `basename ${TABLE} .dat`
-#(cat pic/${HEAD_BASE}_*_can1_*.ps > pic/${HEAD_BASE}_can1.ps) && ps2pdf pic/${HEAD_BASE}_can1.ps pic/${HEAD_BASE}_can1.pdf  && rm -f pic/${HEAD_BASE}_*can1*.ps
-#(cat pic/${HEAD_BASE}_*_can2.ps   > pic/${HEAD_BASE}_can2.ps) && ps2pdf pic/${HEAD_BASE}_can2.ps pic/${HEAD_BASE}_can2.pdf  && rm -f pic/${HEAD_BASE}_*can2*.ps
+set HEAD_BASE = `basename ${TABLE} .dat`
+(cat pic/${HEAD_BASE}_*_can1_*.ps > pic/${HEAD_BASE}_can1.ps) && ps2pdf pic/${HEAD_BASE}_can1.ps pic/${HEAD_BASE}_can1.pdf  && rm -f pic/${HEAD_BASE}_*can1*.ps
+(cat pic/${HEAD_BASE}_*_can2.ps   > pic/${HEAD_BASE}_can2.ps) && ps2pdf pic/${HEAD_BASE}_can2.ps pic/${HEAD_BASE}_can2.pdf  && rm -f pic/${HEAD_BASE}_*can2*.ps

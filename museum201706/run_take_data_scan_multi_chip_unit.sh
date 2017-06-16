@@ -1,15 +1,19 @@
 #! /bin/tcsh -f
 
 set HEADNAME     = "output"
-set BOARD_LIST   = "2" # (2,5), (3,6)
+#set BOARD_LIST   = "2" # (2,5), (3,6)
+#set CHIP_LIST    = "0 1 3" # 0-3
 set BOARD_LIST   = "5" # (2,5), (3,6)
-set CHIP_LIST    = "0 1 2 3" # 0-3
+set CHIP_LIST    = "1 2 3" # 0-3
+
+#set CHIP_LIST    = "0 1 2 3" # 0-3
 #set CHANNEL_LIST = "12"
 #set CHANNEL_LIST = `seq 0 31`
 set CHANNEL_LIST = $1
 #set VREF         = 300.0 # VREF value [mV]
 set VREF         = 400.0 # VREF value [mV]
-set TPCHG        = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+#set TPCHG        = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+set TPCHG        = 2.30 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 # 1 MIP = 279 mV @ 8 divider
 
 ###########################################
@@ -21,6 +25,8 @@ foreach CHANNEL( ${CHANNEL_LIST} )
     set CNT=0
     set CTRL_DAC = -31
     while ( ${CTRL_DAC} <= 31 )
+    #set CTRL_DAC = 13
+    #while ( ${CTRL_DAC} <= 14 )
 	set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
 	if( ${CTRL_DAC} < 1 ) then
 	    set CTRL_DAC_BIT = `printf "L%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
@@ -67,7 +73,7 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	    #nc -d 192.168.${BOARD}.${IP} 24 > binary_data/${OUTNAME}.dat &
 	    #set PID = (${PID} $!)
 	    cd readslit-0.0.0/;
-	    ./readslit -t 3 192.168.${BOARD}.${IP} 24 ../binary_data/${OUTNAME}.dat &
+	    ./readslit -t 2 192.168.${BOARD}.${IP} 24 ../binary_data/${OUTNAME}.dat &
 	    cd ../
 	end # end loop for BOARD
 	sleep 2;
@@ -91,9 +97,9 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	    set OUTNAME = "${HEADNAME}_${VREF}_${TPCHG}_${BOARD}_${CHANNEL}_${CTRL_DAC}"
 	    echo "./multi-slit128a_exp_decoder_for_scurve ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${VREF} ${TPCHG} ${BOARD} -999 -999 ${CTRL_DAC}" >> tmp.sh
 	    set TMPNOHIT = 1
-	    #./multi-slit128a_exp_decoder_for_scurve ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${VREF} ${TPCHG} ${BOARD} -999 -999 ${CTRL_DAC}
-	    #set TMPNOHIT = $?
-	    #@ NOHIT += ${TMPNOHIT};
+	    ./multi-slit128a_exp_decoder_for_scurve ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${VREF} ${TPCHG} ${BOARD} -999 -999 ${CTRL_DAC}
+	    set TMPNOHIT = $?
+	    @ NOHIT += ${TMPNOHIT};
 	    #rm -f ../binary_data/${OUTNAME}.dat
 	end # end loop for BOARD
 
@@ -109,16 +115,17 @@ foreach CHANNEL( ${CHANNEL_LIST} )
 	endif
 
 	# skip at early-point
-	set NOHIT = `cat tmp_nhit.log`
+	#set NOHIT = `cat tmp_nhit.log`
+	set NOHIT = 10000000;
 	echo ${NOHIT}
 	cd ../
 	if( ${NOHIT} >= 35000 )then
-	    @ CTRL_DAC += 3
+	    @ CTRL_DAC += 4
 	else
-	    @ CTRL_DAC += 3 # tmpppp
+	    @ CTRL_DAC += 4 # tmpppp
 	endif
     end # end loop for DAC
 end # end loop for Channel
 
-#hadd -f root_data/${HEADNAME}_${VREF}_${TPCHG}.root root_data/${HEADNAME}_${VREF}_${TPCHG}_*.root && mv root_data/${HEADNAME}_${VREF}_${TPCHG}_*.root root_data/tmp/.
+#echo "hadd -f root_data/${HEADNAME}_${VREF}_${TPCHG}_${BOARD_LIST}_${CHANNEL_LIST}.root root_data/${HEADNAME}_${VREF}_${TPCHG}_${BOARD_LIST}_${CHANNEL_LIST}_*.root && mv root_data/${HEADNAME}_${VREF}_${TPCHG}_${BOARD_LIST}_${CHANNEL_LIST}_*.root root_data/tmp/." >> tmp.sh
 hadd -f root_data/${HEADNAME}_${VREF}_${TPCHG}_${BOARD_LIST}_${CHANNEL_LIST}.root root_data/${HEADNAME}_${VREF}_${TPCHG}_${BOARD_LIST}_${CHANNEL_LIST}_*.root && mv root_data/${HEADNAME}_${VREF}_${TPCHG}_${BOARD_LIST}_${CHANNEL_LIST}_*.root root_data/tmp/.

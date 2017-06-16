@@ -403,7 +403,7 @@ int main( int argc, char *argv[] ){
   init_tree();
 
   int tmp_cnt = 0;
-  While( 1 ){
+  while( 1 ){
     if( tmp_cnt % 100 == 0 ) std::cout << " " << tmp_cnt << " event..." << std::endl; 
     n = fill_event_buf( fp, event_buf ); // read one event
     if( n < 0 ) break;

@@ -227,11 +227,11 @@ int SampleMonitor::daq_start()
   if( !m_tree ) m_tree = new MTree();
   else          m_tree->Reset(); // tmppppp
 
-  
-  m_canvas = new TCanvas( "c1", "c1", 0, 0, 1800, 900);
+  m_canvas = new TCanvas( "c1", "c1", 0, 0, 1600, 700);
+  //m_canvas = new TCanvas( "c1", "c1", 0, 0, 1800, 900);
   //m_canvas = new TCanvas( "c1", "c1", 0, 0, 1400, 700);
-  m_canvas->Divide(4,4);
-  //m_canvas->Divide(4,2);
+  //m_canvas->Divide(4,4);
+  m_canvas->Divide(4,2);
   m_canvas->Draw();
 
 
@@ -344,8 +344,8 @@ int SampleMonitor::fill_data(const unsigned char* event_buf, const int size, int
     prev_nhit[iboard] = m_hist_hit_allch_int[iboard]->GetEntries();
   }
 
-   for( Int_t ivec=0; ivec<m_tree->getnhit(); ivec++ ){ // read 1 event data
-     int chip_id        = m_tree->get_chip ().at(ivec);
+  for( Int_t ivec=0; ivec<m_tree->getnhit(); ivec++ ){ // read 1 event data
+    int chip_id        = m_tree->get_chip ().at(ivec);
     int unit_id        = m_tree->get_unit ().at(ivec);
     int time           = m_tree->get_time ().at(ivec);
     int global_channel = m_tree->global_channel_map( chip_id,unit_id,m_tree->get_bit().at(ivec) );
@@ -354,7 +354,7 @@ int SampleMonitor::fill_data(const unsigned char* event_buf, const int size, int
       std::cerr << "[WARNING] Wrong board_id : " << board_id << std::endl;
       continue;
     }
-
+    
     m_hist_bit_allch_1evt[board_map[board_id]]->Fill( time, global_channel );
     m_hist_bit_allch_int [board_map[board_id]]->Fill( time, global_channel );
   }
@@ -534,7 +534,15 @@ int SampleMonitor::delete_obj(){
 }
 
 int SampleMonitor::draw_obj(){
-  ///*
+  const int n_plot = 4;
+  for( int iboard=0; iboard<n_board; iboard++ ){
+    m_canvas->cd(1+n_plot*iboard); m_hist_bit_allch_int [iboard]->Draw("COLZ");
+    m_canvas->cd(2+n_plot*iboard); if( m_graph_nbit[iboard]->GetN() ){ m_graph_nbit[iboard]->Draw("AP"); }
+    m_canvas->cd(3+n_plot*iboard)->SetLogy();
+    m_canvas->cd(3+n_plot*iboard); m_hist_time [iboard] ->Draw();
+    m_canvas->cd(4+n_plot*iboard); m_hist_width[iboard] ->Draw();
+  }
+  /*
   const int n_plot = 8;
   for( int iboard=0; iboard<n_board; iboard++ ){
     m_canvas->cd(1+n_plot*iboard); m_hist_bit_allch_1evt[iboard]->Draw("COLZ");
@@ -547,7 +555,7 @@ int SampleMonitor::draw_obj(){
     m_canvas->cd(7+n_plot*iboard); m_hist_nbit [iboard] ->Draw();
     m_canvas->cd(8+n_plot*iboard); m_hist_nhit [iboard] ->Draw();
   }
-  //*/
+  */
   /*
     m_canvas->cd(1); m_hist_bit_allch_1evt[0]->Draw("COLZ");
     m_canvas->cd(2); m_hist_bit_allch_1evt[1]->Draw("COLZ");

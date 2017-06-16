@@ -1,6 +1,6 @@
 #include "setting.h"
 
-const Bool_t fl_batch = !true;
+const Bool_t fl_batch = true;
 const Bool_t fl_plot  = !true;
 // true (one plot per parameter point) for reproducibility check or one-channel scan
 // false(one plot per channel) for all-channel scan
@@ -335,6 +335,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	  tex_col->DrawLatexNDC( 0.65, 0.78-0.15*cnt_tex, Form("#chi^{2}/NDF = %.2f / %d",   func[itab][ig]->GetChisquare(),  func[itab][ig]->GetNDF()      ) );
 	  //*/
 	  cnt_tex++;
+	  std::cout << "tyosioka " << ch << " " << func[itab][ig]->GetParameter(0) << std::endl;
 	}
       }else{
 	fl_fit[itab].push_back(-999); // 0(success), other(false), 4(call limit)
@@ -392,7 +393,6 @@ Int_t main( Int_t argc, Char_t** argv ){
   can1->Update();
   //can1->WaitPrimitive();
   can1->Print( Form("pic/%s_can1_%d.ps",basename.c_str(),cnt_can1) );
-
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // <Make Plots of Threshold value v.s. VREF (or TP charge)>
   for( Int_t itab=0; itab<ntab; itab++ ){

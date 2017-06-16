@@ -1,4 +1,4 @@
-3<?xml version="1.0"?>
+<?xml version="1.0"?>
 <!-- DON'T REMOVE THE ABOVE LINE.                                     -->
 <!-- DON'T PUT ANY LINES ABOVE THE 1ST LINE.                          -->
 <!-- Sample config.xml to run SampleReader and SampleMonitor.         -->
@@ -97,17 +97,17 @@
 		  </inPorts>
 		  <outPorts/>
 		  <params>
-                    <param pid="dirName">/home/SliT/g-2/elech/multi-SliT128A/museum201706/data/binary_data</param>
+                    <param pid="dirName">/home/SliT/g-2/elech/multi-SliT128A/museum201706/data2/binary_data</param>
                     <param pid="isLogging">yes</param>
                     <param pid="maxFileSizeInMegaByte">8192</param>
-                    <param pid="runsummaryName">../data/run_summary.dat</param>
-                    <param pid="RF">0</param>
-                    <param pid="VREF2">560</param>
-                    <param pid="VREF5">560</param>
+                    <param pid="runsummaryName">../data2/run_summary.dat</param>
+                    <param pid="RF">1</param>
+                    <param pid="VREF2">250</param>
+                    <param pid="VREF5">400</param>
                     <param pid="HV">120</param>
                     <param pid="RF_FREQ">0</param>
-                    <param pid="RF_POWER">0</param>
-                    <param pid="NOTE">Beam Data</param>
+                    <param pid="RF_POWER">13</param>
+                    <param pid="NOTE">Beam Data (coincidence trig)</param>
 		  </params>
 		</component>
 
@@ -124,7 +124,7 @@
                     <outPorts>
                     </outPorts>
                     <params>
-                        <param pid="monitorRate">250</param>
+                        <param pid="monitorRate">100</param>
                         <param pid="signal_width">15</param>
                         <param pid="signal_span">50</param>
                     </params>

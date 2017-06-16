@@ -19,7 +19,7 @@
 #include <TGraph.h>
 
 
-const int fl_message = 3; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
+const int fl_message = 0; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
@@ -33,6 +33,9 @@ const int byte_unit_data     = 6;
 int cnt_warning = 0;
 int cnt_event   = 0;
 int cnt_hit     = 0; // used for judgement of the endpoint of s-curve
+
+char *data_filename;
+char *out_filename;
 
 TTree* tree;
 int t_event_number;
@@ -287,8 +290,9 @@ int decode( unsigned char *event_buf, int length ){
 
     if( (int)cksum==0 && fl_active ){
       //fprintf( stderr,"      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
-      printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
+      printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header) : %s\n", event_number_unit, t_board, t_chip, t_unit, event_number, data_filename );
       cnt_warning++;
+      abort();
     }
     /*
     if( unit_ndata!=n_time && fl_active ){
@@ -361,8 +365,7 @@ int main( int argc, char *argv[] ){
   int n;
   
   FILE *fp;
-  char *data_filename;
-  char *out_filename;
+
 
   if( argc<3 ){
     std::cerr << "Usage : "
@@ -398,7 +401,8 @@ int main( int argc, char *argv[] ){
 
   std::cout << "#event = "   << cnt_event   << ", "
 	    << "#hit = "     << cnt_hit     << ", "
-	    << "#warning = " << cnt_warning
+	    << "#warning = " << cnt_warning << " : "
+	    << data_filename
 	    << std::endl;
   std::ofstream outlog("tmp_nhit.log");
   outlog << cnt_hit << std::endl;

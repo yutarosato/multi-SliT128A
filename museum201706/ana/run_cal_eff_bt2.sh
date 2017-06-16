@@ -21,7 +21,7 @@ rm -f ${OUTDAT}
 foreach DAC( ${DAC_LIST} )
     ./cal_eff ${FILE} ${BOARD} ${CHIP} ${CHANNEL} ${DAC} | tee -a ${OUTDAT}
 end
-set OUTPIC = ${HEADER}_board${BOARD}_chip${CHIP}_channel${CHANNEL_NAME}
-(cat pic/${OUTPIC}_dac*_can1.ps > pic/${OUTPIC}_can1.ps) && ps2pdf     pic/${OUTPIC}_can1.ps pic/${OUTPIC}_can1.pdf  && rm -f pic/${OUTPIC}_*can1.ps
-(cat pic/${OUTPIC}_dac*_can2.ps > pic/${OUTPIC}_can2.ps) && ps2pdf     pic/${OUTPIC}_can2.ps pic/${OUTPIC}_can2.pdf  && rm -f pic/${OUTPIC}_*can2.ps
-ls   pic/${OUTPIC}_dac*.root                              | xargs hadd pic/${OUTPIC}.root                            && rm -f pic/${OUTPIC}_dac*.root
+#set OUTPIC = ${HEADER}_board${BOARD}_chip${CHIP}_channel${CHANNEL_NAME}
+#(cat pic/${OUTPIC}_dac*_can1.ps > pic/${OUTPIC}_can1.ps) && ps2pdf     pic/${OUTPIC}_can1.ps pic/${OUTPIC}_can1.pdf  && rm -f pic/${OUTPIC}_*can1.ps
+#(cat pic/${OUTPIC}_dac*_can2.ps > pic/${OUTPIC}_can2.ps) && ps2pdf     pic/${OUTPIC}_can2.ps pic/${OUTPIC}_can2.pdf  && rm -f pic/${OUTPIC}_*can2.ps
+#ls   pic/${OUTPIC}_dac*.root                              | xargs hadd pic/${OUTPIC}.root                            && rm -f pic/${OUTPIC}_dac*.root

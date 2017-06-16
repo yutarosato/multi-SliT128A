@@ -4,6 +4,7 @@
 const Int_t  fl_message = 0;
 const Bool_t fl_batch   = true; // should be false for quick check.
 const Int_t  fl_show    = 100;
+const Int_t  fl_save    = !true;
 
 // axis ragnge
 const Int_t nsig_max   =  15;
@@ -220,7 +221,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 					  t_event, board_id, chip_id, channel_id, dac, (Int_t)hist_1ch->Integral()) );
       can1->Update();
       can1->WaitPrimitive();
-      if( cnt_show==1 ) can1->Print( Form("pic/%s_board%d_chip%d_channel%03d_dac%d_can1.ps",basename.c_str(),board_id,chip_id,channel_id,dac) );
+      if( cnt_show==1 && fl_save ) can1->Print( Form("pic/%s_board%d_chip%d_channel%03d_dac%d_can1.ps",basename.c_str(),board_id,chip_id,channel_id,dac) );
     }
   }
 
@@ -280,25 +281,28 @@ Int_t main( Int_t argc, Char_t** argv ){
 	    << std::endl;
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  TTree* newtree = new TTree( Form("meta_board%d_chip%d_channel%03d_dac%d",board_id,chip_id,channel_id,dac), "meta for timing" );
-  if( tree->GetEntries() ) tree->GetEntry(0);
-  newtree->Branch( "dac",    &dac,     "dac/I"   );
-  newtree->Branch( "tpchg",  &t_tpchg, "tpchg/F" );
-  newtree->Fill();
+  if( fl_save ){
+    TTree* newtree = new TTree( Form("meta_board%d_chip%d_channel%03d_dac%d",board_id,chip_id,channel_id,dac), "meta for timing" );
+    if( tree->GetEntries() ) tree->GetEntry(0);
+    newtree->Branch( "dac",    &dac,     "dac/I"   );
+    newtree->Branch( "tpchg",  &t_tpchg, "tpchg/F" );
+    newtree->Fill();
 
-  
-  TFile outfile( Form("pic/%s_board%d_chip%d_channel%03d_dac%d.root",basename.c_str(),board_id,chip_id,channel_id,dac), "RECREATE" );
-  // To save data size, some histogram might be omitted.
-  hist_nsig   ->Write();
-  hist_nring  ->Write();
-  hist_width  ->Write();
-  hist_span   ->Write();
-  hist_1ch_int->Write();
-  hist_wid_tim->Write();
-  newtree->Write();
-  //can2->Write();
-  outfile.Close();
-  can2->Print( Form("pic/%s_board%d_chip%d_channel%03d_dac%d_can2.ps",basename.c_str(),board_id,chip_id,channel_id,dac) );
+    TFile outfile( Form("pic/%s_board%d_chip%d_channel%03d_dac%d.root",basename.c_str(),board_id,chip_id,channel_id,dac), "RECREATE" );
+    // To save data size, some histogram might be omitted.
+    hist_nsig   ->Write();
+    hist_nring  ->Write();
+    hist_width  ->Write();
+    hist_span   ->Write();
+    hist_1ch_int->Write();
+    hist_wid_tim->Write();
+    newtree->Write();
+    //can2->Write();
+    outfile.Close();
+    can2->Print( Form("pic/%s_board%d_chip%d_channel%03d_dac%d_can2.ps",basename.c_str(),board_id,chip_id,channel_id,dac) );
+
+    delete newtree;
+  }
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -314,7 +318,6 @@ Int_t main( Int_t argc, Char_t** argv ){
   delete hist_1ch_div;
   delete can1;
   delete can2;
-  delete newtree;
 
   return 0;
 

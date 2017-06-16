@@ -1,12 +1,12 @@
 #! /bin/tcsh -f
 
 #set FILE_LIST = `ls ../root_data/*.root`
-set FILE_LIST = `ls ../root_data/output_400.0_*_5.root`
+set FILE_LIST = `ls ../data/scurve_data/output01_*.root`
 
-set BOARD_LIST   = "5"
+set BOARD_LIST   = "2"
 #set BOARD_LIST   = "2 5"
-#set DAC_LIST  = `seq -31 31`
-set DAC_LIST  = 9
+set DAC_LIST  = `seq -31 31`
+#set DAC_LIST  = -31
 
 set LOCAL = "1" # "0" if you use batch ques in KEKCC, 
 ################################################################################################
@@ -30,11 +30,10 @@ foreach FILE( ${FILE_LIST} )
          end # DAC LOOP
          #(cat pic/${HEADER}_board${BOARD}_*_dac*_can1.ps > pic/${HEADER}}_board${BOARD}_can1.ps) && ps2pdf pic/${HEADER}_board${BOARD}_can1.ps pic/${HEADER}_board${BOARD}_can1.pdf  && rm -f pic/${HEADER}_board${BOARD}_*can1.ps
          #(cat pic/${HEADER}_board${BOARD}_*_dac*_can2.ps > pic/${HEADER}}_board${BOARD}_can2.ps) && ps2pdf pic/${HEADER}_board${BOARD}_can2.ps pic/${HEADER}_board${BOARD}_can2.pdf  && rm -f pic/${HEADER}_board${BOARD}_*can2.ps
-         ls   pic/${HEADER}_board${BOARD}_*_dac*.root | xargs hadd pic/${HEADER}_board${BOARD}.root && rm -f pic/${HEADER}_board${BOARD}_*_dac*.root
+         #ls   pic/${HEADER}_board${BOARD}_*_dac*.root | xargs hadd pic/${HEADER}_board${BOARD}.root && rm -f pic/${HEADER}_board${BOARD}_*_dac*.root
       else
          #bsub -q s ./exe_cal_eff_sub.sh ${FILE} ${CHIP} ${CHANNEL} ${CHANNEL} ${OUTDAT} ${NAME}
          #echo "./exe_cal_eff_sub.sh ${FILE} ${CHIP} ${CHANNEL} ${CHANNEL} ${OUTDAT} ${NAME}" >> tmp.list
       endif
-
    end # BOARD LOOP
 end # FILE LOOP

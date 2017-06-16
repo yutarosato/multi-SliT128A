@@ -40,6 +40,7 @@ set TMP_CHIP  = `echo "obase=2; ibase=10; ${CHIP}"  | bc`
 set TMP_BOARD = `echo "obase=2; ibase=10; ${BOARD}" | bc`
 set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
 echo "    Chip#${CHIP} (${CTRL_CHIP})"
+exit
 # <Slow Control>
 if( ${CHIP} == ${CHIP} ) then
     ./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} LLLLL${CTRL_DAC_BIT}LLHHH LLLLL${CTRL_DAC_BIT}LLLLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)

@@ -60,7 +60,7 @@ void sig_term(int signo)
 
 int get_data_len(unsigned char *buf, int len)
 {
-  ///*
+  /*
   // mark "ee"
   unsigned char global_mark = buf[0];
   global_mark = ( global_mark >> 4 );
@@ -69,13 +69,13 @@ int get_data_len(unsigned char *buf, int len)
   unsigned short* tmp_event_number = (unsigned short*)&buf[4];
   int event_number = ntohs(*tmp_event_number);
   printf("event number : %d\n", event_number);
-  //*/
+  */
   // ndata 
   unsigned long tmp_total_ndata = *(unsigned long*)&buf[1];
   tmp_total_ndata = ((tmp_total_ndata & 0xffffff01)  );
   unsigned long total_ndata = ntohl(tmp_total_ndata);
   total_ndata = (total_ndata >> 8);
-  printf("total ndata : %ld\n", total_ndata);
+  //printf("total ndata : %ld\n", total_ndata);
 
   return (int)total_ndata*UNIT_DATA_SIZE + N_CHIP*N_UNIT*UNIT_HEADER_SIZE;
 }

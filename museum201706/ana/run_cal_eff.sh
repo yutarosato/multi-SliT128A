@@ -1,15 +1,15 @@
 #! /bin/tcsh -f
 
 set LOCAL = "1" # "0" if you use batch ques in KEKCC, 
-set FILE_LIST = `ls ../root_data/output_300.0_*.root`
+set FILE_LIST = `ls ../data/scurve_data/output01_*.root`
 
 set BOARD_LIST   = "2"
 #set BOARD_LIST   = "5"
 #set BOARD_LIST   = "2 5"
 set CHIP_LIST    = "0 1 2 3" # 0-3
 #set CHANNEL_LIST = "15"
-#set CHANNEL_LIST = "15 47 79 111"
-set CHANNEL_LIST = "0"
+#set CHANNEL_LIST = "0"
+set CHANNEL_LIST  = `seq 0 127`
 
 set DAC_LIST  = `seq -31 31`
 #set DAC_LIST  = "-17"

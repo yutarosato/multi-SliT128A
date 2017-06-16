@@ -259,6 +259,12 @@ int decode( unsigned char *event_buf, int length ){
     t_chip  = (int)chip_id;
     t_unit  = (int)unit_id;
     //printf("board#%d, chip#%d, unit#%d\n",(int)board_id,(int)chip_id,(int)unit_id);
+
+    //if( (board_id==2 && chip_id==0) ||
+    // (board_id==5 && chip_id==1) ||
+    //){
+    //index += byte_unit_header+byte_unit_data*unit_ndata;
+    //}
     
     // ndata 
     unsigned short tmp_unit_ndata = *(unsigned short*)&event_buf[index+2];

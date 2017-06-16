@@ -2,9 +2,9 @@
 
 // message and plot
 const Int_t  fl_message = 0;
-const Bool_t fl_batch   = !true; // should be false for quick check.
+const Bool_t fl_batch   = true; // should be false for quick check.
 const Int_t  fl_show    = 1;
-const Bool_t fl_save    = !true;
+const Bool_t fl_save    = true;
 
 // axis ragnge
 const Int_t nsig_max = 15;
@@ -117,17 +117,18 @@ Int_t main( Int_t argc, Char_t** argv ){
   TStyle* sty = Style();
   sty->SetPadGridX(0);
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  if( !(app.Argc()==4) )
+  if( !(app.Argc()==5) )
     std::cerr << "Wrong input" << std::endl
 	      << "Usage : " << app.Argv(0)
-	      << " (char*)infilename (int)board_id (int)dac" << std::endl
+	      << " (char*)infilename (int)board_id (int)dac (int)fake_channel" << std::endl
 	      << "[e.g]" << std::endl
-	      << app.Argv(0) << " test.root 2 30" << std::endl
+	      << app.Argv(0) << " test.root 2 30 4" << std::endl
 	      << std::endl, abort();
 
-  Char_t* infilename = app.Argv(1);
-  Int_t   board_id   = atoi( app.Argv(2) );
-  Int_t   dac        = atoi( app.Argv(3) );
+  Char_t* infilename   = app.Argv(1);
+  Int_t   board_id     = atoi( app.Argv(2) );
+  Int_t   dac          = atoi( app.Argv(3) );
+  Int_t   fake_channel = atoi( app.Argv(4) );
   
   std::string basename = gSystem->BaseName( infilename );
   basename.erase( basename.rfind(".root") );
@@ -273,26 +274,28 @@ Int_t main( Int_t argc, Char_t** argv ){
     Double_t sig_widthE = hist_width[ich]->GetMeanError(); // hist_width[ich]->GetRMS();
     Double_t span       = hist_span [ich]->GetMean();
     Double_t spanE      = hist_span [ich]->GetMeanError(); // hist_span [ich]->GetRMS();
-    std::ofstream outlog(Form("dat_scurve/%s_board%d_chip%d.dat",basename.c_str(),board_id,rev_ch_map_chip(ich)), std::ios::app );
-    outlog << std::setw(15) << std::right << dac         << " "
-	   << std::setw(15) << std::right << t_vref      << " "
-	   << std::setw(15) << std::right << t_tpchg     << " "
-	   << std::setw(15) << std::right << sig_eff     << " "
-	   << std::setw(15) << std::right << sig_effE    << " "
-	   << std::setw(15) << std::right << ring_prob   << " "
-	   << std::setw(15) << std::right << ring_probE  << " "
-	   << std::setw(15) << std::right << sig_width   << " "
-	   << std::setw(15) << std::right << sig_widthE  << " "
-	   << std::setw(15) << std::right << span        << " "
-	   << std::setw(15) << std::right << spanE       << " "
-	   << std::setw(15) << std::right << board_id    << " "
-	   << std::setw(15) << std::right << rev_ch_map_chip   (ich) << " "
-	   << std::setw(15) << std::right << rev_ch_map_channel(ich) << " "
-	   << " BOARD"   << board_id                //  board-No
-	   << " CHIP"    << rev_ch_map_chip   (ich) //  chip-No
-	   << " CHANNEL" << rev_ch_map_channel(ich) //  channel-No
-	   << "HOGEEEE"
-	   << std::endl;
+    if( fake_channel == ich%n_bit ){
+      std::ofstream outlog(Form("dat_scurve/%s_board%d_chip%d.dat",basename.c_str(),board_id,rev_ch_map_chip(ich)), std::ios::app );
+      outlog << std::setw(15) << std::right << dac         << " "
+	     << std::setw(15) << std::right << t_vref      << " "
+	     << std::setw(15) << std::right << t_tpchg     << " "
+	     << std::setw(15) << std::right << sig_eff     << " "
+	     << std::setw(15) << std::right << sig_effE    << " "
+	     << std::setw(15) << std::right << ring_prob   << " "
+	     << std::setw(15) << std::right << ring_probE  << " "
+	     << std::setw(15) << std::right << sig_width   << " "
+	     << std::setw(15) << std::right << sig_widthE  << " "
+	     << std::setw(15) << std::right << span        << " "
+	     << std::setw(15) << std::right << spanE       << " "
+	     << std::setw(15) << std::right << board_id    << " "
+	     << std::setw(15) << std::right << rev_ch_map_chip   (ich) << " "
+	     << std::setw(15) << std::right << rev_ch_map_channel(ich) << " "
+	     << " BOARD"   << board_id                //  board-No
+	     << " CHIP"    << rev_ch_map_chip   (ich) //  chip-No
+	     << " CHANNEL" << rev_ch_map_channel(ich) //  channel-No
+	     << "HOGEEEE"
+	     << std::endl;
+    }
 
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     if( fl_save ){
@@ -317,7 +320,7 @@ Int_t main( Int_t argc, Char_t** argv ){
       
       //delete newtree;
     }
-  }
+  } // channel loop
   delete can2;
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
