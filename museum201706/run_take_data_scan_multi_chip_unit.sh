@@ -1,20 +1,38 @@
 #! /bin/tcsh -f
 
 set HEADNAME     = "output"
-#set BOARD_LIST   = "2" # (2,5), (3,6)
-#set CHIP_LIST    = "0 1 3" # 0-3
-set BOARD_LIST   = "5" # (2,5), (3,6)
-set CHIP_LIST    = "1 2 3" # 0-3
+set BOARD_LIST   = "2" # (2,5), (3,6)
+set CHIP_LIST    = "0 1 3" # 0-3
+set VREF         = 350.0 # VREF value [mV]
+
+#set BOARD_LIST   = "5" # (2,5), (3,6)
+#set CHIP_LIST    = "1 2 3" # 0-3
+#set VREF         = 450.0 # VREF value [mV]
 
 #set CHIP_LIST    = "0 1 2 3" # 0-3
 #set CHANNEL_LIST = "12"
 #set CHANNEL_LIST = `seq 0 31`
 set CHANNEL_LIST = $1
-#set VREF         = 300.0 # VREF value [mV]
-set VREF         = 400.0 # VREF value [mV]
+
 #set TPCHG        = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
-set TPCHG        = 2.30 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+set TPCHG        = 1.92 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
 # 1 MIP = 279 mV @ 8 divider
+
+###########################################
+# 0.30 MIP =  83.7 mV
+# 0.40 MIP = 111.6 mV
+# 0.50 MIP = 139.5 mV
+# 0.60 MIP = 167.4 mV
+# 0.70 MIP = 195.3 mV
+# 0.80 MIP = 223.2 mV
+# 0.90 MIP = 251.1 mV
+# 1.00 MIP = 279.0 mV
+# 1.25 MIP = 348.8 mV
+# 1.50 MIP = 418.5 mV
+# 1.75 MIP = 488.3 mV
+# 2.00 MIP = 558.0 mV
+# 2.50 MIP = 697.5 mV
+# 3.00 MIP = 837.0 mV
 
 ###########################################
 (cd slow_control;   (make || exit;))
@@ -25,8 +43,8 @@ foreach CHANNEL( ${CHANNEL_LIST} )
     set CNT=0
     set CTRL_DAC = -31
     while ( ${CTRL_DAC} <= 31 )
-    #set CTRL_DAC = 13
-    #while ( ${CTRL_DAC} <= 14 )
+    #set CTRL_DAC = 0
+    #while ( ${CTRL_DAC} <= 1 )
 	set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
 	if( ${CTRL_DAC} < 1 ) then
 	    set CTRL_DAC_BIT = `printf "L%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
