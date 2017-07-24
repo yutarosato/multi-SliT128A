@@ -22,8 +22,9 @@
 
 const Int_t  fl_message      = 0; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
 Bool_t fl_bitfall_info       = true;
-Bool_t fl_edge_decoder       = true;
 
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Bool_t fl_edge_decoder       = true;
 Bool_t fl_scurve             = false;
 const Int_t  n_chip          =     4;
 const Int_t  n_unit          =     4;
@@ -214,12 +215,11 @@ Int_t set_tree(){
     tree->Branch( "channel",       &t_channel_v       );
   }
   
-  if( fl_bitfall_info ){ // bit-fall information
-    tree->Branch( "board_bitfall",   &t_board_bitfall_v   );
-    tree->Branch( "chip_bitfall",    &t_chip_bitfall_v    );
-    tree->Branch( "unit_bitfall",    &t_unit_bitfall_v    );
-    tree->Branch( "time_bitfall",    &t_time_bitfall_v    );
-  }
+  // bit-fall information
+  tree->Branch( "board_bitfall",   &t_board_bitfall_v   );
+  tree->Branch( "chip_bitfall",    &t_chip_bitfall_v    );
+  tree->Branch( "unit_bitfall",    &t_unit_bitfall_v    );
+  tree->Branch( "time_bitfall",    &t_time_bitfall_v    );
 
   if( fl_scurve ){// for s-curve
     tree->Branch( "tpchg",           &t_tpchg,           "tpchg/F"           );
@@ -258,12 +258,11 @@ Int_t init_tree(){
     t2_prev_tedge_v.clear();
   }
   
-  if( fl_bitfall_info ){ // bit-fall information
-    t_board_bitfall_v.clear();
-    t_chip_bitfall_v.clear();
-    t_unit_bitfall_v.clear();
-    t_time_bitfall_v.clear();
-  }
+  // bit-fall information
+  t_board_bitfall_v.clear();
+  t_chip_bitfall_v.clear();
+  t_unit_bitfall_v.clear();
+  t_time_bitfall_v.clear();
 
   if( fl_scurve ){ // s-curve information
   t_tpboard_v.clear();
@@ -689,7 +688,13 @@ Int_t main( Int_t argc, char *argv[] ){
   if( fp == NULL ) err( EXIT_FAILURE, "fopen" );
 
   // for s-curve
-  if( argc>2 ) fl_scurve = true;
+  if( argc>3 ){
+    fl_scurve       = true;
+    fl_edge_decoder = false;
+  }else{
+    fl_scurve       = false;
+    fl_edge_decoder = true;
+  }
   t_tpchg           = ( argc>3 ? atof(argv[3]) : -999 );
   t_dac             = ( argc>4 ? atoi(argv[4]) : -999 );
   t_tpchip          = ( argc>5 ? atoi(argv[5]) : -999 );
