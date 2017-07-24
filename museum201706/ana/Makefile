@@ -29,6 +29,9 @@ scurve:scurve.o
 threshold_calib:threshold_calib.o
 	$(CXX) $(ROOTLIBS) -o $@ $^
 
+tot_chg:tot_chg.o
+	$(CXX) $(ROOTLIBS) -o $@ $^
+
 .cpp.o:
 	$(CXX) $(ROOTFLAGS) -c $< -o $@
 qc_allch.o             : setting.h qc_allch.cpp
@@ -39,6 +42,7 @@ cal_eff_all32.o        : setting.h cal_eff_all32.cpp
 maketree.o             : setting.h maketree.cpp
 scurve.o               : setting.h scurve.cpp
 threshold_calib.o      : setting.h threshold_calib.cpp
+tot_chg.o              : setting.h tot_chg.cpp
 
 .PHONY: clean
 clean:

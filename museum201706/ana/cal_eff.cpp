@@ -4,7 +4,7 @@
 const Int_t  fl_message = 0;
 const Bool_t fl_batch   = true; // should be false for quick check.
 const Int_t  fl_show    = 100;
-const Int_t  fl_save    = !true;
+const Int_t  fl_save    = true;
 
 // axis ragnge
 const Int_t nsig_max   =  15;
@@ -129,7 +129,6 @@ Int_t main( Int_t argc, Char_t** argv ){
   Int_t   chip_id    = atoi( app.Argv(3) );
   Int_t   channel_id = atoi( app.Argv(4) );
   Int_t   dac        = atoi( app.Argv(5) );
-  
   std::string basename = gSystem->BaseName( infilename );
   basename.erase( basename.rfind(".root") );
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -147,13 +146,13 @@ Int_t main( Int_t argc, Char_t** argv ){
   hist_span   ->SetLineColor(2);
   hist_1ch_int->SetLineColor(2);
 
-  hist_nsig   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nsig",   channel_id,dac) );
-  hist_nring  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nring",  channel_id,dac) );
-  hist_nnoise ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nnoise", channel_id,dac) );
-  hist_width  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","width",  channel_id,dac) );
-  hist_span   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","span",   channel_id,dac) );
-  hist_1ch_int->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","1ch_int",channel_id,dac) );
-  hist_wid_tim->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","wid_tim",channel_id,dac) );
+  hist_nsig   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nsig",   board_id,chip_id,channel_id,dac) );
+  hist_nring  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nring",  board_id,chip_id,channel_id,dac) );
+  hist_nnoise ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nnoise", board_id,chip_id,channel_id,dac) );
+  hist_width  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","width",  board_id,chip_id,channel_id,dac) );
+  hist_span   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","span",   board_id,chip_id,channel_id,dac) );
+  hist_1ch_int->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","1ch_int",board_id,chip_id,channel_id,dac) );
+  hist_wid_tim->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","wid_tim",board_id,chip_id,channel_id,dac) );
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   TChain* chain = new TChain("slit128A");

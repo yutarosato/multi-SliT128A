@@ -10,9 +10,11 @@ set CHANNEL_LIST = `seq 0 127`
 foreach BOARD  ( ${BOARD_LIST}   )
 foreach CHIP   ( ${CHIP_LIST}    )
 foreach CHANNEL( ${CHANNEL_LIST} )
-    @ FAKE_CHANNEL = ${CHANNEL} % 32
-    set FILE = "../data/scurve_data/201706131507/board2/root_data/output_*_${BOARD}_${FAKE_CHANNEL}.root"
+@ FAKE_CHANNEL = ${CHANNEL} % 32
+foreach FILE( `ls /home/belle/syutaro/tot_chg/root_data/output_*_${BOARD}_${FAKE_CHANNEL}.root` )
+    #set FILE = "/home/belle/syutaro/tot_chg/root_data/output_*_${BOARD}_${FAKE_CHANNEL}.root"
     ./run_cal_eff_bt2.sh ${FILE} ${BOARD} ${CHIP} ${CHANNEL}
+end
 end
 end
 end

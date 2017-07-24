@@ -12,11 +12,12 @@
 #include <TH2C.h>
 #include <TFile.h>
 
-const int fl_message = 2; // 0(simple message), 1(normal message), 2(detailed message)
+const int fl_message = 0; // 0(simple message), 1(normal message), 2(detailed message)
 const int n_board    = 2;
+const int board_list[n_board] = {2,5};
+
 const int n_chip =     4;
 const int n_unit =     4;
-const int board_list[n_board] = {2,5};
 
 // for read
 std::vector<int>* t_board_v;
@@ -91,22 +92,25 @@ int set_readbranch( TChain* tree ){
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int main( int argc, Char_t** argv ){
-  TApplication app( "app", &argc, argv );
-  gStyle->SetOptStat(1111111);
-
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  if( !(app.Argc()==3) )
+  if( argc<3 )
     std::cerr << "Wrong input" << std::endl
-	      << "Usage : " << app.Argv(0)
+	      << "Usage : " << argv[0]
 	      << " (char*)outfilename (char*)infilename" << std::endl
 	      << "[e.g]" << std::endl
-	      << app.Argv(0) << " test_out.root test_int.root" << std::endl
+	      << argv[0] << " test_out.root test_int.root" << std::endl
 	      << std::endl, abort();
 
-  Char_t* outfilename = app.Argv(1);
-  Char_t* infilename  = app.Argv(2);
+  Char_t* outfilename = argv[1];
+  Char_t* infilename  = argv[2];
 
+  if( argc%2==0 ){
+    std::cerr << "Wrong pair of branch-name and branch-value : " << argc << std::endl;
+    abort();
+  }
+  
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // READ INPUT FILE
   TChain* tree = new TChain("slit128A");
   FileStat_t info;
   if( gSystem->GetPathInfo(infilename, info) ){
@@ -118,13 +122,26 @@ int main( int argc, Char_t** argv ){
   printf( "[input] %s : %d entries\n", infilename, (int)tree->GetEntries() );
   std::cout << tree->GetEntries() << " events(" << infilename << ") -> " << outfilename << std::endl;
 
+  // MAKE OUTPUT FILE
   TFile* rootf = new TFile( outfilename, "RECREATE" );
-
   TTree* newtree = new TTree( "slit128A", "slit128A" );
   set_tree( newtree );
 
-  std::cout << std::endl << "Now Loading..." << std::endl;
+  // MAKE OUTPUT FILE(METADATA)
+  TTree* newtree_meta = new TTree( "meta", "meta" );
+  Int_t nmeta = (argc-1)/2;
+  Int_t* t_branch_value = new Int_t[nmeta];
+  for( Int_t iargv=3; iargv<argc; ){
+    Char_t* branch_name  = argv[iargv];
+    t_branch_value[(iargv-3)/2] = atoi(argv[iargv+1]);
+    newtree_meta->Branch( branch_name, &(t_branch_value[(iargv-3)/2]), Form("%s/I",branch_name) );
+    iargv += 2;
+  }
+  newtree_meta->Fill();
+  delete[] t_branch_value;
+    
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  std::cout << std::endl << "Now Loading..." << std::endl;
   std::multimap<int, int> map; // <key, value>, sorted by key, All data is sorted by event number;
   for( int ievt=0; ievt<tree->GetEntries(); ievt++ ){ // BEGIN EVENT-LOOP
     if( ievt % 100== 0 ) std::cout << " " << ievt << " event..."<< std::endl;
@@ -173,18 +190,20 @@ int main( int argc, Char_t** argv ){
 	      << std::endl;
      */
     if( fl_message ) std::cout << "   nhit = " << t_chip_v->size() << std::endl;
-    for( int ivec=0; ivec<t_chip_v->size(); ivec++ ){
-      t2_board_v.push_back( t_board_v->at(ivec) );
-      t2_chip_v.push_back ( t_chip_v ->at(ivec) );
-      t2_unit_v.push_back ( t_unit_v ->at(ivec) );
-      t2_bit_v.push_back  ( t_bit_v  ->at(ivec) );
-      t2_channel_v.push_back( t_channel_v  ->at(ivec) );
-      t2_ledge_v.push_back ( t_ledge_v ->at(ivec) );
-      t2_tedge_v.push_back ( t_tedge_v ->at(ivec) );
-      t2_prev_ledge_v.push_back ( t_prev_ledge_v ->at(ivec) );
-      t2_prev_tedge_v.push_back ( t_prev_tedge_v ->at(ivec) );
-    }
 
+    for( int ivec=0; ivec<t_chip_v->size(); ivec++ ){
+      t2_board_v.push_back     ( t_board_v     ->at(ivec) );
+      t2_chip_v.push_back      ( t_chip_v      ->at(ivec) );
+      t2_unit_v.push_back      ( t_unit_v      ->at(ivec) );
+      t2_bit_v.push_back       ( t_bit_v       ->at(ivec) );
+      t2_channel_v.push_back   ( t_channel_v   ->at(ivec) );
+      t2_ledge_v.push_back     ( t_ledge_v     ->at(ivec) );
+      t2_tedge_v.push_back     ( t_tedge_v     ->at(ivec) );
+      t2_prev_ledge_v.push_back( t_prev_ledge_v->at(ivec) );
+      t2_prev_tedge_v.push_back( t_prev_tedge_v->at(ivec) );
+
+    }
+    
     cnt_board++;
 
     if( ievt==it_last) { // for last event
@@ -197,6 +216,7 @@ int main( int argc, Char_t** argv ){
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   newtree->Write();
+  newtree_meta->Write();
   rootf->Close();
 
   delete tree;

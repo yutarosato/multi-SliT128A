@@ -20,11 +20,11 @@
 #include <TGraph.h>
 
 
-const Int_t  fl_message      = 1; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
-const Bool_t fl_bitfall_info = true;
-const Bool_t fl_edge_decoder = true;
-const Bool_t fl_scurve       = true;
+const Int_t  fl_message      = 0; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
+Bool_t fl_bitfall_info       = true;
+Bool_t fl_edge_decoder       = true;
 
+Bool_t fl_scurve             = false;
 const Int_t  n_chip          =     4;
 const Int_t  n_unit          =     4;
 const Int_t  n_bit           =    32;
@@ -90,12 +90,12 @@ std::vector<Int_t> t_tpboard_v;
 std::vector<Int_t> t_vref_v;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Int_t lchannel_map (             Int_t unit, Int_t bit ){ return                     n_bit*unit + bit; } // return Local  Channel-No. (0-127)
-Int_t gchannel_map ( Int_t chip, Int_t unit, Int_t bit ){ return chip*n_unit*n_bit + n_bit*unit + bit; } // return Global Channel-No. (0-511 for 4 ASIC)
-Int_t gchannel2chip    ( Int_t gch ){ return (gch/(n_bit*n_unit));   } // return chip-No    from global Channel-No.
-Int_t gchannel2unit    ( Int_t gch ){ return ((gch/n_bit)%n_unit);   } // return unit-No    from global Channel-No.
-Int_t gchannel2bit     ( Int_t gch ){ return gch%n_bit;              } // return bit-No     from global Channel-No.
-Int_t gchannel2lchannel( Int_t gch ){ return (gch%(n_bit*n_unit));   } // return channel-No from global Channel-No.
+inline Int_t lchannel_map (             Int_t unit, Int_t bit ){ return                     n_bit*unit + bit; } // return Local  Channel-No. (0-127)
+inline Int_t gchannel_map ( Int_t chip, Int_t unit, Int_t bit ){ return chip*n_unit*n_bit + n_bit*unit + bit; } // return Global Channel-No. (0-511 for 4 ASIC)
+inline Int_t gchannel2chip    ( Int_t gch ){ return (gch/(n_bit*n_unit));   } // return chip-No    from global Channel-No.
+inline Int_t gchannel2unit    ( Int_t gch ){ return ((gch/n_bit)%n_unit);   } // return unit-No    from global Channel-No.
+inline Int_t gchannel2bit     ( Int_t gch ){ return gch%n_bit;              } // return bit-No     from global Channel-No.
+inline Int_t gchannel2lchannel( Int_t gch ){ return (gch%(n_bit*n_unit));   } // return channel-No from global Channel-No.
 
 Int_t numofbits( Int_t bits ){
   bits = (bits & 0x55555555) + (bits >>  1 & 0x55555555);
@@ -135,16 +135,25 @@ Int_t fill_event_buf( FILE* fp, UChar_t* event_buf ){ // 0(correctly read one ev
   if( n <= 0 ) return -1;
   memcpy( &event_buf[event_data_len], tmpbuf, byte_global_header );
   event_data_len += byte_global_header;
-  /*
+
   // mark "e"
   UChar_t global_mark = event_buf[0];
   global_mark = ( global_mark >> 4 );
-  printf("************************************************Mark : %x\n",(Int_t)global_mark);
+  //printf("************************************************Mark : %x\n",(Int_t)global_mark);
+  if( (Int_t)global_mark != 0xe ){
+    fprintf( stderr,"      [Warning] Wrong Mark : cnt_event=%d : %s\n", cnt_event, data_filename );
+    printf(         "      [Warning] Wrong Mark : cnt_event=%d : %s\n", cnt_event, data_filename );
+    cnt_warning++;
+    return -1;
+  }
+
+  /*
   // flag for bit fall
   UChar_t bit_fall = event_buf[1];
   bit_fall = ( bit_fall >> 7 );
   printf("bit-fall : %x\n",(Int_t)bit_fall);
-
+  */
+  /*
   // over-flow event counter
   UChar_t nevent_overflow = event_buf[1];
   nevent_overflow = ( nevent_overflow & 0x7F);
@@ -152,20 +161,20 @@ Int_t fill_event_buf( FILE* fp, UChar_t* event_buf ){ // 0(correctly read one ev
   printf("over-flow : %x\n",(Int_t)nevent_overflow);
   */
   // ndata 
-  unsigned long tmp_total_ndata = *(unsigned long*)&event_buf[1];
+  ULong_t tmp_total_ndata = *(ULong_t*)&event_buf[1];
   tmp_total_ndata = ( tmp_total_ndata & 0xffffff01 );
-  unsigned long total_ndata = ntohl( tmp_total_ndata );
+  ULong_t total_ndata = ntohl( tmp_total_ndata );
   total_ndata = ( total_ndata >> 8 );
   //printf("# of total unit data (only unit data) : %x (%d)\n",total_ndata,total_ndata);
   /*
   // event number
-  unsigned short* tmp_event_number = (unsigned short*)&event_buf[4];
+  UShort_t* tmp_event_number = (UShort_t*)&event_buf[4];
   Int_t event_number = ntohs(*tmp_event_number);
   t_event_number = event_number;
   printf("event number : %d\n", event_number);
 
   // unit enable
-  unsigned short* tmp_unit_enable = (unsigned short*)&event_buf[6];
+  UShort_t* tmp_unit_enable = (UShort_t*)&event_buf[6];
   Int_t unit_enable = ntohs(*tmp_unit_enable);
   printf("unit enable : %x\n", unit_enable);
   */
@@ -315,15 +324,15 @@ void edge_decode(){
 	  else                                                          t_now_tedge[*it_prev] = now_time+1;
 	  
 	  if( t_now_ledge[*it_prev] > t_now_tedge[*it_prev] ) t_now_tedge[*it_prev] = t_now_ledge[*it_prev] + 1;
-	  t2_ledge_v.push_back     ( t_now_ledge [*it_prev]       );
-	  t2_tedge_v.push_back     ( t_now_tedge [*it_prev]       );
-	  t2_prev_ledge_v.push_back( t_prev_ledge[*it_prev]       );
-	  t2_prev_tedge_v.push_back( t_prev_tedge[*it_prev]       );
 	  t2_chip_v.push_back      ( gchannel2chip    (*it_prev) );
 	  t2_unit_v.push_back      ( gchannel2unit    (*it_prev) );
 	  t2_bit_v.push_back       ( gchannel2bit     (*it_prev) );
 	  t2_channel_v.push_back   ( gchannel2lchannel(*it_prev) );
-	  
+	  t2_ledge_v.push_back     ( t_now_ledge [*it_prev]      );
+	  t2_tedge_v.push_back     ( t_now_tedge [*it_prev]      );
+	  t2_prev_ledge_v.push_back( t_prev_ledge[*it_prev]      );
+	  t2_prev_tedge_v.push_back( t_prev_tedge[*it_prev]      );
+
 	  t_prev_ledge[*it_prev] = t_now_ledge[*it_prev];
 	  t_prev_tedge[*it_prev] = t_now_tedge[*it_prev];
 	  
@@ -341,14 +350,14 @@ void edge_decode(){
 	  }
 	  
 	  if( t_now_ledge[*it_now] > t_now_tedge[*it_now] ) t_now_tedge[*it_now] = t_now_ledge[*it_now] + 1;
-	  t2_ledge_v.push_back     ( t_now_ledge [*it_now]       );
-	  t2_tedge_v.push_back     ( t_now_tedge [*it_now]       );
-	  t2_prev_ledge_v.push_back( t_prev_ledge[*it_now]       );
-	  t2_prev_tedge_v.push_back( t_prev_tedge[*it_now]       );
 	  t2_chip_v.push_back      ( gchannel2chip    (*it_now) );
 	  t2_unit_v.push_back      ( gchannel2unit    (*it_now) );
 	  t2_bit_v.push_back       ( gchannel2bit     (*it_now) );
 	  t2_channel_v.push_back   ( gchannel2lchannel(*it_now) );
+	  t2_ledge_v.push_back     ( t_now_ledge [*it_now]       );
+	  t2_tedge_v.push_back     ( t_now_tedge [*it_now]       );
+	  t2_prev_ledge_v.push_back( t_prev_ledge[*it_now]       );
+	  t2_prev_tedge_v.push_back( t_prev_tedge[*it_now]       );
 	  
 	  t_prev_ledge[*it_now] = t_now_ledge[*it_now];
 	  t_prev_tedge[*it_now] = t_now_tedge[*it_now];
@@ -382,14 +391,14 @@ void edge_decode(){
 	    if( fl_message>2 ) std::cout << "         find trailing-edge : " << *it_prev << std::endl;
 	    t_now_tedge[*it_prev] = now_time;
 	    
-	    t2_ledge_v.push_back     ( t_now_ledge [*it_prev]       );
-	    t2_tedge_v.push_back     ( t_now_tedge [*it_prev]       );
-	    t2_prev_ledge_v.push_back( t_prev_ledge[*it_prev]       );
-	    t2_prev_tedge_v.push_back( t_prev_tedge[*it_prev]       );
 	    t2_chip_v.push_back      ( gchannel2chip    (*it_prev) );
 	    t2_unit_v.push_back      ( gchannel2unit    (*it_prev) );
 	    t2_bit_v.push_back       ( gchannel2bit     (*it_prev) );
 	    t2_channel_v.push_back   ( gchannel2lchannel(*it_prev) );
+	    t2_ledge_v.push_back     ( t_now_ledge [*it_prev]       );
+	    t2_tedge_v.push_back     ( t_now_tedge [*it_prev]       );
+	    t2_prev_ledge_v.push_back( t_prev_ledge[*it_prev]       );
+	    t2_prev_tedge_v.push_back( t_prev_tedge[*it_prev]       );
 	    
 	    t_prev_ledge[*it_prev] = t_now_ledge[*it_prev];
 	    t_prev_tedge[*it_prev] = t_now_tedge[*it_prev];
@@ -432,14 +441,14 @@ void edge_decode(){
     else                                                          t_now_tedge[*it_prev] = now_time+1;
     
     if( t_now_ledge[*it_prev] > t_now_tedge[*it_prev] ) t_now_tedge[*it_prev] = t_now_ledge[*it_prev] + 1;
-    t2_ledge_v.push_back     ( t_now_ledge [*it_prev]       );
-    t2_tedge_v.push_back     ( t_now_tedge [*it_prev]       );
-    t2_prev_ledge_v.push_back( t_prev_ledge[*it_prev]       );
-    t2_prev_tedge_v.push_back( t_prev_tedge[*it_prev]       );
     t2_chip_v.push_back      ( gchannel2chip    (*it_prev) );
     t2_unit_v.push_back      ( gchannel2unit    (*it_prev) );
     t2_bit_v.push_back       ( gchannel2bit     (*it_prev) );
     t2_channel_v.push_back   ( gchannel2lchannel(*it_prev) );
+    t2_ledge_v.push_back     ( t_now_ledge [*it_prev]      );
+    t2_tedge_v.push_back     ( t_now_tedge [*it_prev]      );
+    t2_prev_ledge_v.push_back( t_prev_ledge[*it_prev]      );
+    t2_prev_tedge_v.push_back( t_prev_tedge[*it_prev]      );
     
     t_prev_ledge[*it_prev] = t_now_ledge[*it_prev];
     t_prev_tedge[*it_prev] = t_now_tedge[*it_prev];
@@ -458,19 +467,23 @@ void edge_decode(){
     }
     
     if( t_now_ledge[*it_now] > t_now_tedge[*it_now] ) t_now_tedge[*it_now] = t_now_ledge[*it_now] + 1;
-    t2_ledge_v.push_back     ( t_now_ledge [*it_now]       );
-    t2_tedge_v.push_back     ( t_now_tedge [*it_now]       );
-    t2_prev_ledge_v.push_back( t_prev_ledge[*it_now]       );
-    t2_prev_tedge_v.push_back( t_prev_tedge[*it_now]       );
     t2_chip_v.push_back      ( gchannel2chip    (*it_now) );
     t2_unit_v.push_back      ( gchannel2unit    (*it_now) );
     t2_bit_v.push_back       ( gchannel2bit     (*it_now) );
     t2_channel_v.push_back   ( gchannel2lchannel(*it_now) );
+    t2_ledge_v.push_back     ( t_now_ledge [*it_now]      );
+    t2_tedge_v.push_back     ( t_now_tedge [*it_now]      );
+    t2_prev_ledge_v.push_back( t_prev_ledge[*it_now]      );
+    t2_prev_tedge_v.push_back( t_prev_tedge[*it_now]      );
     
     t_prev_ledge[*it_now] = t_now_ledge[*it_now];
     t_prev_tedge[*it_now] = t_now_tedge[*it_now];
     
     ++it_now;
+  }
+
+  for( int ii = 0; ii < t2_chip_v.size(); ii++ ){
+    t2_board_v.push_back ( t_board_v.at(0) );
   }
   
   return;
@@ -500,21 +513,21 @@ Int_t decode( UChar_t *event_buf, Int_t length ){
   //printf("over-flow : %x\n",(int)nevent_overflow);
 
   // ndata 
-  unsigned long tmp_total_ndata = *(unsigned long*)&event_buf[1];
+  ULong_t tmp_total_ndata = *(ULong_t*)&event_buf[1];
   tmp_total_ndata = ((tmp_total_ndata & 0xffffff01)  );
-  unsigned long total_ndata = ntohl(tmp_total_ndata);
+  ULong_t total_ndata = ntohl(tmp_total_ndata);
   total_ndata = (total_ndata >> 8);
   //printf("# of total unit data (only unit data) : %x (%d)\n",total_ndata,total_ndata);  
 
   // event number
-  unsigned short* tmp_event_number = (unsigned short*)&event_buf[4];
-  Int_t event_number = ntohs(*tmp_event_number);
+  UShort_t* tmp_event_number = (UShort_t*)&event_buf[4];
+  Int_t     event_number     = ntohs(*tmp_event_number);
   t_event_number = event_number;
   //printf("event number : %d\n", event_number);
 
   // unit enable
-  unsigned short* tmp_unit_enable = (unsigned short*)&event_buf[6];
-  Int_t unit_enable = ntohs(*tmp_unit_enable);
+  UShort_t* tmp_unit_enable = (UShort_t*)&event_buf[6];
+  Int_t     unit_enable     = ntohs(*tmp_unit_enable);
   //printf("unit enable : %x\n", unit_enable);
   Int_t n_active_unit = numofbits( unit_enable);
   
@@ -539,9 +552,9 @@ Int_t decode( UChar_t *event_buf, Int_t length ){
     //printf("board#%d, chip#%d, unit#%d\n",(int)board_id,(int)chip_id,(int)unit_id);
     
     // ndata 
-    unsigned short tmp_unit_ndata = *(unsigned short*)&event_buf[index+2];
+    UShort_t tmp_unit_ndata = *(UShort_t*)&event_buf[index+2];
     tmp_unit_ndata = ((tmp_unit_ndata & 0xff3f)  );
-    unsigned short unit_ndata = ntohs(tmp_unit_ndata);
+    UShort_t unit_ndata = ntohs(tmp_unit_ndata);
     //printf("# of unit unit data (only unit data) : %x (%d)\n",unit_ndata,unit_ndata);
 
     // bit-fall
@@ -550,8 +563,8 @@ Int_t decode( UChar_t *event_buf, Int_t length ){
     unit_bit_fall = ( unit_bit_fall >> 7 );
     
     // event number
-    unsigned short* tmp_event_number_unit = (unsigned short*)&event_buf[index+4];
-    Int_t event_number_unit = ntohs(*tmp_event_number_unit);
+    UShort_t* tmp_event_number_unit = (UShort_t*)&event_buf[index+4];
+    Int_t     event_number_unit     = ntohs(*tmp_event_number_unit);
 
     // check-sum for event number
     UChar_t cksum = event_buf[index+2];
@@ -570,14 +583,13 @@ Int_t decode( UChar_t *event_buf, Int_t length ){
     */
 
     bool fl_active = ( (unit_enable & (0x0001 << iunit))>> iunit );
-    //if( fl_message>1 ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),Bit_Fall(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,unit_bit_fall,event_number_unit,cksum,(int)fl_active); // default
-    if( fl_message>1 && (chip_id==0||chip_id==1) && unit_bit_fall ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),Bit_Fall(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,unit_bit_fall,event_number_unit,cksum,(int)fl_active); // tmpppp
+    if( fl_message>1 ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),Bit_Fall(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,unit_bit_fall,event_number_unit,cksum,(int)fl_active); // default
 
     if( (int)cksum==0 && fl_active ){
-      //fprintf( stderr,"      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
-      printf( "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header) : %s\n", event_number_unit, t_board, t_chip, t_unit, event_number, data_filename );
+      fprintf( stderr,"      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header) : %s\n", event_number_unit, t_board, t_chip, t_unit, event_number, data_filename );
+      printf(         "      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header) : %s\n", event_number_unit, t_board, t_chip, t_unit, event_number, data_filename );
       cnt_warning++;
-      abort();
+      return -1;
     }
     /*
     if( unit_ndata!=n_time && fl_active ){
@@ -590,10 +602,10 @@ Int_t decode( UChar_t *event_buf, Int_t length ){
     Int_t prev_time =-1;
     // unit data for each unit
     for( Int_t idata=0; idata<unit_ndata; idata++ ){
-      unsigned short* tmp_time = (unsigned short*)&event_buf[index+byte_unit_header+idata*byte_unit_data+0];
-      unsigned long*  tmp_data = (unsigned long* )&event_buf[index+byte_unit_header+idata*byte_unit_data+2];
-      unsigned short  time     = ntohs(*tmp_time);
-      unsigned short  data     = ntohl(*tmp_data);
+      UShort_t* tmp_time = (UShort_t*)&event_buf[index+byte_unit_header+idata*byte_unit_data+0];
+      ULong_t*  tmp_data = (ULong_t* )&event_buf[index+byte_unit_header+idata*byte_unit_data+2];
+      UShort_t  time     = ntohs(*tmp_time);
+      UShort_t  data     = ntohl(*tmp_data);
       t_time = time;
 
       if( fl_bitfall_info && prev_time != t_time-1 ){
@@ -664,19 +676,20 @@ Int_t main( Int_t argc, char *argv[] ){
   Int_t n;
   FILE* fp;
 
-
   if( argc<3 ){
     std::cerr << "Usage : "
 	      << argv[0] << "  "
-	      << "output_rootfile  input_binary_file  tpchg tpchip tpchip_cycle tpchannel tpchannel_cycle dac tpboard vref (tpboard vref) ..." << std::endl; // for s-curve
+	      << "output_rootfile  input_binary_file  (tpchg tpchip tpchip_cycle tpchannel tpchannel_cycle dac tpboard vref (tpboard vref)) ..." << std::endl; // for s-curve
     abort();    
   }
   
   out_filename  = argv[1];
   data_filename = argv[2];
   fp = fopen( data_filename, "r" );
-  //if( fp == NULL ) err( EXIT_FAILURE, "fopen" );
+  if( fp == NULL ) err( EXIT_FAILURE, "fopen" );
+
   // for s-curve
+  if( argc>2 ) fl_scurve = true;
   t_tpchg           = ( argc>3 ? atof(argv[3]) : -999 );
   t_dac             = ( argc>4 ? atoi(argv[4]) : -999 );
   t_tpchip          = ( argc>5 ? atoi(argv[5]) : -999 );
@@ -701,8 +714,9 @@ Int_t main( Int_t argc, char *argv[] ){
   while( 1 ){
     n = fill_event_buf( fp, event_buf ); // read one event
     if( n < 0 ) break;
-    else        decode( event_buf, n ); // save it in tree
-    if( cnt_event > 100 ) break; // tmpppp
+    n = decode( event_buf, n ); // save it in tree
+    if( n < 0 ) break;
+    //if( cnt_event > 100 ) break; // tmpppp
   }
 
   std::cout << "#event = "   << cnt_event   << ", "

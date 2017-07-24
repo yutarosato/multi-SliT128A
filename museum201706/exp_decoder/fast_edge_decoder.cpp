@@ -358,7 +358,7 @@ Int_t main( Int_t argc, Char_t** argv ){
     }
 
     for( int ii = 0; ii < t2_chip_v.size(); ii++ ){
-      t2_board_v.push_back ( t_board_v->at(ii) );
+      t2_board_v.push_back ( t_board_v->at(0) );
     }
     for( int ii = 0; ii < n_chip*n_unit; ii++ ){ // added @20170610
       t2_fl_fall_v.push_back( t_fl_fall_v->at(ii) );
