@@ -29,8 +29,10 @@ Int_t main( Int_t argc, Char_t** argv ){
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   TH2C* hist     = new TH2C("hist",    "hist;             Time;Channel",n_time, 0, n_time, n_chip*n_unit*n_bit, 0, n_chip*n_unit*n_bit );
   TH2C* hist_int = new TH2C("hist_int","hist(integration);Time;Channel",n_time, 0, n_time, n_chip*n_unit*n_bit, 0, n_chip*n_unit*n_bit );
-  TCanvas* can = new TCanvas("can","can", 1600, 800 );
-  can->Divide(1,2);
+  //TCanvas* can = new TCanvas("can","can", 1600, 800 );
+  //can->Divide(1,2);
+  TCanvas* can = new TCanvas("can","can", 1600, 1050 ); // tmpppp
+  can->Divide(1,3); // tmpppp
   can->Draw();
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   Int_t cnt_show = 0;
@@ -53,8 +55,17 @@ Int_t main( Int_t argc, Char_t** argv ){
       hist->Draw("COLZ");
       can->cd(2);
       hist_int->Draw("COLZ");
+      can->cd(3); // tmpppp
+      TH1D* tmp_hist = hist_int->ProjectionY();
+      tmp_hist->Draw(); // tmpppp
+      /*
+      for( Int_t ibin=0; ibin<tmp_hist->GetNbinsX(); ibin++ ){
+	if( tmp_hist->GetBinContent(ibin+1)==0 ) std::cout << "Channel#" << ibin << std::endl;
+      }
+      */
       can->Update();
       can->WaitPrimitive();
+      //return 0; // tmpppp
       hist->Reset();
     }
     cnt_show++;

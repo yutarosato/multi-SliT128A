@@ -56,7 +56,9 @@ set OUTNAME = "test.dat"
 #sleep 2
 #kill -9 $!
 cd readslit-0.0.0/;
-./readslit -t 3 192.168.${BOARD}.${IP} 24 ../test.dat
+#./readslit -t 3 192.168.${BOARD}.${IP} 24 ../test.dat
+#./readslit -t 1 192.168.${BOARD}.${IP} 24 ../test.dat
+./readslit -t 2 192.168.${BOARD}.${IP} 24 ../test.dat
 cd ../
 
 # <Decode>

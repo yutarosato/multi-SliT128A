@@ -19,7 +19,7 @@
 #include <TGraph.h>
 
 
-const int fl_message = 0; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
+const int fl_message = 2; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
 const int n_chip =     4;
 const int n_unit =     4;
 const int n_bit  =    32;
@@ -286,7 +286,8 @@ int decode( unsigned char *event_buf, int length ){
     */
 
     bool fl_active = ( (unit_enable & (0x0001 << iunit))>> iunit );
-    if( fl_message>1 ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),Bit_Fall(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,unit_bit_fall,event_number_unit,cksum,(int)fl_active);
+    //if( fl_message>1 ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),Bit_Fall(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,unit_bit_fall,event_number_unit,cksum,(int)fl_active); // default
+    if( fl_message>1 && (chip_id==0||chip_id==1) && unit_bit_fall ) printf("   [Unit Header%d] Board#%d,Chip#%d,Unit#%d,Ndata(%d),Bit_Fall(%d),evtNo#%d(cksum=%d), active(%d)\n",iunit,board_id,chip_id,unit_id,unit_ndata,unit_bit_fall,event_number_unit,cksum,(int)fl_active); // tmpppp
 
     if( (int)cksum==0 && fl_active ){
       //fprintf( stderr,"      [Warning] Event number shift : evtNo=%d(Board#%d,Chip#%d,Unit#%d) & %d(global header)\n", event_number_unit, t_board, t_chip, t_unit, event_number );
