@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iomanip>
 #include <map>
+#include <set>
+#include <stdlib.h>
 
 #include <TROOT.h>
 #include <TStyle.h>
@@ -35,25 +37,30 @@
 Int_t t_event;
 
 
-const Int_t n_dac = 64;
-
-const int n_chip = 4;
-const int n_unit = 4;
-const int n_bit  = 32;
+const Int_t n_dac   =  64;
+const int n_board   =   2;
+const int n_chip    =   4;
+const int n_unit    =   4;
+const int n_bit     =  32;
+const int n_channel = 128;
+const int board_list[ n_board ] = {2,5};
 const int n_time =  8192; // pow(2,13)
+//const int n_time_bin =  8192/16; // tmpppp
+const int n_time_bin =  8192; // tmpppp
 Int_t t_data[n_chip][n_unit][n_bit][n_time];
 std::vector<int>* t_board_v;
 std::vector<int>* t_chip_v;
 std::vector<int>* t_unit_v;
 std::vector<int>* t_bit_v;
+std::vector<int>* t_channel_v;
 std::vector<int>* t_time_v;
+std::vector<int>* t_ledge_v;
+std::vector<int>* t_tedge_v;
 
-Float_t t_vref;
-Float_t t_tpchg;
-Int_t   t_tpboard;
-Int_t   t_tpchip;
-Int_t   t_tpchannel;
-Int_t   t_dac;
+Float_t t_vref_b2;
+Float_t t_vref_b5;
+Float_t t_hv;
+Int_t   t_rf;
 
 TStyle* Style(){
   TStyle* myStyle = new TStyle("sty", "sty");
@@ -96,7 +103,7 @@ TStyle* Style(){
   
   //set axis label and title text sizes
   //myStyle->SetLabelFont(42,"xyz");
-  myStyle->SetLabelSize(0.05,"xyz");
+  myStyle->SetLabelSize(0.04,"xyz");
   myStyle->SetLabelOffset(0.01,"xyz");
   //myStyle->SetTitleFont(42,"xyz");
   myStyle->SetTitleSize(0.06,"xyz");
@@ -106,7 +113,7 @@ TStyle* Style(){
   //myStyle->SetStatFont(42);
   //myStyle->SetStatFontSize(0.07);
   myStyle->SetTitleBorderSize(0);
-  myStyle->SetStatBorderSize(0);
+  myStyle->SetStatBorderSize(1);
   //myStyle->SetTextFont(42);
 
   // set label-style
@@ -132,10 +139,11 @@ TStyle* Style(){
   myStyle->SetTickLength( 0.02, "XY" );
 
   //turn off stats
-  myStyle->SetOptStat(0);
+  myStyle->SetOptStat("RME");
   //myStyle->SetOptFit(1111);
   
   //marker settings
+
   myStyle->SetMarkerStyle(20);
   myStyle->SetMarkerSize(0.7);
   myStyle->SetLineWidth(1);
@@ -165,54 +173,52 @@ TStyle* Style(){
 }
 
 Int_t set_readbranch( TChain* tree ){
-  tree->SetBranchAddress("event", &t_event   );
-  tree->SetBranchAddress("board", &t_board_v );
-  tree->SetBranchAddress("chip",  &t_chip_v  );
-  tree->SetBranchAddress("unit",  &t_unit_v  );
-  tree->SetBranchAddress("bit",   &t_bit_v   );
-  tree->SetBranchAddress("time",  &t_time_v  );
+  tree->SetBranchAddress("event",    &t_event   );
+  tree->SetBranchAddress("rf",       &t_rf      );
+  tree->SetBranchAddress("board",     &t_board_v );
+  tree->SetBranchAddress("chip",     &t_chip_v  );
+  tree->SetBranchAddress("unit",     &t_unit_v  );
+  tree->SetBranchAddress("bit" ,     &t_bit_v   );
+  tree->SetBranchAddress("channel",  &t_channel_v   );
+  tree->SetBranchAddress("vref_b2",    &t_vref_b2   );
+  tree->SetBranchAddress("vref_b5",    &t_vref_b5   );
+  tree->SetBranchAddress("hv",       &t_hv      );
+  tree->SetBranchAddress("ledge",    &t_ledge_v   );  
+  tree->SetBranchAddress("tedge",    &t_tedge_v   );  
 
   return 0;
 }
 
 Int_t set_readbranch( TTree* tree ){
-  tree->SetBranchAddress("event", &t_event   );
-  tree->SetBranchAddress("board", &t_board_v );
-  tree->SetBranchAddress("chip",  &t_chip_v  );
-  tree->SetBranchAddress("unit",  &t_unit_v  );
-  tree->SetBranchAddress("bit",   &t_bit_v   );
-  tree->SetBranchAddress("time",  &t_time_v  );
+  tree->SetBranchAddress("event",   &t_event  );
+  tree->SetBranchAddress("rf",      &t_rf      );
+  tree->SetBranchAddress("board",     &t_board_v );
+  tree->SetBranchAddress("chip",    &t_chip_v  );
+  tree->SetBranchAddress("unit",    &t_unit_v  );
+  tree->SetBranchAddress("bit" ,     &t_bit_v   );
+  tree->SetBranchAddress("channel", &t_channel_v   );
+  tree->SetBranchAddress("vref_b2",    &t_vref_b2   );
+  tree->SetBranchAddress("vref_b5",    &t_vref_b5   );
+  tree->SetBranchAddress("hv",      &t_hv      );
+  tree->SetBranchAddress("ledge",   &t_ledge_v   );  
+  tree->SetBranchAddress("tedge",   &t_tedge_v   );  
 
   return 0;
 }
 
-
-Int_t set_readbranch_scan( TTree* tree ){
-  set_readbranch( tree );
-  tree->SetBranchAddress("vref",      &t_vref       );
-  tree->SetBranchAddress("tpchg",     &t_tpchg      );
-  tree->SetBranchAddress("tpboard",   &t_tpboard    );
-  tree->SetBranchAddress("tpchip",    &t_tpchip     );
-  tree->SetBranchAddress("tpchannel", &t_tpchannel  );
-  tree->SetBranchAddress("dac",       &t_dac        );
-
-  return 0;
-}
 
 Int_t set_tree( TTree* tree ){// for modify tree @20160822
   tree = new TTree("slit128A","slit128A");
-  tree->Branch( "event",     &t_event,     "event/I"  );
-  tree->Branch( "board",     &t_board_v );
-  tree->Branch( "chip",      &t_chip_v  );
-  tree->Branch( "unit",      &t_unit_v  );
-  tree->Branch( "bit",       &t_bit_v   );
-  tree->Branch( "time",      &t_time_v  );
-  tree->Branch( "vref",      &t_vref,       "vref/F"      );
-  tree->Branch( "tpchg",     &t_tpchg,      "tpchg/F"     );
-  tree->Branch( "tpboard",   &t_tpboard,    "tpboard/I"   );
-  tree->Branch( "tpchip",    &t_tpchip,     "tpchip/I"    );
-  tree->Branch( "tpchannel", &t_tpchannel,  "tpchannel/I" );
-  tree->Branch( "dac",       &t_dac,        "dac/I"       );
+  tree->Branch( "event",  &t_event,  "event/I" );
+  tree->Branch( "rf",     &t_rf,     "rf/I" );
+  tree->Branch("board",     &t_board_v );
+  tree->Branch( "chip",   &t_chip_v );
+  tree->Branch( "unit",   &t_unit_v );
+  tree->Branch( "bit",    &t_bit_v );
+  tree->Branch( "channel",    &t_channel_v  );
+  tree->Branch("vref_b2",    &t_vref_b2   );
+  tree->Branch("vref_b5",    &t_vref_b5   );
+  tree->Branch( "hv",     &t_hv,      "t_hv/F"   );
 
   return 0;
 }
@@ -220,13 +226,12 @@ Int_t set_tree( TTree* tree ){// for modify tree @20160822
 Int_t ch_map( Int_t unit, Int_t bit ){
   return n_bit*unit + bit;
 }
-Int_t multi_ch_map( Int_t chip, Int_t unit, Int_t bit ){ // return Global Channel-No. (0-511 for 4ASIC)
-  return chip*n_unit*n_bit + n_bit*unit + bit;
-}
 
-Int_t rev_ch_map_chip   ( int global_channel ){ return (global_channel/(n_bit*n_unit)); } // return chip-No    from global Channel-No.
-Int_t rev_ch_map_channel( int global_channel ){ return (global_channel%(n_bit*n_unit)); } // return channel-No from global Channel-No.
+Int_t multi_ch_map   ( Int_t chip, Int_t unit, Int_t bit ){ return chip*n_unit*n_bit + n_bit*unit + bit; } // return Global Channel-No. (0-511 for 4ASIC)
+Int_t rev_ch_map_chip( Int_t gch ){ return (gch/(n_bit*n_unit)); } // return chip-No    from global Channel-No.
+Int_t rev_ch_map_ch  ( Int_t gch ){ return (gch%(n_bit*n_unit)); } // return channel-No from global Channel-No.
 
+/*
 TH1D* conv_graphtohist( TGraphErrors* graph, const Char_t* name, const Char_t* title ){
   TH1D* hist = new TH1D( name, title, 30, 0, 0 );
   for( Int_t ip=0; ip<graph->GetN(); ip++ ) hist->Fill( graph->GetY()[ip] );
@@ -251,5 +256,5 @@ TGraphErrors* div_graph( TGraphErrors* graph1, TGraphErrors* graph2 ){ // graph1
   }
   return graph;
 }
-
+*/
 #endif
