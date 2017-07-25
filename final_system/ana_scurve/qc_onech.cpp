@@ -1,0 +1,290 @@
+#include "setting.h"
+
+// message and plot
+const Int_t  fl_message = 0;
+const Bool_t fl_batch   = !true; // should be false for quick check.
+const Int_t  fl_show    = 5;
+
+// axis ragnge
+const Int_t nsig_max   =  15;
+const Int_t nring_max  =  20;
+const Int_t width_max  = 300;
+const Int_t nnoise_max =  50;
+
+// setup
+const Int_t nsig_exp     =    8; // # of signals per event (probably 8 @200kHz)
+const Int_t span_exp     = 1000; // 200kHz -> 5us -> 1000 bit
+const Int_t origin_time  =    0; // not useful
+const Int_t origin_range = 1000; // not useful
+
+// signal definition
+const Int_t    th_span       =   450;
+const Int_t    th_width      =     5;
+const Int_t    th_window     =    20;
+const Int_t    mask_prompt   =    50;
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+TH1I* hist_nsig    = new TH1I( "hist_nsig",    "hist_nsig;#signal/events",          nsig_max,           0,    nsig_max  );
+TH1I* hist_nring   = new TH1I( "hist_nring",   "hist_nring;#ringing/signals",      nring_max,           0,   nring_max  );
+TH1I* hist_nnoise  = new TH1I( "hist_nnoise",  "hist_nnoise;#noise/events",        nnoise_max,          0,   nnoise_max );
+TH1I* hist_width   = new TH1I( "hist_width",   "hist_width;signal width",          width_max,           0,   width_max  );
+TH1I* hist_span    = new TH1I( "hist_span",    "hist_span;span between signals",          40, span_exp-20, span_exp+20  );
+TH1I* hist_1ch_int = new TH1I( "hist_1ch_int", "hist_1ch_int;Time [bit]",             n_time,           0,      n_time  ); 
+TH2I* hist_wid_tim = new TH2I( "hist_wid_tim", "hist_wid_tim;Time [bit];Width [bit]", n_time,           0,      n_time, width_max, 0,   width_max );
+
+Int_t detect_signal( TH1I* hist ){
+  if( fl_message > 1 ) std::cout << "[DETECT_SIGNAL]" << std::endl;
+  Int_t  bin_start        = 0;
+  Int_t  bin_end          = 0;
+  Int_t  bin_start_before = 0;
+  Bool_t fl_bin           = false;
+  Bool_t fl_start         = true;
+  Int_t  cnt_nsig         = 0;
+  Int_t  cnt_nring        = 0;
+  Int_t  cnt_nnoise       = 0;
+
+  for( Int_t ibin=0; ibin<hist->GetNbinsX(); ibin++ ){
+    if( hist->GetBinContent(ibin+1) && !fl_bin ){ // edge(up)
+      bin_start = ibin;
+      fl_bin = true;
+    }else if( !hist->GetBinContent(ibin+1) && fl_bin){ // edge(down)
+      bin_end = ibin;
+      fl_bin = false;
+
+      Int_t width = bin_end - bin_start;
+      Int_t span  = bin_start - bin_start_before;
+
+      Double_t entry_eff_before = ( bin_start>th_window          ? hist->Integral( bin_start-th_window, bin_start-1           )/((Double_t)th_window) : hist->Integral(1,         bin_start-1 )/(Double_t)(bin_start-1       ) );
+      Double_t entry_eff_after  = ( bin_start<n_time-th_window+2 ? hist->Integral( bin_start,           bin_start+th_window-1 )/((Double_t)th_window) : hist->Integral(bin_start, n_time      )/(Double_t)(n_time-bin_start+1) );
+      //if( bin_start>th_window          ) std::cout << "[TEST(pre) ] " << bin_start-th_window << " -> " << bin_start-1           << " : " << hist->Integral( bin_start-th_window, bin_start-1           ) << std::endl;
+      //if( bin_start<n_time-th_window+2 ) std::cout << "[TEST(post)] " << bin_start           << " -> " << bin_start+th_window-1 << " : " << hist->Integral( bin_start,           bin_start+th_window-1 ) << std::endl;
+      
+      if( fl_message>1 ) std::cout << bin_start << " -> " << bin_end
+				   << " : width = "       << width
+				   << ", span = "         << span
+				   << ", eff(before) = "  << entry_eff_before
+				   << ", eff(after) = "   << entry_eff_after  << std::endl;
+
+      if( mask_prompt > ibin ){ // remove prompt noise
+	;
+      }else{
+	Int_t origin = bin_start;
+	while( origin> span_exp ){
+	  origin -= span_exp;
+	}
+	if( origin > origin_time && origin < origin_time + origin_range ){ // signal window
+	  if( ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
+	    hist_width  ->Fill( width     );
+	    hist_1ch_int->Fill( bin_start );
+	    hist_wid_tim->Fill( bin_start, width );
+	    if( !fl_start ){
+	      hist_nring->Fill( cnt_nring );
+	      hist_span ->Fill( span );
+	    }
+	    bin_start_before = bin_start;
+	    if( fl_message > 1 ) std::cout << " ------> nsig" << std::endl;
+	    cnt_nsig++;
+	    cnt_nring = 0;
+	    fl_start = false;
+	  }else{ // ringing
+	    cnt_nring++;
+	  }
+	}else{ // noise
+	  cnt_nnoise++;
+	}
+      }
+    }      
+  }
+
+  if( fl_message ) std::cout << " ------> "
+			     << "nsig = "   << cnt_nsig   << ", "
+			     << "nring = "  << cnt_nring  << ", "
+			     << "nnoise = " << cnt_nnoise << std::endl;
+  hist_nring->Fill ( cnt_nring  );
+  hist_nsig ->Fill ( cnt_nsig   );
+  hist_nnoise->Fill( cnt_nnoise );
+
+  return 0;
+}
+
+Int_t main( Int_t argc, Char_t** argv ){
+  gROOT->SetBatch(fl_batch);
+  TApplication app( "app", &argc, argv );
+  TStyle* sty = Style();
+  sty->SetPadGridX(0);
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  if( !(app.Argc()==6) )
+    std::cerr << "Wrong input" << std::endl
+	      << "Usage : " << app.Argv(0)
+	      << " (char*)infilename (int)board_id (int)chip_id (int)channel_id (int)dac" << std::endl
+	      << "[e.g]" << std::endl
+	      << app.Argv(0) << " test.root 2 0 60 30" << std::endl
+	      << std::endl, abort();
+
+  Char_t* infilename = app.Argv(1);
+  Int_t   board_id   = atoi( app.Argv(2) );
+  Int_t   chip_id    = atoi( app.Argv(3) );
+  Int_t   channel_id = atoi( app.Argv(4) );
+  Int_t   dac        = atoi( app.Argv(5) );
+  
+  std::string basename = gSystem->BaseName( infilename );
+  basename.erase( basename.rfind(".root") );
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  TText* tex1 = new TText();
+  tex1->SetTextColor(2);
+  tex1->SetTextSize(0.12);
+  TText* tex2 = new TText();
+  tex2->SetTextColor(2);
+  tex2->SetTextSize(0.05);
+
+  hist_nsig   ->SetLineColor(2);
+  hist_nring  ->SetLineColor(2);
+  hist_nnoise ->SetLineColor(2);
+  hist_width  ->SetLineColor(2);
+  hist_span   ->SetLineColor(2);
+  hist_1ch_int->SetLineColor(2);
+
+  hist_nsig   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nsig",   channel_id,dac) );
+  hist_nring  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nring",  channel_id,dac) );
+  hist_nnoise ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","nnoise", channel_id,dac) );
+  hist_width  ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","width",  channel_id,dac) );
+  hist_span   ->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","span",   channel_id,dac) );
+  hist_1ch_int->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","1ch_int",channel_id,dac) );
+  hist_wid_tim->SetName( Form("hist_%s_board%d_chip%d_channel%03d_dac%d","wid_tim",channel_id,dac) );
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  TChain* chain = new TChain("slit128A");
+  chain->Add(infilename);
+  set_readbranch_scan(chain);
+
+  if( fl_message ) printf( "[input] %s : %d entries\n", infilename, (Int_t)chain->GetEntries() );
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  TH1I* hist_1ch   = new TH1I("hist_1ch",  "hist;Time [bit];Channel",n_time,   0,        n_time   );
+  hist_1ch->SetLineColor(2);
+  hist_1ch->SetLabelSize(0.17,"XY");
+  
+  const Int_t ndiv = 4;
+  TH1I** hist_1ch_div = new TH1I*[ndiv];
+  for( Int_t idiv=0; idiv<ndiv; idiv++ ){
+    hist_1ch_div[idiv] = new TH1I( Form("hist_1ch_div%d",idiv), "hist;Time [bit];Channel", n_time/ndiv, idiv*n_time/ndiv, (idiv+1)*n_time/ndiv );
+    hist_1ch_div[idiv]->SetLineColor(2);    
+    hist_1ch_div[idiv]->SetLabelSize(0.17,"XY");
+  }
+
+  TCanvas* can1 = new TCanvas("can1","can1", 1800, 600 );
+  can1->Divide(1,ndiv+1);
+  can1->Draw();
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  Int_t cnt_show = 0;
+  for( Int_t ievt=0; ievt<chain->GetEntries(); ievt++ ){
+    chain->GetEntry(ievt);
+    hist_1ch  ->Reset();
+    for( Int_t idiv=0; idiv<ndiv; idiv++ ) hist_1ch_div[idiv]->Reset();
+
+    Bool_t fl_board = false;
+    for( Int_t iboard=0; iboard<t_tpboard_v->size(); iboard++ ){
+      if( board_id ==t_tpboard_v->at(iboard) || t_tpboard_v->at(iboard)<0 ) fl_board = true;
+    }
+    if( !fl_board ) continue; // board
+    if( dac                           != t_dac                         ) continue; // dac value
+    if( chip_id   %t_tpchip_cycle     != t_tpchip    && t_tpchip   >=0 ) continue; // chip
+    if( channel_id%t_tpchannel_cycle  != t_tpchannel && t_tpchannel>=0 ) continue; // channel
+
+    for( Int_t ihit=0; ihit<t_unit_v->size(); ihit++ ){ // BEGIN HIT-LOOP
+      if( board_id   != t_board_v->at(ihit)                                ) continue; // board
+      if( chip_id    != t_chip_v ->at(ihit)                                ) continue; // chip
+      if( channel_id != lchannel_map(t_unit_v->at(ihit),t_bit_v->at(ihit)) ) continue; // channel
+      hist_1ch->Fill( t_time_v->at(ihit) );
+      for( Int_t idiv=0; idiv<ndiv; idiv++ ) hist_1ch_div[idiv]->Fill( t_time_v->at(ihit) );
+    } // END HIT-LOOP
+
+    if( hist_1ch->GetEntries()==0 ){
+      hist_nsig  ->Fill(0);
+      hist_nnoise->Fill(0);
+      continue;
+    }
+
+    detect_signal( hist_1ch );
+    
+    if( fl_message ) printf( "  [Event:%d,Board:%d,Chip:%d,Channel:%d] %d entries\n", t_event, board_id, chip_id, channel_id, (Int_t)hist_1ch->Integral() );
+    hist_1ch->SetTitle( Form("Event:%d, Board:%d, Chip:%d, Channel:%d, %d entries",   t_event, board_id, chip_id, channel_id, (Int_t)hist_1ch->Integral()) );
+    
+    if( cnt_show++ < fl_show ){
+      can1->cd(1); hist_1ch->Draw();
+      for( Int_t idiv=0; idiv<ndiv; idiv++ ){
+	can1->cd(idiv+2);
+	hist_1ch_div[idiv]->Draw();
+      }
+      can1->cd(1);
+      tex1->DrawTextNDC( 0.15, 0.92, Form("Event:%d, Board:%d, Chip:%d, Channel:%d, DAC : %d (%d entries)",
+					  t_event, board_id, chip_id, channel_id, dac, (Int_t)hist_1ch->Integral()) );
+      can1->Update();
+      can1->WaitPrimitive();
+      //if( cnt_show==1 ) can1->Print( Form("pic/%s_board%d_chip%d_channel%03d_dac%d_can1.ps",basename.c_str(),board_id,chip_id,channel_id,dac) );
+    }
+  }
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  TCanvas* can2 = new TCanvas( Form("can_board%d_chip%d_channel%03d_dac%d",board_id,chip_id,channel_id,dac), Form("can2"), 1600, 800 );
+  sty->SetOptStat(1111111);
+  can2->Draw();
+  can2->Divide(3,2);
+  can2->cd(1); hist_nsig   ->Draw();
+  can2->cd(2); hist_nring  ->Draw();
+  can2->cd(3); hist_width  ->Draw();
+  can2->cd(4); hist_span   ->Draw();
+  can2->cd(5); hist_1ch_int->Draw();
+  can2->cd(6); hist_wid_tim->Draw("COLZ");
+
+  can2->cd(4);
+  tex2->DrawTextNDC( 0.20, 0.75, Form("Board = %d",        board_id      ) );
+  tex2->DrawTextNDC( 0.20, 0.70, Form("Chip = %d",         chip_id       ) );
+  tex2->DrawTextNDC( 0.20, 0.65, Form("Channel = %d",      channel_id    ) );
+  tex2->DrawTextNDC( 0.20, 0.60, Form("DAC = %d",          dac           ) );
+  tex2->DrawTextNDC( 0.20, 0.55, Form("span = %d",         th_span       ) );
+  tex2->DrawTextNDC( 0.20, 0.50, Form("width = %d",        th_width      ) );
+  tex2->DrawTextNDC( 0.20, 0.45, Form("window = %d",       th_window     ) );
+  can2->Update();
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // triming noise data // tmppppp
+  Int_t peak_bin = hist_width->GetMaximumBin();
+  for( Int_t ibin=0; ibin<peak_bin-50; ibin++ ) hist_width->SetBinContent(ibin+1, 0.0);
+  
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  Double_t sig_eff    = ( hist_nsig->Integral() ? (hist_nsig->GetMean()*hist_nsig->Integral())/(hist_nsig->Integral()*nsig_exp) : 0.0 );
+  Double_t sig_effE   = ( (hist_nsig->GetMean()*hist_nsig->Integral()== 0) ? 0.0 : sig_eff * sqrt( (1-sig_eff)/(hist_nsig->GetMean()*hist_nsig->Integral()) ) );
+  Double_t ring_prob  = ( (hist_nring->Integral()==0) ? 0.0 : (Double_t)(hist_nring->Integral() - hist_nring->GetBinContent(1))/hist_nring->Integral() );
+  Double_t ring_probE = ( ((Double_t)(hist_nring->Integral() - hist_nring->GetBinContent(1))==0) ? 0.0 : ring_prob * sqrt( (1-ring_prob)/((Double_t)(hist_nring->Integral() - hist_nring->GetBinContent(1))) ) );
+  Double_t sig_width  = hist_width->GetMean();
+  Double_t sig_widthE = hist_width->GetMeanError(); // hist_width->GetRMS();
+  Double_t span       = hist_span ->GetMean();
+  Double_t spanE      = hist_span ->GetMeanError(); // hist_span ->GetRMS();
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  TTree* newtree = new TTree( Form("meta_board%d_chip%d_channel%03d_dac%d",board_id,chip_id,channel_id,dac), "meta for timing" );
+  if( chain->GetEntries() ) chain->GetEntry(0);
+  newtree->Branch( "dac",    &dac,     "dac/I"   );
+  newtree->Branch( "tpchg",  &t_tpchg, "tpchg/F" );
+  newtree->Fill();
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  if( fl_message ) std::cout << "finish" << std::endl;
+  if( !gROOT->IsBatch() ) app.Run();
+
+  delete tex1;
+  delete tex2;
+  delete chain;
+  delete hist_1ch;
+  for( Int_t idiv=0; idiv<ndiv; idiv++ ) delete hist_1ch_div[idiv];
+  delete hist_1ch_div;
+  delete can1;
+  delete can2;
+  delete newtree;
+
+  return 0;
+
+}

@@ -56,4 +56,4 @@ while (1)
 end
 cd ..;
 
-#./run_fpga.sh ${BOARD}
+./run_fpga.sh ${BOARD}

@@ -90,9 +90,10 @@ Int_t   t_tpchannel_cycle = -999;
 std::vector<Int_t> t_tpboard_v;
 std::vector<Int_t> t_vref_v;
 
+
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-inline Int_t lchannel_map (             Int_t unit, Int_t bit ){ return                     n_bit*unit + bit; } // return Local  Channel-No. (0-127)
 inline Int_t gchannel_map ( Int_t chip, Int_t unit, Int_t bit ){ return chip*n_unit*n_bit + n_bit*unit + bit; } // return Global Channel-No. (0-511 for 4 ASIC)
+inline Int_t lchannel_map (             Int_t unit, Int_t bit ){ return                     n_bit*unit + bit; } // return Local  Channel-No. (0-127)
 inline Int_t gchannel2chip    ( Int_t gch ){ return (gch/(n_bit*n_unit));   } // return chip-No    from global Channel-No.
 inline Int_t gchannel2unit    ( Int_t gch ){ return ((gch/n_bit)%n_unit);   } // return unit-No    from global Channel-No.
 inline Int_t gchannel2bit     ( Int_t gch ){ return gch%n_bit;              } // return bit-No     from global Channel-No.
@@ -263,11 +264,6 @@ Int_t init_tree(){
   t_chip_bitfall_v.clear();
   t_unit_bitfall_v.clear();
   t_time_bitfall_v.clear();
-
-  if( fl_scurve ){ // s-curve information
-  t_tpboard_v.clear();
-  t_vref_v.clear();
-  }
 
   return 0;
 }
@@ -678,7 +674,7 @@ Int_t main( Int_t argc, char *argv[] ){
   if( argc<3 ){
     std::cerr << "Usage : "
 	      << argv[0] << "  "
-	      << "output_rootfile  input_binary_file  (tpchg tpchip tpchip_cycle tpchannel tpchannel_cycle dac tpboard vref (tpboard vref)) ..." << std::endl; // for s-curve
+	      << "output_rootfile  input_binary_file  (tpchg dac tpchip tpchip_cycle tpchannel tpchannel_cycle tpboard vref (tpboard vref)) ..." << std::endl; // for s-curve
     abort();    
   }
   
@@ -706,6 +702,11 @@ Int_t main( Int_t argc, char *argv[] ){
     std::cerr << "Wrong pair of board-id and vref-value : " << argc << std::endl;
     abort();
   }
+
+  if( argc<11 ){
+    t_tpboard_v.push_back(-999);
+    t_vref_v.push_back   (-999);
+  }
   for( Int_t iargv=9; iargv<argc; ){
     t_tpboard_v.push_back( atoi(argv[iargv  ]) );
     t_vref_v.push_back   ( atoi(argv[iargv+1]) );
@@ -714,8 +715,9 @@ Int_t main( Int_t argc, char *argv[] ){
 
   // open output file and define tree's branches
   TFile outfile( out_filename, "RECREATE" );
-  set_tree();
   init_tree();
+  set_tree();
+
   while( 1 ){
     n = fill_event_buf( fp, event_buf ); // read one event
     if( n < 0 ) break;
@@ -724,8 +726,8 @@ Int_t main( Int_t argc, char *argv[] ){
     //if( cnt_event > 100 ) break; // tmpppp
   }
 
-  std::cout << "#event = "   << cnt_event   << ", "
-	    << "#warning = " << cnt_warning << " : "
+  std::cout << "   #event = "   << cnt_event   << ", "
+	    <<    "#warning = " << cnt_warning << " : "
 	    << data_filename
 	    << std::endl;
   
