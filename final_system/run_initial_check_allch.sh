@@ -13,9 +13,9 @@ set CHIP_LIST     = "0 1 2 3"
 set CHIP          = 0 # ${CHIP}%${CYCLE_CHIP} will be controlled
 set CYCLE_CHIP    = 1
 set CHANNEL       = 0 # ${CHANNEL}%${CYCLE_CHANNEL} will be controlled
-set CYCLE_CHANNEL = 2
+set CYCLE_CHANNEL = 1
 set CTRL_DAC      = $2
-set TIME          = 2
+set TIME          = 30
 
 cd slow_control;   make || exit; cd ../;
 cd exp_decoder;    make || exit; cd ../;
