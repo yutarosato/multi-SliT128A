@@ -14,7 +14,7 @@ set CYCLE_CHIP    = 1
 set CHANNEL       = 0 # ${CHANNEL}%${CYCLE_CHANNEL} will be controlled
 set CYCLE_CHANNEL = 1
 set CTRL_DAC      = $2
-set TIME          = 10
+set TIME          = 30
 
 cd slow_control;   make || exit; cd ../;
 cd exp_decoder;    make || exit; cd ../;
