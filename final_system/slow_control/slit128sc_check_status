@@ -1,0 +1,105 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import time
+from optparse import OptionParser
+import SitcpRbcp
+import socket
+import struct
+
+# XXX: global variable for options
+options      = {}
+cmdline_args = []
+
+def process_options():
+    global options
+    global cmdline_args
+    global parser
+
+    parser = OptionParser(usage = 'usage: %prog [options] ip_address', version = '%prog 1.0')
+
+    # -d, --debug
+    parser.add_option('-d', '--debug',
+                      action = 'store_true',
+                      dest   = 'debug',
+                      help   = 'show debug message')
+    parser.set_defaults(debug = False)
+
+    # -v, --verbose
+    parser.add_option('-v', '--verbose',
+                      action = 'store_true',
+                      dest   = 'verbose',
+                      help   = 'print verbose message')
+    parser.set_defaults(verbose = False)
+
+    (options, cmdline_args) = parser.parse_args()
+
+def print_options_and_args():
+    # don't need "global options" to read global variable
+    print 'option dump:', options
+
+    if len(cmdline_args) > 0:
+        print 'cmdline_args:', cmdline_args
+
+def is_busy(rbcp, ip_address, base_addr):
+    """FIFO full bit.  Return True if full"""
+    fifo_full_address = base_addr + 0x0b
+    b = ord(rbcp.read_registers(ip_address, fifo_full_address, 1))
+    if (b & 0x80) == 0x80:
+        return True
+
+    return False
+
+def wait_until_ready_or_die(rbcp, ip_address, base_addr):
+    busy_count = 0
+    while is_busy(rbcp, ip_address, base_addr):
+        #time.sleep(0.001)
+        time.sleep(0.000001) # save 0.2 sec for 128 ch @20170530
+        busy_count += 1
+        if busy_count == 1000:
+            sys.stderr.write('busy more than 1 second.  exit')
+            sys.exit(1)
+
+def READ_SLOW_CONTROL(rbcp, ip_address):
+    print "++++++++++SLOW CONTROL STATUS ++++++++++++++"
+    data_date = rbcp.read_registers(ip_address, address = 0x80000000, length = 4, id = 1)
+    data_ver  = rbcp.read_registers(ip_address, address = 0x80000004, length = 1, id = 1)
+    print "FPGA (DATE, version) = (%s, %s)" % (data_date.encode('hex'), data_ver.encode('hex'))
+
+    data_unit_enb = rbcp.read_registers(ip_address, address = 0x80000005, length = 2, id = 1)
+    print "%s : UNIT ENABLE(Chip#1,0,3,2[unit(3,2,1,0])" % data_unit_enb.encode('hex')
+
+    data_sck = rbcp.read_registers(ip_address, address = 0x80000007, length = 1, id = 1)
+    print "%s   : SLOW CONTROL CLOCK ENABLE" % data_sck.encode('hex')
+    
+    data_zerosupp = rbcp.read_registers(ip_address, address = 0x80000008, length = 1, id = 1)
+    print "%s   : ZEROSUPP" % data_zerosupp.encode('hex')
+    
+    data_genb = rbcp.read_registers(ip_address, address = 0x80000009, length = 1, id = 1)
+    print "%s   : GLOBAL UNIT ENABLE" % data_genb.encode('hex')
+    
+    print "++++++++++++++++++++++++++++++++++++++++++++"
+
+def hl2digit(s):
+    return int(s.replace('L', '0').replace('H', '1'), 2)
+
+def main():
+    process_options()
+    if options.verbose > 1:
+        print_options_and_args()
+    
+    if len(cmdline_args) != 1:
+        parser.print_usage()
+        sys.exit(1)
+
+    ip_address  = cmdline_args[0]
+
+    if options.debug:
+        print ip_address
+
+    rbcp = SitcpRbcp.SitcpRbcp()
+    READ_SLOW_CONTROL(rbcp, ip_address)
+
+if __name__ == '__main__':
+    main()

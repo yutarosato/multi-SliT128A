@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import time
+from optparse import OptionParser
+import SitcpRbcp
+import socket
+import struct
+
+# XXX: global variable for options
+options      = {}
+cmdline_args = []
+
+def process_options():
+    global options
+    global cmdline_args
+    global parser
+
+    parser = OptionParser(usage = 'usage: %prog [options] ip_address', version = '%prog 1.0')
+
+    # -d, --debug
+    parser.add_option('-d', '--debug',
+                      action = 'store_true',
+                      dest   = 'debug',
+                      help   = 'show debug message')
+    parser.set_defaults(debug = False)
+
+    # -v, --verbose
+    parser.add_option('-v', '--verbose',
+                      action = 'store_true',
+                      dest   = 'verbose',
+                      help   = 'print verbose message')
+    parser.set_defaults(verbose = False)
+
+    (options, cmdline_args) = parser.parse_args()
+
+def print_options_and_args():
+    # don't need "global options" to read global variable
+    print 'option dump:', options
+
+    if len(cmdline_args) > 0:
+        print 'cmdline_args:', cmdline_args
+
+def is_busy(rbcp, ip_address, base_addr):
+    """FIFO full bit.  Return True if full"""
+    fifo_full_address = base_addr + 0x0b
+    b = ord(rbcp.read_registers(ip_address, fifo_full_address, 1))
+    if (b & 0x80) == 0x80:
+        return True
+
+    return False
+
+def wait_until_ready_or_die(rbcp, ip_address, base_addr):
+    busy_count = 0
+    while is_busy(rbcp, ip_address, base_addr):
+        #time.sleep(0.001)
+        time.sleep(0.000001) # save 0.2 sec for 128 ch @20170530
+        busy_count += 1
+        if busy_count == 1000:
+            sys.stderr.write('busy more than 1 second.  exit')
+            sys.exit(1)
+
+def send_final_packet(rbcp, ip_address, base_addr):
+    data = struct.pack('>B', 0xff)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(data), id = 13, data = data)
+    data = struct.pack('>B', 0x55)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(data), id = 14, data = data)
+
+    wait_until_ready_or_die(rbcp, ip_address, base_addr)
+
+def send_prepare_packet(rbcp, ip_address, base_addr):
+    data = struct.pack('>B', 0x47)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0B, length = len(data), id = 10, data = data)
+    data = struct.pack('>B', 0xff)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(data), id = 11, data = data)
+    data = struct.pack('>B', 0x55)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(data), id = 12, data = data)
+
+    wait_until_ready_or_die(rbcp, ip_address, base_addr)
+
+def READ_LASTEVTNO(rbcp, ip_address):
+    print "++++++++++++++++++++++++++++++++++++++++++++"
+    data_evtNo0  = rbcp.read_registers(ip_address, address = 0x80000010, length = 1, id = 1)
+    data_evtNo1  = rbcp.read_registers(ip_address, address = 0x80000011, length = 1, id = 1)
+    data_evtNo2  = rbcp.read_registers(ip_address, address = 0x80000012, length = 1, id = 1)
+    data_evtNo3  = rbcp.read_registers(ip_address, address = 0x80000013, length = 1, id = 1)
+    data_evtNo4  = rbcp.read_registers(ip_address, address = 0x80000014, length = 1, id = 1)
+    data_evtNo5  = rbcp.read_registers(ip_address, address = 0x80000015, length = 1, id = 1)
+    data_evtNo6  = rbcp.read_registers(ip_address, address = 0x80000016, length = 1, id = 1)
+    data_evtNo7  = rbcp.read_registers(ip_address, address = 0x80000017, length = 1, id = 1)
+    data_evtNo8  = rbcp.read_registers(ip_address, address = 0x80000018, length = 1, id = 1)
+    data_evtNo9  = rbcp.read_registers(ip_address, address = 0x80000019, length = 1, id = 1)
+    data_evtNo10 = rbcp.read_registers(ip_address, address = 0x8000001A, length = 1, id = 1)
+    data_evtNo11 = rbcp.read_registers(ip_address, address = 0x8000001B, length = 1, id = 1)
+    data_evtNo12 = rbcp.read_registers(ip_address, address = 0x8000001C, length = 1, id = 1)
+    data_evtNo13 = rbcp.read_registers(ip_address, address = 0x8000001D, length = 1, id = 1)
+    data_evtNo14 = rbcp.read_registers(ip_address, address = 0x8000001E, length = 1, id = 1)
+    data_evtNo15 = rbcp.read_registers(ip_address, address = 0x8000001F, length = 1, id = 1)
+
+    num_evtNo0   = data_evtNo0.encode('hex')
+    num_evtNo1   = data_evtNo1.encode('hex')
+    num_evtNo2   = data_evtNo2.encode('hex')
+    num_evtNo3   = data_evtNo3.encode('hex')
+    num_evtNo4   = data_evtNo4.encode('hex')
+    num_evtNo5   = data_evtNo5.encode('hex')
+    num_evtNo6   = data_evtNo6.encode('hex')
+    num_evtNo7   = data_evtNo7.encode('hex')
+    num_evtNo8   = data_evtNo8.encode('hex')
+    num_evtNo9   = data_evtNo9.encode('hex')
+    num_evtNo10  = data_evtNo10.encode('hex')
+    num_evtNo11  = data_evtNo11.encode('hex')
+    num_evtNo12  = data_evtNo12.encode('hex')
+    num_evtNo13  = data_evtNo13.encode('hex')
+    num_evtNo14  = data_evtNo14.encode('hex')
+    num_evtNo15  = data_evtNo15.encode('hex')
+
+    print "%s : event number (unit# 0) ->%d" % (data_evtNo0.encode('hex'),  int(num_evtNo0, 16))
+    print "%s : event number (unit# 1) ->%d" % (data_evtNo1.encode('hex'),  int(num_evtNo1, 16))
+    print "%s : event number (unit# 2) ->%d" % (data_evtNo2.encode('hex'),  int(num_evtNo2, 16))
+    print "%s : event number (unit# 3) ->%d" % (data_evtNo3.encode('hex'),  int(num_evtNo3, 16))
+    print "%s : event number (unit# 4) ->%d" % (data_evtNo4.encode('hex'),  int(num_evtNo4, 16))
+    print "%s : event number (unit# 5) ->%d" % (data_evtNo5.encode('hex'),  int(num_evtNo5, 16))
+    print "%s : event number (unit# 6) ->%d" % (data_evtNo6.encode('hex'),  int(num_evtNo6, 16))
+    print "%s : event number (unit# 7) ->%d" % (data_evtNo7.encode('hex'),  int(num_evtNo7, 16))
+    print "%s : event number (unit# 8) ->%d" % (data_evtNo8.encode('hex'),  int(num_evtNo8, 16))
+    print "%s : event number (unit# 9) ->%d" % (data_evtNo9.encode('hex'),  int(num_evtNo9, 16))
+    print "%s : event number (unit#10) ->%d" % (data_evtNo10.encode('hex'), int(num_evtNo10,16))
+    print "%s : event number (unit#11) ->%d" % (data_evtNo11.encode('hex'), int(num_evtNo11,16))
+    print "%s : event number (unit#12) ->%d" % (data_evtNo12.encode('hex'), int(num_evtNo12,16))
+    print "%s : event number (unit#13) ->%d" % (data_evtNo13.encode('hex'), int(num_evtNo13,16))
+    print "%s : event number (unit#14) ->%d" % (data_evtNo14.encode('hex'), int(num_evtNo14,16))
+    print "%s : event number (unit#15) ->%d" % (data_evtNo15.encode('hex'), int(num_evtNo15,16))
+
+    ###########################################################
+
+def hl2digit(s):
+    return int(s.replace('L', '0').replace('H', '1'), 2)
+
+def send_value_packet(rbcp, ip_address, base_addr, ch, value):
+    if options.debug:
+        print ip_address, hex(base_addr), ch, value
+
+    first_byte  = hl2digit(value[0:8])
+    second_byte = hl2digit(value[8:16])
+
+    if options.debug:
+        print '%d %0x %0x' % (ch, first_byte, second_byte)
+
+    zero_data   = struct.pack('>B', 0)
+    first_data  = struct.pack('>B', first_byte )
+    second_data = struct.pack('>B', second_byte)
+
+    rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(zero_data),  id = 12, data = zero_data)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(first_data), id = 13, data = first_data)
+
+    wait_until_ready_or_die(rbcp, ip_address, base_addr)
+
+    rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(zero_data),   id = 14, data = zero_data)
+    rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(second_data), id = 15, data = second_data)
+
+    wait_until_ready_or_die(rbcp, ip_address, base_addr)
+
+def main():
+    process_options()
+    if options.verbose > 1:
+        print_options_and_args()
+    
+    if len(cmdline_args) != 1:
+        parser.print_usage()
+        sys.exit(1)
+
+    ip_address  = cmdline_args[0]
+
+    if options.debug:
+        print ip_address
+
+    rbcp = SitcpRbcp.SitcpRbcp()
+    READ_LASTEVTNO(rbcp, ip_address)
+
+if __name__ == '__main__':
+    main()
