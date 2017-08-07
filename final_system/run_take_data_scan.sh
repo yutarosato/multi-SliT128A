@@ -1,17 +1,18 @@
 #! /bin/tcsh -f
 
-set HEADNAME = "output"
+set HEADNAME = "output06"
 set BOARD    = 5
-set VREF     = 200.0 # VREF value [mV]
-set TPCHG    = 3.84 # Test pulse charge [fC] : 3.84 fC = 38.4 mV * 100fF (@1MIP)
+set VREF     = 230.0 # VREF value [mV]
+set TPCHG    = 2.69 # Test pulse charge [fC] # 4.61, 4.22, 3.84, 3.46, 3.07, 2.69, 2.30, 1.92, 1.54, 1.15, 0.77, 0.38
+# 1 MIP = 3.84 fC = 38.4 mV * 100fF
+# 1 MIP = 300 mV for 8 divider (actually 7 input) with ~1% error
 
 ####################################################################################
-set CHIP_LIST     = "0 1 2 3"
 set CHIP          = 0 # ${CHIP}%${CHIP_CYCLE} will be controlled
 set CHIP_CYCLE    = 1
 set CTRL_DAC      = -31
 set TIME          = 3
-set STEP          = 3
+set STEP          = 3 # DAC STEP
 
 cd slow_control;   make || exit; cd ../;
 cd exp_decoder;    make || exit; cd ../;

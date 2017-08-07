@@ -14,7 +14,7 @@ set CYCLE_CHIP    = 1
 set CHANNEL       = 0 # ${CHANNEL}%${CYCLE_CHANNEL} will be controlled
 set CYCLE_CHANNEL = 1
 set CTRL_DAC      = $2
-set TIME          = 30
+set TIME          = 1
 
 cd slow_control;   make || exit; cd ../;
 cd exp_decoder;    make || exit; cd ../;
@@ -46,7 +46,7 @@ foreach ICHIP( `seq 0 3` )
 	./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} ${CYCLE_CHANNEL} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
     else
 	echo "ON"
-	./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} ${CYCLE_CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLHLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+	./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} ${CYCLE_CHANNEL} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
     endif
     
 
@@ -78,4 +78,3 @@ cd ../
 echo "Plot ...."
 cd ana_scurve;
 ./qc_allch ../test.root ${BOARD}
-

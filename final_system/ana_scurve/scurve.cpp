@@ -225,7 +225,7 @@ Int_t main( Int_t argc, Char_t** argv ){
     can_scurve[ichip]->Divide(8,16);
     can_scurve[ichip]->Draw();
   }
-
+  /*
   TCanvas** can_width = new TCanvas*[n_chip];
   for( Int_t ichip=0; ichip<n_chip; ichip++ ){
     can_width[ichip] = new TCanvas( Form("can_width_%d",ichip),Form("can_width_%d",ichip), 1500, 1050 );
@@ -246,9 +246,9 @@ Int_t main( Int_t argc, Char_t** argv ){
     can_span[ichip]->Divide(8,16);
     can_span[ichip]->Draw();
   }
-  
-  // <Draw Objects and Fit S-curve>
+  */
 
+  // <Draw Objects and Fit S-curve>
   Bool_t fl_first_width = true;
   Bool_t fl_first_nring = true;
   Bool_t fl_first_span  = true;
@@ -267,8 +267,8 @@ Int_t main( Int_t argc, Char_t** argv ){
 	  g_width [itab][ich][ig]->Sort();
 	  g_nring [itab][ich][ig]->Sort();
 	  can_scurve[chip_id]->cd(sel_pad);
-	  g_scurve[itab][ich][ig]->SetLineColor  ( itab+1 );
-	  g_scurve[itab][ich][ig]->SetMarkerColor( itab+1 );
+	  g_scurve[itab][ich][ig]->SetLineColor  ( itab+2 );
+	  g_scurve[itab][ich][ig]->SetMarkerColor( itab+2 );
 	  g_scurve[itab][ich][ig]->SetMarkerStyle( 21+ig  );
 	  g_scurve[itab][ich][ig]->SetMarkerSize ( 0.2    );
 	  g_scurve[itab][ich][ig]->Draw("Psame");
@@ -326,7 +326,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	      break;
 	    }
 	  }
-	  func[itab][ich][ig]->SetLineColor(itab+1);
+	  func[itab][ich][ig]->SetLineColor(itab+2);
 	  if( g_scurve[itab][ich][ig]->GetN() ){
 	    fit_result = g_scurve[itab][ich][ig]->Fit( func[itab][ich][ig], "SQ0", "same" ); // final fit
 	  // +++++++++++ trimming data(end) +++++++++++
@@ -341,13 +341,13 @@ Int_t main( Int_t argc, Char_t** argv ){
 
       for( Int_t ig=0; ig<cnt_g[itab][ich]; ig++ ){
 	if( g_width[itab][ich][ig]->GetN() ){
-	  can_width[chip_id]->cd(sel_pad);
 	  g_width[itab][ich][ig]->GetXaxis()->SetLimits(-32,32);
-	  g_width[itab][ich][ig]->SetLineColor  ( itab+1 );
-	  g_width[itab][ich][ig]->SetMarkerColor( itab+1 );
+	  g_width[itab][ich][ig]->SetLineColor  ( itab+2 );
+	  g_width[itab][ich][ig]->SetMarkerColor( itab+2 );
 	  g_width[itab][ich][ig]->SetMarkerStyle( 21+ig  );
 	  g_width[itab][ich][ig]->SetMarkerSize ( 0.2    );
-	  g_width[itab][ich][ig]->Draw( fl_first_width ? "AP" : "Psame" );
+	  //can_width[chip_id]->cd(sel_pad);
+	  //g_width[itab][ich][ig]->Draw( fl_first_width ? "AP" : "Psame" );
 	  fl_first_width = false;
 	}
       }
@@ -355,30 +355,30 @@ Int_t main( Int_t argc, Char_t** argv ){
       
       for( Int_t ig=0; ig<cnt_g[itab][ich]; ig++ ){
 	if( g_nring[itab][ich][ig]->GetN() ){
-	  can_nring[chip_id]->cd(sel_pad);
+
 	  g_nring[itab][ich][ig]->GetXaxis()->SetLimits(-32,32);
-	  g_nring[itab][ich][ig]->SetLineColor  ( itab+1 );
-	  g_nring[itab][ich][ig]->SetMarkerColor( itab+1 );
+	  g_nring[itab][ich][ig]->SetLineColor  ( itab+2 );
+	  g_nring[itab][ich][ig]->SetMarkerColor( itab+2 );
 	  g_nring[itab][ich][ig]->SetMarkerStyle( 21+ig  );
 	  g_nring[itab][ich][ig]->SetMarkerSize ( 0.2    );
-	  g_nring[itab][ich][ig]->Draw( fl_first_nring ? "AP" : "Psame" );
+	  //can_nring[chip_id]->cd(sel_pad);
+	  //g_nring[itab][ich][ig]->Draw( fl_first_nring ? "AP" : "Psame" );
 	  fl_first_nring = false;
 	}
       }
       
       for( Int_t ig=0; ig<cnt_g[itab][ich]; ig++ ){
 	if( g_span[itab][ich][ig]->GetN() ){
-	  can_span[chip_id]->cd(sel_pad);
 	  g_span[itab][ich][ig]->GetXaxis()->SetLimits(-32,32);
-	  g_span[itab][ich][ig]->SetLineColor  ( itab+1 );
-	  g_span[itab][ich][ig]->SetMarkerColor( itab+1 );
+	  g_span[itab][ich][ig]->SetLineColor  ( itab+2 );
+	  g_span[itab][ich][ig]->SetMarkerColor( itab+2 );
 	  g_span[itab][ich][ig]->SetMarkerStyle( 21+ig  );
 	  g_span[itab][ich][ig]->SetMarkerSize ( 0.2    );
-	  g_span[itab][ich][ig]->Draw( fl_first_span ? "AP" : "Psame" );
+	  //can_span[chip_id]->cd(sel_pad);
+	  //g_span[itab][ich][ig]->Draw( fl_first_span ? "AP" : "Psame" );
 	  fl_first_span = false;
 	}
       }
-
     } // END TABLE-LOOP
   } // END CHANNEL-LOOP
   
@@ -386,9 +386,9 @@ Int_t main( Int_t argc, Char_t** argv ){
     can_scurve[ichip]->cd(n_unit*n_bit);
     leg->Draw();
     can_scurve[ichip]->Update();
-    can_scurve[ichip]->Print( Form("pic/%s_scurve_%d.ps",basename.c_str(),ichip) );
+    can_scurve[ichip]->Print( Form("pic/%s_scurve_%d.ps" ,basename.c_str(),ichip) );
+    can_scurve[ichip]->Print( Form("pic/%s_scurve_%d.png",basename.c_str(),ichip) );
   }
-  can_scurve[3]->WaitPrimitive();
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // <Make Plots of Threshold value v.s. VREF (or TP charge)>
@@ -396,8 +396,8 @@ Int_t main( Int_t argc, Char_t** argv ){
     for( Int_t ich=0; ich<n_chip*n_unit*n_bit; ich++ ){ // BEGIN CHANNEL-LOOP
       for( Int_t ig=0; ig<cnt_g[itab][ich]; ig++ ){
 	if( fl_fit[itab][ich][ig] ) continue;
-	if( func[itab][ich][ig]->GetParameter(0) < -37 || func[itab][ich][ig]->GetParameter(0) > 37 ){
-	  std::cout << Form("[WARNING] under/over-flow in chip#%d, channel%d, vref=%.2f, tpchg=%.2f", gchannel2chip(ich),gchannel2lchannel(ich),vref_tab[itab],tpchg_tab[itab]) << std::endl;       
+	if( func[itab][ich][ig]->GetParameter(0) < -31 || func[itab][ich][ig]->GetParameter(0) > 31 ){
+	  //std::cout << Form("[WARNING] under/over-flow in chip#%d, channel%d, vref=%.2f, tpchg=%.2f", gchannel2chip(ich),gchannel2lchannel(ich),vref_tab[itab],tpchg_tab[itab]) << std::endl;       
 	  continue;
 	}
 
@@ -422,13 +422,19 @@ Int_t main( Int_t argc, Char_t** argv ){
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // <Draw>
-  TCanvas* can_vref = new TCanvas("can_vref","can_vref", 1500,1050 );
-  can_vref->Divide(8,16);
-  can_vref->Draw();
+  TCanvas** can_vref = new TCanvas*[n_chip];
+  for( Int_t ichip=0; ichip<n_chip; ichip++ ){
+    can_vref[ichip] = new TCanvas( Form("can_vref_%d",ichip),Form("can_vref_%d",ichip), 1500, 1050 );
+    can_vref[ichip]->Divide(8,16);
+    can_vref[ichip]->Draw();
+  }
 
-  TCanvas* can_tpchg = new TCanvas("can_tpchg","can_tpchg", 1500,1050 );
-  can_tpchg->Divide(8,16);
-  can_tpchg->Draw();
+  TCanvas** can_tpchg = new TCanvas*[n_chip];
+  for( Int_t ichip=0; ichip<n_chip; ichip++ ){
+    can_tpchg[ichip] = new TCanvas( Form("can_tpchg_%d",ichip),Form("can_tpchg_%d",ichip), 1500, 1050 );
+    can_tpchg[ichip]->Divide(8,16);
+    can_tpchg[ichip]->Draw();
+  }
 
   TLegend* leg_vref = new TLegend( 0.30,0.70,0.50,0.95 );
   leg_vref->SetHeader("VREF");
@@ -439,8 +445,8 @@ Int_t main( Int_t argc, Char_t** argv ){
     //mg_vref[ich]->SetMinimum(-20.0);
     //mg_vref[ich]->SetMaximum( 20.0);
     for( Int_t itab=0; itab<ntab_vref; itab++ ){ // BEGIN TABLE-LOOP
-      g_gain_vref[itab][ich]->SetLineColor  (itab+1);
-      g_gain_vref[itab][ich]->SetMarkerColor(itab+1);
+      g_gain_vref[itab][ich]->SetLineColor  (itab+2);
+      g_gain_vref[itab][ich]->SetMarkerColor(itab+2);
       if( ich==0 ) leg_vref->AddEntry( g_gain_vref[itab][ich],Form("%.2f mV",vref_tab_single[itab]) ,"PL" );
       if( g_gain_vref[itab][ich]->GetN()==0 ) continue;
       g_gain_vref[itab][ich]->Sort();
@@ -458,8 +464,8 @@ Int_t main( Int_t argc, Char_t** argv ){
     mg_tpchg[ich]->SetMinimum(-20.0);
     mg_tpchg[ich]->SetMaximum( 20.0);
     for( Int_t itab=0; itab<ntab_tpchg; itab++ ){ // BEGIN TABLE-LOOP
-      g_gain_tpchg[itab][ich]->SetLineColor  (itab+1);
-      g_gain_tpchg[itab][ich]->SetMarkerColor(itab+1);
+      g_gain_tpchg[itab][ich]->SetLineColor  (itab+2);
+      g_gain_tpchg[itab][ich]->SetMarkerColor(itab+2);
       if( ich==0 ) leg_tpchg->AddEntry( g_gain_tpchg[itab][ich],Form("%.2f mV",tpchg_tab_single[itab]) ,"PL" );
       if( g_gain_tpchg[itab][ich]->GetN()==0 ) continue;
       g_gain_tpchg[itab][ich]->Sort();
@@ -475,9 +481,8 @@ Int_t main( Int_t argc, Char_t** argv ){
     Int_t sel_column = lch_id/16;
     Int_t sel_pad    = 8*sel_row + sel_column+1;
 
-
     // VREF
-    can_vref->cd(sel_pad);
+    can_vref[chip_id]->cd(sel_pad);
     //if( mg_vref[ich]->GetListOfGraphs()->GetSize() ){
     if( mg_vref[ich]->GetListOfGraphs()!=0 ){
       mg_vref[ich]->Draw("APL");
@@ -489,7 +494,7 @@ Int_t main( Int_t argc, Char_t** argv ){
     if( ich==n_chip*n_unit*n_bit-1 ) leg_vref->Draw();
     
     // TPCHG
-    can_tpchg->cd(sel_pad);
+    can_tpchg[chip_id]->cd(sel_pad);
     //if( mg_tpchg[ich]->GetListOfGraphs()->GetSize() ){
     if( mg_tpchg[ich]->GetListOfGraphs() ){
       mg_tpchg[ich]->Draw("APL");
@@ -497,10 +502,91 @@ Int_t main( Int_t argc, Char_t** argv ){
     if( ich==n_chip*n_unit*n_bit-1 ) leg_tpchg->Draw();
   } // END CHANNEL-LOOP
 
-  can_vref ->Update();
-  can_tpchg->Update();
-  can_vref ->Print( Form("pic/%s_vref.ps", basename.c_str()) );
-  can_tpchg->Print( Form("pic/%s_tpchg.ps",basename.c_str()) );
+  for( Int_t ichip=0; ichip<n_chip; ichip++ ){
+    can_vref [ichip]->Update();
+    can_tpchg[ichip]->Update();
+    can_vref [ichip]->Print( Form("pic/%s_vref_%d.ps", basename.c_str(),ichip) );
+    can_vref [ichip]->Print( Form("pic/%s_vref_%d.png",basename.c_str(),ichip) );
+    can_tpchg[ichip]->Print( Form("pic/%s_tpchg_%d.ps",basename.c_str(),ichip) );
+  }
+
+  
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // MAKE SUMMARY GRAPH & TABLE
+  TGraphErrors* sg_gain   = new TGraphErrors(); sg_gain  ->SetTitle( ";Channel;Gain [bit/fC]" );
+  TGraphErrors* sg_offset = new TGraphErrors(); sg_offset->SetTitle( ";Channel;Offset [bit]"  );
+  TGraphErrors* sg_noise  = new TGraphErrors(); sg_noise ->SetTitle( ";Channel;Noise [fC]"    );
+  std::multimap<Double_t,Int_t> noise_map;
+
+  Int_t sel_tab = 0;
+  for( Int_t ich=0; ich<n_chip*n_unit*n_bit; ich++ ){ // BEGIN CHANNEL-LOOP
+    if( g_gain_vref[sel_tab][ich]->GetN() < 2 ){
+      noise_map.insert( std::make_pair(999, ich) );
+      sg_gain  ->SetPoint     ( sg_gain  ->GetN(),   ich,    -1 );
+      sg_gain  ->SetPointError( sg_gain  ->GetN()-1,   0,     0 );
+      sg_offset->SetPoint     ( sg_offset->GetN(),   ich,  -999 );
+      sg_offset->SetPointError( sg_offset->GetN()-1,   0,     0 );
+      sg_noise ->SetPoint     ( sg_noise ->GetN(),   ich,    -1 );
+      sg_noise ->SetPointError( sg_noise ->GetN()-1,   0,     0 );
+      continue;
+    }
+    Double_t gain    = g_gain_vref[sel_tab][ich]->GetFunction("pol1")->GetParameter(1); // [bit/fC]
+    Double_t gainE   = g_gain_vref[sel_tab][ich]->GetFunction("pol1")->GetParError (1);
+    Double_t offset  = g_gain_vref[sel_tab][ich]->GetFunction("pol1")->GetParameter(0); // [bit/fC]
+    Double_t offsetE = g_gain_vref[sel_tab][ich]->GetFunction("pol1")->GetParError (0);
+    sg_gain  ->SetPoint     ( sg_gain  ->GetN(),   ich, gain    );
+    sg_gain  ->SetPointError( sg_gain  ->GetN()-1,   0, gainE   );
+    sg_offset->SetPoint     ( sg_offset->GetN(),   ich, offset  );
+    sg_offset->SetPointError( sg_offset->GetN()-1,   0, offsetE );
+    Double_t noise  = -999; 
+    Double_t noiseE = -999;
+    for( Int_t itab=0; itab<ntab; itab++ ){ // temporal treatment
+      if( g_scurve[itab][ich][0]->GetFunction(Form("func%d_%d_%d",itab,ich,0))->GetParameter(0)>-30 ){
+	noise  = g_scurve[itab][ich][0]->GetFunction(Form("func%d_%d_%d",itab,ich,0))->GetParameter(1); // [bit]
+	noiseE = g_scurve[itab][ich][0]->GetFunction(Form("func%d_%d_%d",itab,ich,0))->GetParError (1);
+	break;
+      }
+    }
+    if( gain==0 || noise < 0 ) std::cout << ich << ", gain = " << gain << ", noise = " << noise << std::endl;
+
+    if( noise < 0 || gain==0 ){
+      sg_noise ->SetPoint     ( sg_noise->GetN(),   ich, -1 ); // [fC]
+      sg_noise ->SetPointError( sg_noise->GetN()-1,   0,  0 );
+      noise_map.insert( std::make_pair(999, ich) );
+    }else{
+      sg_noise ->SetPoint     ( sg_noise->GetN(),   ich, noise/gain ); // [fC]
+      sg_noise ->SetPointError( sg_noise->GetN()-1,   0, noise/gain*sqrt( pow(noiseE/noise,2) + pow(gainE/gain,2)) );
+      noise_map.insert( std::make_pair(noise/gain, ich) );
+    }
+  } // END CHANNEL LOOP
+
+  std::multimap<Double_t,Int_t>::reverse_iterator it_noise = noise_map.rbegin();
+  Int_t cnt_dead  = 0;
+  Int_t cnt_noisy = 0;
+  
+  while( it_noise != noise_map.rend() ){
+    if     ( (*it_noise).first > 900 ) cnt_dead++;
+    else if( (*it_noise).first > 0.2 ) cnt_noisy++;
+    else                               break;
+    std::cout << "global channel = " << (*it_noise).second << ", noise = " << (*it_noise).first << std::endl;
+    it_noise++;
+  }
+  std::cout << "N( dead-ch) = " << cnt_dead  << std::endl
+	    << "N(noisy-ch) = " << cnt_noisy << std::endl;
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  TCanvas* can = new TCanvas( "can_summary", "can_summary", 1500, 1050 );
+  can->Divide(2,2);
+  can->Draw();
+  can->cd(1);
+  sg_gain->Draw("AP");
+  can->cd(2);
+  sg_offset->Draw("AP");
+  can->cd(3);
+  sg_noise->Draw("AP");
+  can->Update();
+  can->Print( Form("pic/%s_summary.ps",  basename.c_str()) );
+  can->Print( Form("pic/%s_summary.png", basename.c_str()) );
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   TFile outfile( Form("pic/%s.root",basename.c_str()), "RECREATE" );
@@ -512,8 +598,13 @@ Int_t main( Int_t argc, Char_t** argv ){
 	g_scurve[itab][ich][ig]->GetXaxis()->SetTitle("DAC [bit]");
 	g_scurve[itab][ich][ig]->GetYaxis()->SetTitle("Count Efficiency");
 	g_scurve[itab][ich][ig]->Write();
-	//std::cout << g_scurve[itab][ich][ig]->GetFunction( Form("func%d_%d_%d",itab,ich,ig) )->GetParameter(0) << " 0 "
-	//<< g_scurve[itab][ich][ig]->GetFunction( Form("func%d_%d_%d",itab,ich,ig) )->GetParError (0) << std::endl;
+
+	g_width[itab][ich][ig]->SetName( Form("width_%d_%d_%d", itab,ich,ig) );
+	g_nring[itab][ich][ig]->SetName( Form("nring_%d_%d_%d", itab,ich,ig) );
+	g_span [itab][ich][ig]->SetName( Form("span_%d_%d_%d",  itab,ich,ig) );
+	g_width[itab][ich][ig]->Write();
+	g_nring[itab][ich][ig]->Write();
+	g_span [itab][ich][ig]->Write();
       }
     } // END TABLE-LOOP
   } // END CHANNEL-LOOP
@@ -528,9 +619,42 @@ Int_t main( Int_t argc, Char_t** argv ){
       g_gain_tpchg[itab][ich]->Write();
     } // END TABLE-LOOP
   } // END CHANNEL-LOOP
+  
   outfile.Close();
 
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  std::ofstream* fout = new std::ofstream[n_chip];
+  system( "mkdir -p dat_calib;");
+  for( Int_t ichip=0; ichip<n_chip; ichip++ ) fout[ichip].open(Form("dat_calib/threshold_calib_board%d_chip%d.dat",board_id,ichip) );
+  for( Int_t ich=0; ich<n_chip*n_unit*n_bit; ich++ ){ // BEGIN CHANNEL-LOOP
+    Int_t chip_id  = ich/(n_unit*n_bit);
+    Int_t unit_id  = chip_id/n_bit;
+    Int_t lchannel = ich%(n_unit*n_bit);
+    Int_t gchannel = ich;
+    fout[chip_id] << std::setw(2) << std::right << board_id << "   "
+		  << std::setw(2) << std::right << chip_id  << "   "
+		  << std::setw(2) << std::right << unit_id  << "   "
+		  << std::setw(4) << std::right << lchannel << "   "
+		  << std::setw(4) << std::right << gchannel << "   ";
+    if( sg_gain->GetY()[ich]>0 ) fout[chip_id] << std::setw(2) << std::right << 1 << "   ";
+    else                         fout[chip_id] << std::setw(2) << std::right << 0 << "   "; // dead-channel
+
+      
+      
+    fout[chip_id] << std::setw( 8) << std::left  << Form(" %.4f",sg_gain  ->GetY ()[ich])
+		  << std::setw(10) << std::left  << Form(" %.4f",sg_gain  ->GetEY()[ich])
+		  << std::setw( 8) << std::left  << Form(" %.3f",sg_offset->GetY ()[ich])
+		  << std::setw(10) << std::left  << Form(" %.3f",sg_offset->GetEY()[ich])
+		  << std::setw( 8) << std::left  << Form(" %.3f",sg_noise ->GetY ()[ich])
+		  << std::setw(10) << std::left  << Form(" %.3f",sg_noise ->GetEY()[ich])
+		  << std::endl;
+  }
+  for( Int_t ichip=0; ichip<n_chip; ichip++ ) fout[ichip].close();
+
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+
+  for( Int_t ichip=0; ichip<n_chip; ichip++ ) delete can_tpchg[ichip]; // tmppppp
   std::cout << "finish" << std::endl;
   if( !gROOT->IsBatch() ) app.Run();
 

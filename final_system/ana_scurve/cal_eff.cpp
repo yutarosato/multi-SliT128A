@@ -4,8 +4,8 @@
 const Int_t  fl_message = 0;
 const Bool_t fl_batch   = true; // should be true for s-curve scan
 const Int_t  fl_show    = 3;
-const Bool_t fl_save_file = !true;
-const Bool_t fl_save_plot = !true;
+const Bool_t fl_save_file = true;
+const Bool_t fl_save_plot = true;
 
 // axis ragnge
 const Int_t nsig_max = 15;
@@ -13,16 +13,15 @@ const Int_t nring_max= 20;
 const Int_t width_max= 300;
 
 // setup
-const Int_t nsig_exp     =    8; // # of signals per event (probably 8 @200kHz)
-const Int_t span_exp     = 1000; // 200kHz -> 5us -> 1000 bit
+const Int_t nsig_exp     =     8; // # of signals per event (probably 8 @200kHz)
+const Int_t span_exp     =  1000; // 200kHz -> 5us -> 1000 bit
 const Int_t origin_time  =     0; // not useful
 const Int_t origin_range =  1000; // not useful
 
 // signal definition
 const Int_t    th_span       =   450;
 const Int_t    th_width      =     5;
-const Int_t    th_window     =    20;
-const Int_t    mask_prompt   =    50;
+const Int_t    mask_prompt   =    50; // mask prompt noise
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -48,7 +47,6 @@ Int_t detect_signal( TH2I* hist ){
     Bool_t fl_start         = true;
     Int_t  cnt_nsig         = 0;
     Int_t  cnt_nring        = 0;
-    Int_t  cnt_nnoise       = 0;
     for( Int_t ixbin=0; ixbin<hist->GetNbinsX(); ixbin++ ){
       if( hist->GetBinContent(ixbin+1,iybin+1) && !fl_bin ){ // edge(up)
 	bin_start = ixbin;
@@ -68,28 +66,20 @@ Int_t detect_signal( TH2I* hist ){
 	if( mask_prompt > ixbin ){ // remove prompt noise
 	  ;
 	}else{
-	  Int_t origin = bin_start;
-	  while( origin> span_exp ){
-	    origin -= span_exp;
-	  }
-	  if( origin > origin_time && origin < origin_time + origin_range ){ // signal window
-	    if( ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
-	      hist_width  ->Fill( width,     iybin );
-	      hist_evt_int->Fill( bin_start, iybin );
-	      if( !fl_start ){
-		hist_nring->Fill( cnt_nring, iybin );
-		hist_span ->Fill( span,      iybin );
-	      }
-	      bin_start_before = bin_start;
-	      if( fl_message > 1 ) std::cout << " ------> nsig" << std::endl;
-	      cnt_nsig++;
-	      cnt_nring = 0;
-	      fl_start = false;
-	    }else{ // ringing
-	      cnt_nring++;
+	  if( ( span > th_span || bin_start_before == 0) && width > th_width ){ // true signal
+	    hist_width  ->Fill( width,     iybin );
+	    hist_evt_int->Fill( bin_start, iybin );
+	    if( !fl_start ){
+	      hist_nring->Fill( cnt_nring, iybin );
+	      hist_span ->Fill( span,      iybin );
 	    }
-	  }else{ // noise
-	    cnt_nnoise++;
+	    bin_start_before = bin_start;
+	    if( fl_message > 1 ) std::cout << " ------> nsig" << std::endl;
+	    cnt_nsig++;
+	    cnt_nring = 0;
+	    fl_start = false;
+	  }else{ // ringing
+	    cnt_nring++;
 	  }
 	}
       }
@@ -225,7 +215,6 @@ Int_t main( Int_t argc, Char_t** argv ){
     tex2->DrawTextNDC( 0.20, 0.60, Form("DAC = %d",          dac      ) );
     tex2->DrawTextNDC( 0.20, 0.55, Form("span = %d",         th_span  ) );
     tex2->DrawTextNDC( 0.20, 0.50, Form("width = %d",        th_width ) );
-    tex2->DrawTextNDC( 0.20, 0.45, Form("window = %d",       th_window) );
     can2->Update();
     if( fl_save_plot ) can2->Print( Form("pic/%s_can2.ps",basename.c_str()) );
     can2->WaitPrimitive();
