@@ -1,5 +1,6 @@
 #! /bin/tcsh -f
 
+
 if( $#argv < 1 )then
     echo " Usage : $0 [NO]"
     echo "Example: $0   2"
@@ -7,13 +8,18 @@ if( $#argv < 1 )then
 endif
 
 set NO       = $1
+set HEADNAME = `printf output%02d ${NO}`
 set BOARD    = 5
 set VREF     = 230.0 # VREF value [mV]
-set TPCHG    = 2.69 # Test pulse charge [fC] # 4.61, 4.22, 3.84, 3.46, 3.07, 2.69, 2.30, 1.92, 1.54, 1.15, 0.77, 0.38
+set CTRL_DAC = 0 # dummy value
+set TPCHG    = 3.84 # Test pulse charge [fC] # 4.61, 4.22, 3.84, 3.46, 3.07, 2.69, 2.30, 1.92, 1.54, 1.15, 0.77, 0.38
 # 1 MIP = 3.84 fC = 38.4 mV * 100fF
 # 1 MIP = 300 mV for 8 divider (actually 7 input) with ~1% error
+set THRESHOLD_MIP = 0.2
+
+set DATDIR = '../ana_scurve/dat_calib/'
+echo ${HEADNAME}
 ####################################################################################
-set HEADNAME = `printf output%02d ${NO}`
 ls root_data/${HEADNAME}*.root >& /dev/null
 if( $? != 1 ) then
     echo "[Skip] Aleady exist : ${NO}"
@@ -23,30 +29,16 @@ endif
 ####################################################################################
 set CHIP          = 0 # ${CHIP}%${CHIP_CYCLE} will be controlled
 set CHIP_CYCLE    = 1
-set CTRL_DAC      = -31
 set TIME          = 3
-set STEP          = 3 # DAC STEP
 
 cd slow_control;   make || exit; cd ../;
 cd exp_decoder;    make || exit; cd ../;
 cd ana_scurve;     make || exit; cd ../;
 cd readslit-0.0.0; make || exit; cd ../;
 
-#./run_offset_all_off.sh # all off
-
-set CTRL_DAC = -31
-while ( ${CTRL_DAC} <= 31 )
 set CHANNEL       = 0 # ${CHANNEL}%${CHANNEL_CYCLE} will be controlled
 set CHANNEL_CYCLE = 2
 while ( ${CHANNEL}  < ${CHANNEL_CYCLE} )
-
-set TMP_DAC = `echo "obase=2; ibase=10; ${CTRL_DAC}" | bc | sed 's|-||'`
-if( ${CTRL_DAC} < 1 ) then
-   set CTRL_DAC_BIT = `printf "L%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
-else
-   set CTRL_DAC_BIT = `printf "H%05d\n" ${TMP_DAC} | sed 's|0|L|g' | sed 's|1|H|g'`
-endif
-echo "DAC : ${CTRL_DAC} => ${CTRL_DAC_BIT}, Channel : ${CHANNEL}%${CHANNEL_CYCLE}"
 
 cd slow_control;
 set IP = 16
@@ -58,17 +50,18 @@ foreach ICHIP( `seq 0 3` )
     set TMP_BOARD = `echo "obase=2; ibase=10; ${BOARD}" | bc`
     set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
     echo -n "Chip#${ICHIP}(${CTRL_CHIP}):"
+    set DATFILE = "${DATDIR}/threshold_calib_board${BOARD}_chip${ICHIP}.dat"
     # <Slow Control>
     if( `expr ${ICHIP} % ${CHIP_CYCLE}` != ${CHIP} ) then
 	echo -n "OFF, "
-	./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} ${CHANNEL_CYCLE} LLLLL${CTRL_DAC_BIT}LLLLL LLLLL${CTRL_DAC_BIT}LLLLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+	./make_control_calib ${BOARD} ${CTRL_CHIP} ${DATFILE} ${THRESHOLD_MIP} ${CHANNEL} ${CHANNEL_CYCLE} LLL LLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
     else
 	echo -n "ON, "
-	./make_control ${BOARD} ${CTRL_CHIP} ${CHANNEL} ${CHANNEL_CYCLE} LLLLL${CTRL_DAC_BIT}LLHLH LLLLL${CTRL_DAC_BIT}LLLLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+	./make_control_calib ${BOARD} ${CTRL_CHIP} ${DATFILE} ${THRESHOLD_MIP} ${CHANNEL} ${CHANNEL_CYCLE} HLH LLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
     endif    
 
     while (1)
-	./slit128sc_chip  files/control_${BOARD}_${CTRL_CHIP}.dat 192.168.${BOARD}.${IP};
+	./slit128sc_chip  files_calib/control_${BOARD}_${CTRL_CHIP}.dat 192.168.${BOARD}.${IP};
 	if( $? == 0 ) then
 	    break
 	endif
@@ -79,7 +72,7 @@ cd  ../
 ./run_fpga.sh ${BOARD} 0
 
 # <Take Data>
-echo -n "   Taking data during ${TIME} sec => "
+echo -n "   Taking data during ${TIME} sec ....."
 set OUTNAME = "${HEADNAME}_board${BOARD}_${VREF}_${TPCHG}_${CTRL_DAC}_${CHANNEL}_${CHANNEL_CYCLE}"
 mkdir -p binary_data
 cd readslit-0.0.0/;
@@ -87,7 +80,7 @@ cd readslit-0.0.0/;
 cd ../
 
 # <Decode>
-echo "Decoding Data"
+echo "Decoding Data ....."
 mkdir -p root_data
 mkdir -p root_data/tmp
 cd exp_decoder;
@@ -101,6 +94,16 @@ end # END CHANNEL-LOOP
 set OUTNAME = "${HEADNAME}_board${BOARD}_${VREF}_${TPCHG}_${CTRL_DAC}"
 hadd -f root_data/${OUTNAME}.root root_data/${OUTNAME}_*.root && mv root_data/${OUTNAME}_*.root root_data/tmp/. && rm -rf root_data/tmp
 
-@ CTRL_DAC += ${STEP}
-end # END DAC-LOOP
+# <Analysis>
+cd ana_scurve;
+mkdir -p "dat_scurve"
+mkdir -p "pic"
+./cal_eff ../root_data/${OUTNAME}.root ${CTRL_DAC} ${BOARD}
 
+set DAC    = `echo "${OUTNAME}" | awk -F "_" '{print $NF}'`
+set HEADER = `basename ${OUTNAME} _${DAC}`
+echo ${HEADER}
+cat dat_scurve/${HEADER}/* > dat_scurve/${HEADER}.dat;
+rm -rf dat_scurve/${HEADER};
+
+cd ../
