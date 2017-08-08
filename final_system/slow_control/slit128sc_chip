@@ -226,7 +226,6 @@ def main():
 
     for ch in sorted(values.keys()):
         send_value_packet(rbcp, ip_address, base_addr, ch, values[ch])
-        #time.sleep(0.03) # tmpppp
         #if( ch>20 ): # tmppp
         #    break; # tmppp
 

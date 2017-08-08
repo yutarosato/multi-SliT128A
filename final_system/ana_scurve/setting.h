@@ -40,7 +40,7 @@ const Int_t n_dac = 64;
 const Int_t n_chip = 4;
 const Int_t n_unit = 4;
 const Int_t n_bit  = 32;
-const Int_t n_time =  8192; // pow(2,13)
+const Int_t n_time = 8192; // pow(2,13)
 Int_t t_data[n_chip][n_unit][n_bit][n_time];
 
 std::vector<Int_t>* t_board_v;

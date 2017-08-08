@@ -109,13 +109,12 @@ Int_t main( Int_t argc, Char_t** argv ){
 	      << "[e.g]" << std::endl
 	      << app.Argv(0) << " test.root 30 2" << std::endl
 	      << std::endl, abort();
-  
+
   Char_t* infilename   = app.Argv(1);
   Int_t   dac          = atoi( app.Argv(2) );
   TString dac_name     = app.Argv(2);
   dac_name.ReplaceAll("-","n");
   Int_t   board_id     = atoi( app.Argv(3) );
-  
   std::string basename = gSystem->BaseName( infilename );
   basename.erase( basename.rfind(".root") );
   std::string headername = gSystem->BaseName( infilename );

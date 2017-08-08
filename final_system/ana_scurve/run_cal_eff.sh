@@ -1,14 +1,16 @@
 #! /bin/tcsh -f
 
-if( $#argv < 1 )then
-    echo " Usage : $0 [board]"
-    echo "Example: $0    5"
+if( $#argv < 2 )then
+    echo " Usage : $0 [board] [no]"
+    echo "Example: $0    5     2 "
     echo "         board   : 2-5 & 3-6 (MuSEUM BT@201706)"
   exit 1
 endif
 
-set BOARD   = $1
-set DIR     = '../root_data/'
+set BOARD     = $1
+set NO        = $2
+set INROOTDIR = '../root_data/'
+
 ################################################################################################
 
 make cal_eff  || exit
@@ -16,15 +18,17 @@ make cal_eff  || exit
 mkdir -p "dat_scurve"
 mkdir -p "pic"
 
+set HEADNAME = `printf output%02d ${NO}`
 set DAC_LIST  = `seq -31 31`
+
 foreach DAC( ${DAC_LIST} )
     echo "DAC = ${DAC}"
-    ls ${DIR}/output06*_board${BOARD}_*_${DAC}.root >& /dev/null
+    ls ${INROOTDIR}/${HEADNAME}*_board${BOARD}_*_${DAC}.root >& /dev/null
     if( $? == 1 ) then
 	echo "CONTINUE"
 	continue;
     endif
-    set FILE_LIST = `ls ${DIR}/output06*_board${BOARD}_*_${DAC}.root`
+    set FILE_LIST = `ls ${INROOTDIR}/${HEADNAME}*_board${BOARD}_*_${DAC}.root`
     foreach FILE( ${FILE_LIST} )
 	echo "FILE = ${FILE}"
 	set HEADER = `basename ${FILE} .root`
