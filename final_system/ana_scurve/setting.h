@@ -35,12 +35,14 @@
 
 Int_t t_event;
 
+const Double_t onemip = 3.84; // [fC]
 const Int_t n_dac = 64;
 
 const Int_t n_chip = 4;
 const Int_t n_unit = 4;
 const Int_t n_bit  = 32;
 const Int_t n_time = 8192; // pow(2,13)
+const Double_t bit2time = 5e-3; // bit to time (5 ns)
 Int_t t_data[n_chip][n_unit][n_bit][n_time];
 
 std::vector<Int_t>* t_board_v;

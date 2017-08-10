@@ -16,7 +16,7 @@ set CYCLE_CHIP    = 4
 set CHANNEL       = $3
 set CYCLE_CHANNEL = 128
 set CTRL_DAC      = $4
-set TIME          = 5
+set TIME          = 1
 
 cd slow_control;   make || exit; cd ../;
 cd exp_decoder;    make || exit; cd ../;

@@ -12,7 +12,9 @@ set HEADNAME = `printf output%02d ${NO}`
 set BOARD    = 5
 set VREF     = 230.0 # VREF value [mV]
 set CTRL_DAC = 0 # dummy value
-set TPCHG    = 3.84 # Test pulse charge [fC] # 4.61, 4.22, 3.84, 3.46, 3.07, 2.69, 2.30, 1.92, 1.54, 1.15, 0.77, 0.38
+set TPCHG    = 6.14 # Test pulse charge [fC]
+#   3.0   2.5   2.4   2.2   2.0   1.8   1.6   1.5   1.4   1.3   1.2   1.1   1.0   0.9   0.8   0.7   0.6   0.5   0.4   0.3   0.2   0.1
+# 11.52, 9.60, 9.22, 8.45, 7.68, 6.91, 6.14, 5.76, 5.38, 4.99, 4.61, 4.22, 3.84, 3.46, 3.07, 2.69, 2.30, 1.92, 1.54, 1.15, 0.77, 0.38
 # 1 MIP = 3.84 fC = 38.4 mV * 100fF
 # 1 MIP = 300 mV for 8 divider (actually 7 input) with ~1% error
 set THRESHOLD_MIP = 0.2
@@ -23,7 +25,7 @@ echo ${HEADNAME}
 ls root_data/${HEADNAME}*.root >& /dev/null
 if( $? != 1 ) then
     echo "[Skip] Aleady exist : ${NO}"
-    exit
+#    exit
 endif
 
 ####################################################################################

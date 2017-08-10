@@ -4,14 +4,17 @@ const Bool_t fl_batch = !true;
 const Bool_t fl_plot  = !true;
 // true (one plot per parameter point) for reproducibility check or one-channel scan
 // false(one plot per channel) for all-channel scan
+
+Double_t threshold_mip = 0.3; // [MIP]
+
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Int_t main( Int_t argc, Char_t** argv ){
   gROOT->SetBatch(fl_batch);
   TApplication app( "app", &argc, argv );
   TStyle* sty = Style();
-  sty->SetPadLeftMargin(0.16);
   sty->SetLabelSize(0.04,"y");
-  sty->SetTitleOffset(1.2,"y");
+  sty->SetTitleOffset(0.9,"y");
+  sty->SetPadLeftMargin(0.11);
 
   if( !(app.Argc()==3) )
     std::cerr << "Wrong input" << std::endl
@@ -69,6 +72,51 @@ Int_t main( Int_t argc, Char_t** argv ){
     chain_tab_tpchg->GetEntry(itab);
     tpchg_tab_single[itab] = chain_tab_tpchg->GetLeaf( "tpchg" )->GetValue();
   }
+
+  //+++++++++++++++
+  Int_t* cnt_vref  = new Int_t[ntab_vref ];
+  Int_t* cnt_tpchg = new Int_t[ntab_tpchg];
+  for( Int_t itab_vref =0; itab_vref <ntab_vref;  itab_vref++  ) cnt_vref [itab_vref ] = 0;
+  for( Int_t itab_tpchg=0; itab_tpchg<ntab_tpchg; itab_tpchg++ ) cnt_tpchg[itab_tpchg] = 0;
+
+  for( Int_t itab=0; itab<ntab; itab++ ){
+    vref_tab [itab];
+    tpchg_tab[itab];
+    for( Int_t itab_vref=0; itab_vref<ntab_vref; itab_vref++ ){
+      if( fabs(vref_tab_single[itab_vref] - vref_tab[itab])  < 0.001 ){
+	cnt_vref[itab_vref]++;
+	break;
+      }
+    }
+    for( Int_t itab_tpchg=0; itab_tpchg<ntab_tpchg; itab_tpchg++ ){
+      if( fabs(tpchg_tab_single[itab_tpchg] - tpchg_tab[itab])  < 0.001 ){
+	cnt_tpchg[itab_tpchg]++;
+	break;
+      }
+    }
+  }
+
+  // Determine reference VREF
+  Int_t sel_tab_vref  = 0;
+  Int_t tmp_max_vref = -999;
+  for( Int_t itab_vref=0; itab_vref<ntab_vref; itab_vref++ ){
+    if( cnt_vref[itab_vref] > tmp_max_vref ){
+      tmp_max_vref = cnt_vref[itab_vref];
+      sel_tab_vref = itab_vref;
+    }
+  }
+
+  // Determine reference TPCHG
+  Int_t sel_tab_tpchg = 0;
+  Int_t tmp_max_tpchg = -999;
+  for( Int_t itab_tpchg=0; itab_tpchg<ntab_tpchg; itab_tpchg++ ){
+    if( cnt_tpchg[itab_tpchg] > tmp_max_tpchg ){
+      tmp_max_tpchg = cnt_tpchg[itab_tpchg];
+      sel_tab_tpchg = itab_tpchg;
+    }
+  }
+  std::cout << "reference vref  = " <<  vref_tab_single[sel_tab_vref ] << " [mV]" << std::endl
+	    << "reference tpchg = " << tpchg_tab_single[sel_tab_tpchg] << " [fC]" << std::endl;
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // <Make Objects>
@@ -177,7 +225,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	  tmp_func->SetParameter(1, 1.9);
 	  tmp_func->SetParNames( "mean", "sigma");
 	  tmp_func->SetParLimits( 0, -40, 40 );
-	  tmp_func->SetParLimits( 1, 0.0, 20 );
+	  tmp_func->SetParLimits( 1, 2.0, 20 );
 	  func[itab][gchannel].push_back( tmp_func );
 
 	  TGraphErrors* tmp_g_width = new TGraphErrors();
@@ -216,9 +264,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // <Make Canvas>
-  TLegend* leg  = new TLegend( 0.20,0.80,0.85,0.98 );
-  const Int_t npad = 12;
-
+  TLegend*  leg        = new TLegend( 0.20,0.80,0.85,0.98 );
   TCanvas** can_scurve = new TCanvas*[n_chip];
   for( Int_t ichip=0; ichip<n_chip; ichip++ ){
     can_scurve[ichip] = new TCanvas( Form("can_scurve_%d",ichip),Form("can_scurve_%d",ichip), 1500, 1050 );
@@ -295,7 +341,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	  // +++++++++++ trimming data(end) +++++++++++
 	  // +++++++++++ iterative fit(begin) +++++++++++
 	  func[itab][ich][ig]->SetParameter( 0, init_mu );
-	  func[itab][ich][ig]->SetParameter( 1,     2.5 );
+	  func[itab][ich][ig]->SetParameter( 1,     5.0 );
 	  for( Int_t ipar1=0; ipar1<func[itab][ich][ig]->GetNpar(); ipar1++ ){
 	    func[itab][ich][ig]->ReleaseParameter(ipar1);
 	    for( Int_t ipar2=0; ipar2<func[itab][ich][ig]->GetNpar(); ipar2++ ){
@@ -303,13 +349,13 @@ Int_t main( Int_t argc, Char_t** argv ){
 	      func[itab][ich][ig]->FixParameter(ipar2, func[itab][ich][ig]->GetParameter(ipar2) );
 	    }
 	    func[itab][ich][ig]->SetParLimits( 0, -40, 40 );
-	    func[itab][ich][ig]->SetParLimits( 1,   0, 20 );
+	    func[itab][ich][ig]->SetParLimits( 1, 2.0, 20 );
 	    g_scurve[itab][ich][ig]->Fit( func[itab][ich][ig],"SQ0" );
 	  }
 	  for( Int_t ipar=0; ipar<func[itab][ich][ig]->GetNpar(); ipar++ ) func[itab][ich][ig]->ReleaseParameter(ipar);
 	  // +++++++++++ iterative fit(end) +++++++++++
 	  func[itab][ich][ig]->SetParLimits( 0, -40, 40 );
-	  func[itab][ich][ig]->SetParLimits( 1,   0, 20 );
+	  func[itab][ich][ig]->SetParLimits( 1, 2.0, 20 );
 	  TFitResultPtr fit_result = g_scurve[itab][ich][ig]->Fit( func[itab][ich][ig], "SQ0" );
 	  // +++++++++++ trimming data(begin) +++++++++++
 	  for( Int_t ip1=g_scurve[itab][ich][ig]->GetN()-1; ip1>=0; ip1-- ){
@@ -328,7 +374,7 @@ Int_t main( Int_t argc, Char_t** argv ){
 	  }
 	  func[itab][ich][ig]->SetLineColor(itab+2);
 	  if( g_scurve[itab][ich][ig]->GetN() ){
-	    fit_result = g_scurve[itab][ich][ig]->Fit( func[itab][ich][ig], "SQ0", "same" ); // final fit
+	    fit_result = g_scurve[itab][ich][ig]->Fit( func[itab][ich][ig], "SQ", "same" ); // final fit
 	  // +++++++++++ trimming data(end) +++++++++++
 	  fl_fit[itab][ich].push_back( fit_result->Status() ); // 0(success), other(false), 4(call limit)
 	  }else{
@@ -385,9 +431,6 @@ Int_t main( Int_t argc, Char_t** argv ){
   for( Int_t ichip=0; ichip<n_chip; ichip++ ){
     can_scurve[ichip]->cd(n_unit*n_bit);
     leg->Draw();
-    can_scurve[ichip]->Update();
-    can_scurve[ichip]->Print( Form("pic/%s_scurve_%d.ps" ,basename.c_str(),ichip) );
-    can_scurve[ichip]->Print( Form("pic/%s_scurve_%d.png",basename.c_str(),ichip) );
   }
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -396,7 +439,7 @@ Int_t main( Int_t argc, Char_t** argv ){
     for( Int_t ich=0; ich<n_chip*n_unit*n_bit; ich++ ){ // BEGIN CHANNEL-LOOP
       for( Int_t ig=0; ig<cnt_g[itab][ich]; ig++ ){
 	if( fl_fit[itab][ich][ig] ) continue;
-	if( func[itab][ich][ig]->GetParameter(0) < -31 || func[itab][ich][ig]->GetParameter(0) > 31 ){
+	if( func[itab][ich][ig]->GetParameter(0) < -30 || func[itab][ich][ig]->GetParameter(0) > 30 ){
 	  //std::cout << Form("[WARNING] under/over-flow in chip#%d, channel%d, vref=%.2f, tpchg=%.2f", gchannel2chip(ich),gchannel2lchannel(ich),vref_tab[itab],tpchg_tab[itab]) << std::endl;       
 	  continue;
 	}
@@ -502,64 +545,76 @@ Int_t main( Int_t argc, Char_t** argv ){
     if( ich==n_chip*n_unit*n_bit-1 ) leg_tpchg->Draw();
   } // END CHANNEL-LOOP
 
-  for( Int_t ichip=0; ichip<n_chip; ichip++ ){
-    can_vref [ichip]->Update();
-    can_tpchg[ichip]->Update();
-    can_vref [ichip]->Print( Form("pic/%s_vref_%d.ps", basename.c_str(),ichip) );
-    can_vref [ichip]->Print( Form("pic/%s_vref_%d.png",basename.c_str(),ichip) );
-    can_tpchg[ichip]->Print( Form("pic/%s_tpchg_%d.ps",basename.c_str(),ichip) );
-  }
-
   
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // MAKE SUMMARY GRAPH & TABLE
-  TGraphErrors* sg_gain   = new TGraphErrors(); sg_gain  ->SetTitle( ";Channel;Gain [bit/fC]" );
-  TGraphErrors* sg_offset = new TGraphErrors(); sg_offset->SetTitle( ";Channel;Offset [bit]"  );
-  TGraphErrors* sg_noise  = new TGraphErrors(); sg_noise ->SetTitle( ";Channel;Noise [fC]"    );
-  std::multimap<Double_t,Int_t> noise_map;
+  TGraphErrors* sg_gain      = new TGraphErrors(); sg_gain     ->SetTitle( ";Channel;Gain [bit/fC]" );
+  TGraphErrors* sg_offset    = new TGraphErrors(); sg_offset   ->SetTitle( ";Channel;Offset [bit]"  );
+  TGraphErrors* sg_offset2   = new TGraphErrors(); sg_offset2  ->SetTitle( ";Channel;Offset [bit]"  ); // dead-channel is omitted
+  TGraphErrors* sg_noise     = new TGraphErrors(); sg_noise    ->SetTitle( ";Channel;Noise [fC]"    );
+  TGraphErrors* sg_threshold = new TGraphErrors(); sg_threshold->SetTitle( Form("%.2f MIP threshold;Channel;Offset [bit]",threshold_mip)  );
 
-  Int_t sel_tab = 0;
+  std::multimap<Double_t,Int_t> noise_map;
+  Int_t fl_alive[n_chip*n_unit*n_bit] = {0};
+
   for( Int_t ich=0; ich<n_chip*n_unit*n_bit; ich++ ){ // BEGIN CHANNEL-LOOP
-    if( g_gain_vref[sel_tab][ich]->GetN() < 2 ){
+    if( g_gain_vref[sel_tab_vref][ich]->GetN() < 2 ){
       noise_map.insert( std::make_pair(999, ich) );
-      sg_gain  ->SetPoint     ( sg_gain  ->GetN(),   ich,    -1 );
-      sg_gain  ->SetPointError( sg_gain  ->GetN()-1,   0,     0 );
-      sg_offset->SetPoint     ( sg_offset->GetN(),   ich,  -999 );
-      sg_offset->SetPointError( sg_offset->GetN()-1,   0,     0 );
-      sg_noise ->SetPoint     ( sg_noise ->GetN(),   ich,    -1 );
-      sg_noise ->SetPointError( sg_noise ->GetN()-1,   0,     0 );
+      sg_gain     ->SetPoint     ( sg_gain     ->GetN(),   ich,    -1 );
+      sg_gain     ->SetPointError( sg_gain     ->GetN()-1,   0,     0 );
+      sg_offset   ->SetPoint     ( sg_offset   ->GetN(),   ich,  -999 );
+      sg_offset   ->SetPointError( sg_offset   ->GetN()-1,   0,     0 );
+      sg_noise    ->SetPoint     ( sg_noise    ->GetN(),   ich,    -1 );
+      sg_noise    ->SetPointError( sg_noise    ->GetN()-1,   0,     0 );
+      sg_threshold->SetPoint     ( sg_threshold->GetN(),   ich,    -1 );
+      sg_threshold->SetPointError( sg_threshold->GetN()-1,   0,     0 );
       continue;
     }
-    Double_t gain    = g_gain_vref[sel_tab][ich]->GetFunction("pol1")->GetParameter(1); // [bit/fC]
-    Double_t gainE   = g_gain_vref[sel_tab][ich]->GetFunction("pol1")->GetParError (1);
-    Double_t offset  = g_gain_vref[sel_tab][ich]->GetFunction("pol1")->GetParameter(0); // [bit/fC]
-    Double_t offsetE = g_gain_vref[sel_tab][ich]->GetFunction("pol1")->GetParError (0);
-    sg_gain  ->SetPoint     ( sg_gain  ->GetN(),   ich, gain    );
-    sg_gain  ->SetPointError( sg_gain  ->GetN()-1,   0, gainE   );
-    sg_offset->SetPoint     ( sg_offset->GetN(),   ich, offset  );
-    sg_offset->SetPointError( sg_offset->GetN()-1,   0, offsetE );
+
+    Double_t gain    = g_gain_vref[sel_tab_vref][ich]->GetFunction("pol1")->GetParameter(1); // [bit/fC]
+    Double_t gainE   = g_gain_vref[sel_tab_vref][ich]->GetFunction("pol1")->GetParError (1);
+    Double_t offset  = g_gain_vref[sel_tab_vref][ich]->GetFunction("pol1")->GetParameter(0); // [bit/fC]
+    Double_t offsetE = g_gain_vref[sel_tab_vref][ich]->GetFunction("pol1")->GetParError (0);
     Double_t noise  = -999; 
     Double_t noiseE = -999;
-    for( Int_t itab=0; itab<ntab; itab++ ){ // temporal treatment
+    for( Int_t itab=0; itab<ntab; itab++ ){ // temporal treatment // tmppppp
+      if( fabs(vref_tab_single[sel_tab_vref] - vref_tab[itab]) > 0.001 ) continue;
       if( g_scurve[itab][ich][0]->GetFunction(Form("func%d_%d_%d",itab,ich,0))->GetParameter(0)>-30 ){
 	noise  = g_scurve[itab][ich][0]->GetFunction(Form("func%d_%d_%d",itab,ich,0))->GetParameter(1); // [bit]
 	noiseE = g_scurve[itab][ich][0]->GetFunction(Form("func%d_%d_%d",itab,ich,0))->GetParError (1);
 	break;
       }
     }
-    if( gain==0 || noise < 0 ) std::cout << ich << ", gain = " << gain << ", noise = " << noise << std::endl;
 
     if( noise < 0 || gain==0 ){
-      sg_noise ->SetPoint     ( sg_noise->GetN(),   ich, -1 ); // [fC]
-      sg_noise ->SetPointError( sg_noise->GetN()-1,   0,  0 );
+      std::cout << ich << ", gain = " << gain << ", noise = " << noise << std::endl;
+      sg_gain     ->SetPoint     ( sg_gain     ->GetN(),   ich,      -1 );
+      sg_gain     ->SetPointError( sg_gain     ->GetN()-1,   0,       0 );
+      sg_offset   ->SetPoint     ( sg_offset   ->GetN(),   ich,    -999 );
+      sg_offset   ->SetPointError( sg_offset   ->GetN()-1,   0,       0 );
+      sg_offset2  ->SetPoint     ( sg_offset2  ->GetN(),   ich,    -999 );
+      sg_offset2  ->SetPointError( sg_offset2  ->GetN()-1,   0,       0 );
+      sg_noise    ->SetPoint     ( sg_noise    ->GetN(),   ich,      -1 ); // [fC]
+      sg_noise    ->SetPointError( sg_noise    ->GetN()-1,   0,       0 );
+      sg_threshold->SetPoint     ( sg_threshold->GetN(),   ich,      -1 );
+      sg_threshold->SetPointError( sg_threshold->GetN()-1,   0,       0 );
       noise_map.insert( std::make_pair(999, ich) );
     }else{
-      sg_noise ->SetPoint     ( sg_noise->GetN(),   ich, noise/gain ); // [fC]
-      sg_noise ->SetPointError( sg_noise->GetN()-1,   0, noise/gain*sqrt( pow(noiseE/noise,2) + pow(gainE/gain,2)) );
+      sg_gain     ->SetPoint     ( sg_gain     ->GetN(),   ich, gain    );
+      sg_gain     ->SetPointError( sg_gain     ->GetN()-1,   0, gainE   );
+      sg_offset   ->SetPoint     ( sg_offset   ->GetN(),   ich, offset  );
+      sg_offset   ->SetPointError( sg_offset   ->GetN()-1,   0, offsetE );
+      sg_offset2  ->SetPoint     ( sg_offset2  ->GetN(),   ich, offset  );
+      sg_offset2  ->SetPointError( sg_offset2  ->GetN()-1,   0, offsetE );
+      sg_noise    ->SetPoint     ( sg_noise    ->GetN(),   ich, noise/gain ); // [fC]
+      sg_noise    ->SetPointError( sg_noise    ->GetN()-1,   0, noise/gain*sqrt( pow(noiseE/noise,2) + pow(gainE/gain,2)) );
+      sg_threshold->SetPoint     ( sg_threshold->GetN(),   ich, gain*onemip*threshold_mip+offset );
+      sg_threshold->SetPointError( sg_threshold->GetN()-1,   0, sqrt(pow(gainE*onemip*threshold_mip,2) + pow(offsetE,2)) ); // correlation is ignored. to be fix.
       noise_map.insert( std::make_pair(noise/gain, ich) );
+      fl_alive[ich] = 1;
     }
   } // END CHANNEL LOOP
-
+  
   std::multimap<Double_t,Int_t>::reverse_iterator it_noise = noise_map.rbegin();
   Int_t cnt_dead  = 0;
   Int_t cnt_noisy = 0;
@@ -568,27 +623,85 @@ Int_t main( Int_t argc, Char_t** argv ){
     if     ( (*it_noise).first > 900 ) cnt_dead++;
     else if( (*it_noise).first > 0.2 ) cnt_noisy++;
     else                               break;
-    std::cout << "global channel = " << (*it_noise).second << ", noise = " << (*it_noise).first << std::endl;
+    std::cout << "Chip#" << gchannel2chip((*it_noise).second) << ", Local Channel#" << gchannel2lchannel((*it_noise).second) << ",Global Channel#" << (*it_noise).second << ", noise = " << (*it_noise).first << std::endl;
     it_noise++;
   }
   std::cout << "N( dead-ch) = " << cnt_dead  << std::endl
 	    << "N(noisy-ch) = " << cnt_noisy << std::endl;
 
+
+  //++++++++++++++++++++++++++
+  // VREF DEPENDENCE
+  TGraphErrors* sg_vrefdep_bit  = new TGraphErrors(); sg_vrefdep_bit ->SetTitle( ";Channel;VREF dep. [bit/mV]" );
+  TGraphErrors* sg_vrefdep_chg  = new TGraphErrors(); sg_vrefdep_chg ->SetTitle( ";Channel;VREF dep. [fC/mV]"  );
+  TGraphErrors* sg_vrefdep_bit2 = new TGraphErrors(); sg_vrefdep_bit2->SetTitle( ";Channel;VREF dep. [bit/mV]" ); // dead-channel is omitted
+  TGraphErrors* sg_vrefdep_chg2 = new TGraphErrors(); sg_vrefdep_chg2->SetTitle( ";Channel;VREF dep. [fC/mV]"  ); // dead-channel is omitted
+  for( Int_t ich=0; ich<n_chip*n_unit*n_bit; ich++ ){ // BEGIN CHANNEL-LOOP
+    if( g_gain_tpchg[sel_tab_tpchg][ich]->GetN() < 2 ){
+      sg_vrefdep_bit->SetPoint     ( sg_vrefdep_bit->GetN(),   ich, -1 );
+      sg_vrefdep_bit->SetPointError( sg_vrefdep_bit->GetN()-1,   0,  0 );
+      sg_vrefdep_chg->SetPoint     ( sg_vrefdep_chg->GetN(),   ich, -1 );
+      sg_vrefdep_chg->SetPointError( sg_vrefdep_chg->GetN()-1,   0,  0 );
+      continue;
+    }
+    Double_t vrefdep    = g_gain_tpchg[sel_tab_tpchg][ich]->GetFunction("pol1")->GetParameter(1); // [bit/mV]
+    Double_t vrefdepE   = g_gain_tpchg[sel_tab_tpchg][ich]->GetFunction("pol1")->GetParError (1);
+    sg_vrefdep_bit ->SetPoint     ( sg_vrefdep_bit ->GetN(),   ich,  vrefdep  );
+    sg_vrefdep_bit ->SetPointError( sg_vrefdep_bit ->GetN()-1,   0,  vrefdepE );
+    sg_vrefdep_chg ->SetPoint     ( sg_vrefdep_chg ->GetN(),   ich,  vrefdep/(sg_gain->GetY()[ich]) );
+    sg_vrefdep_chg ->SetPointError( sg_vrefdep_chg ->GetN()-1,   0,  vrefdep/(sg_gain->GetY()[ich])*sqrt(pow(vrefdepE/vrefdep,2)+pow(sg_gain->GetEY()[ich]/sg_gain->GetY()[ich],2)) );
+    sg_vrefdep_bit2->SetPoint     ( sg_vrefdep_bit2->GetN(),   ich,  vrefdep  );
+    sg_vrefdep_bit2->SetPointError( sg_vrefdep_bit2->GetN()-1,   0,  vrefdepE );
+    sg_vrefdep_chg2->SetPoint     ( sg_vrefdep_chg2->GetN(),   ich,  vrefdep/(sg_gain->GetY()[ich]) );
+    sg_vrefdep_chg2->SetPointError( sg_vrefdep_chg2->GetN()-1,   0,  vrefdep/(sg_gain->GetY()[ich])*sqrt(pow(vrefdepE/vrefdep,2)+pow(sg_gain->GetEY()[ich]/sg_gain->GetY()[ich],2)) );
+  } // END CHANNEL LOOP
+  //++++++++++++++++++++++++++
+  // PRECISE CALIBRATION
+  const Double_t vref_nstep = 40;
+  Double_t vref_max = vref_tab_single[sel_tab_vref];
+  Double_t vref_min = vref_tab_single[sel_tab_vref]-200;
+  Int_t cnt_vref_max   = 0;
+  Double_t calib_vref = 0;
+  for( Int_t istep=0; istep<=vref_nstep; istep++ ){
+    Int_t tmp_cnt = 0;
+    Double_t tmp_vref = vref_min + (vref_max-vref_min)/vref_nstep*istep;
+    for( Int_t ich=0; ich<n_chip*n_unit*n_bit; ich++ ){
+      Double_t dac = sg_gain->GetY()[ich] * threshold_mip * onemip + sg_offset->GetY()[ich] + sg_vrefdep_bit->GetY()[ich]*(tmp_vref - vref_tab_single[sel_tab_vref]);
+      if( dac >= -31 && dac <= 31 ) tmp_cnt++;
+    }
+    if( tmp_cnt > cnt_vref_max ){
+      cnt_vref_max = tmp_cnt;
+      calib_vref   = tmp_vref;
+    }
+  }
+  std::cout << "calib_vref = " << calib_vref << " [mV] , cnt_vref_max = " << cnt_vref_max << std::endl;
+
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  TCanvas* can = new TCanvas( "can_summary", "can_summary", 1500, 1050 );
-  can->Divide(2,2);
+  // MAKE CANVAS FOR SUMMARY
+  TCanvas* can = new TCanvas( "can_summary", "can_summary", 1800, 1050 );
+  can->Divide(3,2);
   can->Draw();
   can->cd(1);
+  sg_gain->SetMinimum(0.0);
   sg_gain->Draw("AP");
   can->cd(2);
-  sg_offset->Draw("AP");
-  can->cd(3);
+  sg_noise->SetMinimum(0.0);
   sg_noise->Draw("AP");
+  can->cd(3);
+  sg_offset2->Draw("AP");
+  can->cd(4);
+  sg_threshold->Draw("AP");
+  can->cd(5);
+  //sg_vrefdep_bit2->Draw("AP");
+  sg_vrefdep_chg2->Draw("AP");
+  can->cd(6);
+
   can->Update();
   can->Print( Form("pic/%s_summary.ps",  basename.c_str()) );
   can->Print( Form("pic/%s_summary.png", basename.c_str()) );
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // SAVE
   TFile outfile( Form("pic/%s.root",basename.c_str()), "RECREATE" );
   for( Int_t ich=0; ich<n_chip*n_unit*n_bit; ich++ ){ // BEGIN CHANNEL-LOOP
     for( Int_t itab=0; itab<ntab; itab++ ){ // BEGIN TABLE-LOOP
@@ -622,8 +735,8 @@ Int_t main( Int_t argc, Char_t** argv ){
   
   outfile.Close();
 
-
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // LOG
   std::ofstream* fout = new std::ofstream[n_chip];
   system( "mkdir -p dat_calib;");
   for( Int_t ichip=0; ichip<n_chip; ichip++ ) fout[ichip].open(Form("dat_calib/threshold_calib_board%d_chip%d.dat",board_id,ichip) );
@@ -632,29 +745,51 @@ Int_t main( Int_t argc, Char_t** argv ){
     Int_t unit_id  = chip_id/n_bit;
     Int_t lchannel = ich%(n_unit*n_bit);
     Int_t gchannel = ich;
-    fout[chip_id] << std::setw(2) << std::right << board_id << "   "
-		  << std::setw(2) << std::right << chip_id  << "   "
-		  << std::setw(2) << std::right << unit_id  << "   "
-		  << std::setw(4) << std::right << lchannel << "   "
-		  << std::setw(4) << std::right << gchannel << "   ";
-    if( sg_gain->GetY()[ich]>0 ) fout[chip_id] << std::setw(2) << std::right << 1 << "   ";
-    else                         fout[chip_id] << std::setw(2) << std::right << 0 << "   "; // dead-channel
-
-      
-      
-    fout[chip_id] << std::setw( 8) << std::left  << Form(" %.4f",sg_gain  ->GetY ()[ich])
-		  << std::setw(10) << std::left  << Form(" %.4f",sg_gain  ->GetEY()[ich])
-		  << std::setw( 8) << std::left  << Form(" %.3f",sg_offset->GetY ()[ich])
-		  << std::setw(10) << std::left  << Form(" %.3f",sg_offset->GetEY()[ich])
-		  << std::setw( 8) << std::left  << Form(" %.3f",sg_noise ->GetY ()[ich])
-		  << std::setw(10) << std::left  << Form(" %.3f",sg_noise ->GetEY()[ich])
+    fout[chip_id] << std::setw(2) << std::right << board_id      << "   "
+		  << std::setw(2) << std::right << chip_id       << "   "
+		  << std::setw(2) << std::right << unit_id       << "   "
+		  << std::setw(4) << std::right << lchannel      << "   "
+		  << std::setw(4) << std::right << gchannel      << "   "
+		  << std::setw(2) << std::right << fl_alive[ich] << "   "
+		  << std::setw( 8) << std::left  << Form(" %.4f",sg_gain       ->GetY ()[ich])
+		  << std::setw(10) << std::left  << Form(" %.4f",sg_gain       ->GetEY()[ich])
+		  << std::setw( 8) << std::left  << Form(" %.3f",sg_offset     ->GetY ()[ich])
+		  << std::setw(10) << std::left  << Form(" %.3f",sg_offset     ->GetEY()[ich])
+		  << std::setw( 8) << std::left  << Form(" %.3f",sg_noise      ->GetY ()[ich])
+		  << std::setw(10) << std::left  << Form(" %.3f",sg_noise      ->GetEY()[ich])
+		  << std::setw( 8) << std::left  << Form(" %.4f",sg_vrefdep_chg->GetY ()[ich])
+		  << std::setw(10) << std::left  << Form(" %.4f",sg_vrefdep_chg->GetEY()[ich])
 		  << std::endl;
   }
   for( Int_t ichip=0; ichip<n_chip; ichip++ ) fout[ichip].close();
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+  for( Int_t ich=0; ich<n_chip*n_unit*n_bit; ich++ ){ // BEGIN CHANNEL-LOOP
+    Int_t chip_id = ich/(n_unit*n_bit);
+    Int_t lch_id  = ich%(n_unit*n_bit);
+    Int_t sel_row    = lch_id%16;
+    Int_t sel_column = lch_id/16;
+    Int_t sel_pad    = 8*sel_row + sel_column+1;
+    
+    if( fl_alive[ich]==0 ){
+      can_scurve[chip_id]->GetPad(sel_pad)->SetFillColor(kYellow);
+      can_vref  [chip_id]->GetPad(sel_pad)->SetFillColor(kYellow);
+      can_tpchg [chip_id]->GetPad(sel_pad)->SetFillColor(kYellow);
+    }
+  } // END CHANNEL-LOOP
+  for( Int_t ichip=0; ichip<n_chip; ichip++ ){
+    can_scurve[ichip]->Update();
+    can_scurve[ichip]->Print( Form("pic/%s_scurve_%d.ps" ,basename.c_str(),ichip) );
+    can_scurve[ichip]->Print( Form("pic/%s_scurve_%d.png",basename.c_str(),ichip) );
+    can_vref  [ichip]->Update();
+    can_vref  [ichip]->Print( Form("pic/%s_vref_%d.ps",   basename.c_str(),ichip) );
+    can_vref  [ichip]->Print( Form("pic/%s_vref_%d.png",  basename.c_str(),ichip) );
+    can_tpchg [ichip]->Update();
+    can_tpchg [ichip]->Print( Form("pic/%s_tpchg_%d.ps",  basename.c_str(),ichip) );
+  }
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
 
-  for( Int_t ichip=0; ichip<n_chip; ichip++ ) delete can_tpchg[ichip]; // tmppppp
+  //for( Int_t ichip=0; ichip<n_chip; ichip++ ) delete can_tpchg[ichip]; // tmppppp
   std::cout << "finish" << std::endl;
   if( !gROOT->IsBatch() ) app.Run();
 

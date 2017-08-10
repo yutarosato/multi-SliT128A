@@ -1,7 +1,7 @@
 #include "setting.h"
 
 const Bool_t fl_batch = !true; // should be false for quick check.
-const Int_t  fl_show  = 5;
+const Int_t  fl_show  = 50;
 
 Int_t main( Int_t argc, Char_t** argv ){
   gROOT->SetBatch(fl_batch);
@@ -32,8 +32,8 @@ Int_t main( Int_t argc, Char_t** argv ){
   TH2C* hist_bitfall     = new TH2C("hist_bitfall",    "hist(bit-fall);Time;Channel",            n_time, 0, n_time, n_chip*n_unit,       0, n_chip*n_unit       );
   TH2C* hist_bitfall_int = new TH2C("hist_bitfall_int","hist(bit-fall,integration);Time;Channel",n_time, 0, n_time, n_chip*n_unit,       0, n_chip*n_unit       );
 
-  TCanvas* can = new TCanvas("can","can", 1600, 1050 );
-  can->Divide(1,4);
+  TCanvas* can = new TCanvas("can","can", 1600, 1300 );
+  can->Divide(1,5);
   can->Draw();
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   Int_t cnt_show = 0;
@@ -73,6 +73,18 @@ Int_t main( Int_t argc, Char_t** argv ){
       hist_bitfall->Draw("COLZ");
       can->cd(4);
       hist_bitfall_int->Draw("COLZ");
+      can->cd(5);
+      can->cd(5)->SetLogy();
+      TH1D* tmp_hist = hist_int->ProjectionY();
+      Int_t tmp_cnt_dead = 0;
+      for( Int_t ibin=0; ibin<tmp_hist->GetNbinsX(); ibin++ ){
+	if( tmp_hist->GetBinContent(ibin+1)==0 ){
+	  std::cout << "Chip#" << gchannel2chip(ibin) << ", Local Channel#" << gchannel2lchannel(ibin) << ", Global Channel#" << ibin << std::endl;
+	  tmp_cnt_dead++;
+	}
+      }
+      std::cout << "N(dead?) = " << tmp_cnt_dead << std::endl;
+      tmp_hist->Draw();
 
       can->Update();
       can->WaitPrimitive();

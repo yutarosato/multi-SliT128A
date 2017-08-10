@@ -8,8 +8,11 @@ endif
 
 set NO       = $1
 set BOARD    = 5
-set VREF     = 230.0 # VREF value [mV]
-set TPCHG    = 2.69 # Test pulse charge [fC] # 4.61, 4.22, 3.84, 3.46, 3.07, 2.69, 2.30, 1.92, 1.54, 1.15, 0.77, 0.38
+set VREF     = 180.0 # VREF value [mV]
+set TPCHG    =  3.84 # Test pulse charge [fC]
+#  2.4    2.2  2.0   1.8   1.6   1.4   1.2   1.1   1.0   0.9   0.8   0.7   0.6   0.5   0.4   0.3   0.2   0.1
+# 9.22, 8.45, 7.68, 6.91, 6.14, 5.38, 4.61, 4.22, 3.84, 3.46, 3.07, 2.69, 2.30, 1.92, 1.54, 1.15, 0.77, 0.38
+
 # 1 MIP = 3.84 fC = 38.4 mV * 100fF
 # 1 MIP = 300 mV for 8 divider (actually 7 input) with ~1% error
 ####################################################################################
@@ -17,7 +20,7 @@ set HEADNAME = `printf output%02d ${NO}`
 ls root_data/${HEADNAME}*.root >& /dev/null
 if( $? != 1 ) then
     echo "[Skip] Aleady exist : ${NO}"
-    exit
+#    exit
 endif
 
 ####################################################################################
@@ -25,7 +28,7 @@ set CHIP          = 0 # ${CHIP}%${CHIP_CYCLE} will be controlled
 set CHIP_CYCLE    = 1
 set CTRL_DAC      = -31
 set TIME          = 3
-set STEP          = 3 # DAC STEP
+set STEP          = 5 # DAC STEP
 
 cd slow_control;   make || exit; cd ../;
 cd exp_decoder;    make || exit; cd ../;
@@ -91,7 +94,11 @@ echo "Decoding Data"
 mkdir -p root_data
 mkdir -p root_data/tmp
 cd exp_decoder;
-./multi-slit128a_exp_decoder ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${TPCHG} ${CTRL_DAC} ${CHIP} ${CHIP_CYCLE} ${CHANNEL} ${CHANNEL_CYCLE} ${BOARD} ${VREF}
+./multi-slit128a_exp_decoder ../root_data/${OUTNAME}.root ../binary_data/${OUTNAME}.dat ${TPCHG} ${CTRL_DAC} ${CHIP} ${CHIP_CYCLE} ${CHANNEL} ${CHANNEL_CYCLE} ${BOARD} ${VREF};
+if( $? != 0 ) then
+    echo "[WARNING] take data again due to decode error"
+    @ CHANNEL -= 1
+endif
 rm -f ../binary_data/${OUTNAME}.dat
 cd ../
 

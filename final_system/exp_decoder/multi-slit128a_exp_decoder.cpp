@@ -545,6 +545,12 @@ Int_t decode( UChar_t *event_buf, Int_t length ){
     t_chip  = (int)chip_id;
     t_unit  = (int)unit_id;
     //printf("board#%d, chip#%d, unit#%d\n",(int)board_id,(int)chip_id,(int)unit_id);
+    if( header_board_id != board_id ){
+      fprintf( stderr,"      [Warning] Wrong board number : Board#%d,Chip#%d,Unit#%d & %d(global header) : %s\n", t_board, t_chip, t_unit, header_board_id, data_filename );
+      printf(         "      [Warning] Wrong board number : Board#%d,Chip#%d,Unit#%d & %d(global header) : %s\n", t_board, t_chip, t_unit, header_board_id, data_filename );
+      cnt_warning++;
+      return -1;
+    }
     
     // ndata 
     UShort_t tmp_unit_ndata = *(UShort_t*)&event_buf[index+2];
@@ -736,5 +742,6 @@ Int_t main( Int_t argc, char *argv[] ){
 
   delete_tree();
 
+  if( cnt_warning ) abort();
   return 0;
 }

@@ -105,7 +105,7 @@ Int_t main( Int_t argc, Char_t** argv ){
   if( app.Argc()!=4 )
     std::cerr << "Wrong input" << std::endl
 	      << "Usage : " << app.Argv(0)
-	      << " (char*)infilename (int)dac (int)board_id1" << std::endl
+	      << " (char*)infilename (int)dac (int)board_id" << std::endl
 	      << "[e.g]" << std::endl
 	      << app.Argv(0) << " test.root 30 2" << std::endl
 	      << std::endl, abort();
@@ -225,6 +225,8 @@ Int_t main( Int_t argc, Char_t** argv ){
   //for( Int_t ixbin=0; ixbin<peak_bin-50; ixbin++ ) hist_width[ich]->SetBinContent(ixbin+1, 0.0);
   
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  std::vector<Double_t> t_sig_eff_v;
+  std::vector<Double_t> t_sig_effE_v;
   for( Int_t iybin=0; iybin<hist_nsig->GetNbinsY(); iybin++ ){
     TH1D*    hist_nsig_proj = hist_nsig->ProjectionX("_px",iybin+1,iybin+1);
     Double_t nsig_integral  = hist_nsig_proj->Integral(1,hist_nsig->GetNbinsX());
@@ -267,16 +269,24 @@ Int_t main( Int_t argc, Char_t** argv ){
 	   << " CHANNEL" << gchannel2lchannel(iybin) //  channel-No
 	   << "HOGEEEE"
 	   << std::endl;
+    t_sig_eff_v.push_back ( sig_eff  );
+    t_sig_effE_v.push_back( sig_effE );
   }
   
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   if( fl_save_file ){
     TFile outfile( Form("pic/%s.root",basename.c_str()), "RECREATE" );
-    
+
+    Int_t t_nsig = nsig_exp;
+    Int_t t_span = span_exp;
     TTree* newtree = new TTree( "meta", "meta" );
     if( chain->GetEntries() ) chain->GetEntry(0);
-    newtree->Branch( "dac",    &dac,     "dac/I"   );
-    newtree->Branch( "tpchg",  &t_tpchg, "tpchg/F" );
+    newtree->Branch( "dac",      &dac,      "dac/I"   );
+    newtree->Branch( "tpchg",    &t_tpchg,  "tpchg/F" );
+    newtree->Branch( "span",     &t_span,   "span/I"  );
+    newtree->Branch( "nsig",     &t_nsig,   "nsig/I"  );
+    newtree->Branch( "sigeff",   &t_sig_eff_v         );
+    newtree->Branch( "sigeffE",  &t_sig_effE_v        );
     newtree->Fill();
     
     // To save data size, some histogram might be omitted.
