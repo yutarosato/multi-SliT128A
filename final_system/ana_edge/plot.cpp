@@ -2,7 +2,7 @@
 
 const Bool_t fl_batch   = !true; // should be false for quick check.
 const Int_t  fl_message = 1;
-const Int_t  fl_show    = 1;
+const Int_t  fl_show    = 0;
 
 const Int_t  fl_mask = 1;
 

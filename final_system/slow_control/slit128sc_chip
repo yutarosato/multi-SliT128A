@@ -63,28 +63,28 @@ def wait_until_ready_or_die(rbcp, ip_address, base_addr):
 def send_final_packet(rbcp, ip_address, base_addr):
     data = struct.pack('>B', 0xff)
     rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(data), id = 13, data = data)
-    time.sleep(0.001)
+    #time.sleep(0.001)
     #wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
     data = struct.pack('>B', 0x55)
     rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(data), id = 14, data = data)
-    time.sleep(0.001)
+    #time.sleep(0.001)
     wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
 def send_prepare_packet(rbcp, ip_address, base_addr):
     data = struct.pack('>B', 0x47)
     rbcp.write_registers(ip_address, address = base_addr + 0x0B, length = len(data), id = 10, data = data)
-    time.sleep(0.001)
+    #time.sleep(0.001)
     #wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
     data = struct.pack('>B', 0xff)
     rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(data), id = 11, data = data)
-    time.sleep(0.001)
+    #time.sleep(0.001)
     #wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
     data = struct.pack('>B', 0x55)
     rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(data), id = 12, data = data)
-    time.sleep(0.001)
+    #time.sleep(0.001)
     wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
 def START_SCK(rbcp, ip_address):
@@ -159,20 +159,20 @@ def send_value_packet(rbcp, ip_address, base_addr, ch, value):
     second_data = struct.pack('>B', second_byte)
 
     rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(zero_data),  id = 12, data = zero_data)
-    time.sleep(0.001)
+    #time.sleep(0.001)
     #wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
 
     rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(first_data), id = 13, data = first_data)
-    time.sleep(0.001)
+    #time.sleep(0.001)
     wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
     rbcp.write_registers(ip_address, address = base_addr + 0x0C, length = len(zero_data),   id = 14, data = zero_data)
-    time.sleep(0.001)
+    #time.sleep(0.001)
     #wait_until_ready_or_die(rbcp, ip_address, base_addr)
     
     rbcp.write_registers(ip_address, address = base_addr + 0x0D, length = len(second_data), id = 15, data = second_data)
-    time.sleep(0.001)
+    #time.sleep(0.001)
     wait_until_ready_or_die(rbcp, ip_address, base_addr)
 
 

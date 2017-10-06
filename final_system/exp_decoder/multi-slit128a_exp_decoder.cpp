@@ -20,11 +20,12 @@
 #include <TGraph.h>
 
 
-const Int_t  fl_message      = 0; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
+const Int_t  fl_message      = 1; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
 Bool_t fl_bitfall_info       = true;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Bool_t fl_edge_decoder       = true;
+Bool_t fl_daq_test           = true; // tmpppp
 Bool_t fl_scurve             = false;
 const Int_t  n_chip          =     4;
 const Int_t  n_unit          =     4;
@@ -602,67 +603,68 @@ Int_t decode( UChar_t *event_buf, Int_t length ){
 
     Int_t prev_time =-1;
     // unit data for each unit
-    for( Int_t idata=0; idata<unit_ndata; idata++ ){
-      UShort_t* tmp_time = (UShort_t*)&event_buf[index+byte_unit_header+idata*byte_unit_data+0];
-      ULong_t*  tmp_data = (ULong_t* )&event_buf[index+byte_unit_header+idata*byte_unit_data+2];
-      UShort_t  time     = ntohs(*tmp_time);
-      UShort_t  data     = ntohl(*tmp_data);
-      t_time = time;
-
-      if( fl_bitfall_info && prev_time != t_time-1 ){
-	for( Int_t itime=prev_time+1; itime<t_time; itime++ ){
-	  t_board_bitfall_v.push_back   (t_board);
-	  t_chip_bitfall_v.push_back    (t_chip );
-	  t_unit_bitfall_v.push_back    (t_unit );
-	  t_time_bitfall_v.push_back    (itime  );
+    if( !fl_daq_test ){
+    //if( !fl_daq_test || t_event_number >= 670 ){ // tmpppp
+      for( Int_t idata=0; idata<unit_ndata; idata++ ){
+	UShort_t* tmp_time = (UShort_t*)&event_buf[index+byte_unit_header+idata*byte_unit_data+0];
+	ULong_t*  tmp_data = (ULong_t* )&event_buf[index+byte_unit_header+idata*byte_unit_data+2];
+	UShort_t  time     = ntohs(*tmp_time);
+	UShort_t  data     = ntohl(*tmp_data);
+	t_time = time;
+	
+	if( fl_bitfall_info && prev_time != t_time-1 ){
+	  for( Int_t itime=prev_time+1; itime<t_time; itime++ ){
+	    t_board_bitfall_v.push_back   (t_board);
+	    t_chip_bitfall_v.push_back    (t_chip );
+	    t_unit_bitfall_v.push_back    (t_unit );
+	    t_time_bitfall_v.push_back    (itime  );
+	  }
 	}
-      }
-      prev_time = t_time;
-      
-      if( fl_message > 2 ) printf( "%4d(t=%4d) : ",idata,time );
-
-      for( Int_t ibyte=0; ibyte<4; ibyte++ ){ // for-loop from large ch number to small ch number
-	UChar_t byte_data = event_buf[index+byte_unit_header+idata*byte_unit_data+2+ibyte];
-	if( fl_message > 2 ) printf( " %2x(%d%d%d%d %d%d%d%d)",
-				     (int)((unsigned char)(byte_data)),
-				     (bool)((unsigned char)(byte_data & 0x80)),
-				     (bool)((unsigned char)(byte_data & 0x40)),
-				     (bool)((unsigned char)(byte_data & 0x20)),
-				     (bool)((unsigned char)(byte_data & 0x10)),
-				     (bool)((unsigned char)(byte_data & 0x08)),
-				     (bool)((unsigned char)(byte_data & 0x04)),
-				     (bool)((unsigned char)(byte_data & 0x02)),
-				     (bool)((unsigned char)(byte_data & 0x01))
-				     );
-	if( fl_message > 2 && ibyte==3 ) std::cout << std::endl;
+	prev_time = t_time;
 	
-	t_data[7+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x80)) ); // bit-flip correction // modified for ch-map correction @20161004
-	t_data[6+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x40)) ); // bit-flip correction // modified for ch-map correction @20161004
-	t_data[5+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x20)) ); // bit-flip correction // modified for ch-map correction @20161004
-	t_data[4+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x10)) ); // bit-flip correction // modified for ch-map correction @20161004
-	t_data[3+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x08)) ); // bit-flip correction // modified for ch-map correction @20161004
-	t_data[2+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x04)) ); // bit-flip correction // modified for ch-map correction @20161004
-	t_data[1+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x02)) ); // bit-flip correction // modified for ch-map correction @20161004
-	t_data[0+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x01)) ); // bit-flip correction // modified for ch-map correction @20161004
+	if( fl_message > 2 ) printf( "%4d(t=%4d) : ",idata,time );
 	
-	for( Int_t i=0; i<8; i++ ){
-	  if( t_data[i+(3-ibyte)*8] ){ // modified for ch-map correction @20161004
-	    t_board_v.push_back(t_board);
-	    t_chip_v.push_back(t_chip);
-	    t_unit_v.push_back(t_unit);
-	    t_bit_v.push_back (i+(3-ibyte)*8); // modified for ch-map correction @20161004
-	    t_time_v.push_back(t_time);
-	    t_channel_v.push_back(lchannel_map(t_unit_v.at(t_unit_v.size()-1),t_bit_v.at(t_bit_v.size()-1)));
+	for( Int_t ibyte=0; ibyte<4; ibyte++ ){ // for-loop from large ch number to small ch number
+	  UChar_t byte_data = event_buf[index+byte_unit_header+idata*byte_unit_data+2+ibyte];
+	  if( fl_message > 2 ) printf( " %2x(%d%d%d%d %d%d%d%d)",
+				       (int)((unsigned char)(byte_data)),
+				       (bool)((unsigned char)(byte_data & 0x80)),
+				       (bool)((unsigned char)(byte_data & 0x40)),
+				       (bool)((unsigned char)(byte_data & 0x20)),
+				       (bool)((unsigned char)(byte_data & 0x10)),
+				       (bool)((unsigned char)(byte_data & 0x08)),
+				       (bool)((unsigned char)(byte_data & 0x04)),
+				       (bool)((unsigned char)(byte_data & 0x02)),
+				       (bool)((unsigned char)(byte_data & 0x01))
+				       );
+	  if( fl_message > 2 && ibyte==3 ) std::cout << std::endl;
+	  
+	  t_data[7+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x80)) ); // bit-flip correction // modified for ch-map correction @20161004
+	  t_data[6+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x40)) ); // bit-flip correction // modified for ch-map correction @20161004
+	  t_data[5+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x20)) ); // bit-flip correction // modified for ch-map correction @20161004
+	  t_data[4+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x10)) ); // bit-flip correction // modified for ch-map correction @20161004
+	  t_data[3+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x08)) ); // bit-flip correction // modified for ch-map correction @20161004
+	  t_data[2+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x04)) ); // bit-flip correction // modified for ch-map correction @20161004
+	  t_data[1+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x02)) ); // bit-flip correction // modified for ch-map correction @20161004
+	  t_data[0+(3-ibyte)*8] = bit_flip( (bool)((unsigned char)(byte_data & 0x01)) ); // bit-flip correction // modified for ch-map correction @20161004
+	  
+	  for( Int_t i=0; i<8; i++ ){
+	    if( t_data[i+(3-ibyte)*8] ){ // modified for ch-map correction @20161004
+	      t_board_v.push_back(t_board);
+	      t_chip_v.push_back(t_chip);
+	      t_unit_v.push_back(t_unit);
+	      t_bit_v.push_back (i+(3-ibyte)*8); // modified for ch-map correction @20161004
+	      t_time_v.push_back(t_time);
+	      t_channel_v.push_back(lchannel_map(t_unit_v.at(t_unit_v.size()-1),t_bit_v.at(t_bit_v.size()-1)));
+	    }
 	  }
 	}
       }
-
     }
-    
     index += byte_unit_header+byte_unit_data*unit_ndata;
   }
 
-  if( fl_edge_decoder ) edge_decode();
+  if( fl_edge_decoder && !fl_daq_test ) edge_decode();
 
   tree->Fill();
   cnt_event ++;
