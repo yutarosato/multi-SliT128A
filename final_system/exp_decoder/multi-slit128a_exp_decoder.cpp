@@ -20,12 +20,12 @@
 #include <TGraph.h>
 
 
-const Int_t  fl_message      = 1; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
+const Int_t  fl_message      = 0; // 0(only #event), 1(only global header), 2(global header + unit header), 3(detailed message)
 Bool_t fl_bitfall_info       = true;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Bool_t fl_edge_decoder       = true;
-Bool_t fl_daq_test           = true; // tmpppp
+Bool_t fl_daq_test           = !true; // tmpppp
 Bool_t fl_scurve             = false;
 const Int_t  n_chip          =     4;
 const Int_t  n_unit          =     4;

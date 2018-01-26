@@ -53,13 +53,13 @@ foreach ICHIP( `seq 0 3` )
     set CTRL_CHIP = `printf "%04d%03d" ${TMP_BOARD} ${TMP_CHIP}`
     echo -n "Chip#${ICHIP}(${CTRL_CHIP}):"
     set DATFILE = "${DATDIR}/threshold_calib_board${BOARD}_chip${ICHIP}.dat"
-    # <Slow Control>
+     <Slow Control>
     if( `expr ${ICHIP} % ${CHIP_CYCLE}` != ${CHIP} ) then
-	echo -n "OFF, "
-	./make_control_calib ${BOARD} ${CTRL_CHIP} ${DATFILE} ${THRESHOLD_MIP} ${CHANNEL} ${CHANNEL_CYCLE} LLL LLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+    	echo -n "OFF, "
+    	./make_control_calib ${BOARD} ${CTRL_CHIP} ${DATFILE} ${THRESHOLD_MIP} ${CHANNEL} ${CHANNEL_CYCLE} LLL LLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
     else
-	echo -n "ON, "
-	./make_control_calib ${BOARD} ${CTRL_CHIP} ${DATFILE} ${THRESHOLD_MIP} ${CHANNEL} ${CHANNEL_CYCLE} HLH LLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
+    	echo -n "ON, "
+    	./make_control_calib ${BOARD} ${CTRL_CHIP} ${DATFILE} ${THRESHOLD_MIP} ${CHANNEL} ${CHANNEL_CYCLE} HLH LLL # default (last 3 bits are digital-output/analog-monitor/test-pulse-in)
     endif    
 
     while (1)
