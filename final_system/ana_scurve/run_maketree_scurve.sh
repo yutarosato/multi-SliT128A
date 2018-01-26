@@ -18,7 +18,8 @@ make maketree  || exit
 make scurve    || exit
 
 foreach BOARD  ( ${BOARD_LIST}   )
-    set INFILE     = `ls dat_scurve/output*_board${BOARD}_*.dat`
+    #set INFILE     = `ls dat_scurve/output*_board${BOARD}_*.dat`
+    set INFILE     = `ls dat_scurve/output{07,06,05}*_board${BOARD}_*.dat`
     set TABLE      = "dat_scurve/scurve_board${BOARD}.dat"
     set TABLE_DIR  = `dirname ${TABLE}`
     set TABLE_BASE = ${TABLE_DIR}/`basename ${TABLE} .dat`

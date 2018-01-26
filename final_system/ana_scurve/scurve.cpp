@@ -14,7 +14,7 @@ Int_t main( Int_t argc, Char_t** argv ){
   TStyle* sty = Style();
   sty->SetLabelSize(0.04,"y");
   sty->SetTitleOffset(0.9,"y");
-  sty->SetPadLeftMargin(0.11);
+  sty->SetPadLeftMargin(0.12);
 
   if( !(app.Argc()==3) )
     std::cerr << "Wrong input" << std::endl
@@ -787,6 +787,53 @@ Int_t main( Int_t argc, Char_t** argv ){
     can_tpchg [ichip]->Update();
     can_tpchg [ichip]->Print( Form("pic/%s_tpchg_%d.ps",  basename.c_str(),ichip) );
   }
+  // ++++++++++++ Plots for IEEE2017 conference ++++++++++++++++++++++++++++++++
+  TCanvas* can_ieee = new TCanvas("can_ieee", "can_ieee", 1200,400 );
+  can_ieee->Divide(3,1);
+  can_ieee->Draw();
+  can_ieee->cd(1);
+  //gPad->DrawFrame( -32, 0.0, 32, 1.2, ";DAC;Count Efficiency" );
+  gPad->DrawFrame( 0, 0.0, 63, 1.2, ";DAC;Count Efficiency" );
+  for( Int_t itab=0; itab<ntab; itab++ ){ // BEGIN TABLE-LOOP
+    Int_t ref_ch = 180;
+    for( Int_t ig=0; ig<cnt_g[itab][ref_ch]; ig++ ){
+      g_scurve[itab][ref_ch][ig]->SetMarkerSize(0.8);
+      // shift histogram
+      for( Int_t ip=0; ip<g_scurve[itab][ref_ch][ig]->GetN(); ip++ ){
+	g_scurve[itab][ref_ch][ig]->SetPoint(ip, g_scurve[itab][ref_ch][ig]->GetX()[ip]+31, g_scurve[itab][ref_ch][ig]->GetY()[ip]);
+      }
+      // shift function
+      TF1* func = new TF1( Form("shift_func%d_%d_%d",itab,ref_ch,ig), "0.5*TMath::Erf(([0]-x)/sqrt(2)/[1])+0.5", 0,63 ); // 0(mean), 1(sigma)
+      func->SetParameter(0, g_scurve[itab][ref_ch][ig]->GetFunction(Form("func%d_%d_%d",itab,ref_ch,ig))->GetParameter(0) + 31 );
+      func->SetParameter(1, g_scurve[itab][ref_ch][ig]->GetFunction(Form("func%d_%d_%d",itab,ref_ch,ig))->GetParameter(1)      );
+      func->SetParNames( "mean", "sigma");
+      func->SetLineColor(itab+2);
+      delete g_scurve[itab][ref_ch][ig]->GetFunction(Form("func%d_%d_%d",itab,ref_ch,ig));
+      //g_scurve[itab][ref_ch][ig]->GetFunction(Form("func%d_%d_%d",itab,ref_ch,ig))->SetParameter( 0, g_scurve[itab][ref_ch][ig]->GetFunction(Form("func%d_%d_%d",itab,ref_ch,ig))->GetParameter(0) + 31 );
+      g_scurve[itab][ref_ch][ig]->Draw("Psame");
+      func->Draw("Lsame");
+    }
+  }
+
+  TGraphErrors* graph_noise = new TGraphErrors();
+  TH1D* hist_noise = new TH1D("hist_noise", "hist_noise;Equivalent noise charge [electrons]", 50, 0, 3000 );
+  for( Int_t ip=128; ip<256; ip++) {
+    hist_noise->Fill( (24000/3.84)*sg_noise->GetY()[ip] );
+    graph_noise->SetPoint     (graph_noise->GetN(),   sg_noise->GetX()[ip]-128,(24000/3.84)*sg_noise->GetY ()[ip]);
+    graph_noise->SetPointError(graph_noise->GetN()-1,                      0.0,(24000/3.84)*sg_noise->GetEY()[ip]);
+  }
+
+  can_ieee->cd(2);
+  gPad->DrawFrame( 0, 0, 128, 3000, ";Channel;Noise [electrons]" );
+  graph_noise->Draw("P");
+
+  can_ieee->cd(3);
+  hist_noise->GetXaxis()->SetTitleSize(0.04);
+  hist_noise->Draw();
+
+  can_ieee->Print("ieee_1.eps");
+  //can_ieee->Print("ieee_2.eps");
+  
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
 
   //for( Int_t ichip=0; ichip<n_chip; ichip++ ) delete can_tpchg[ichip]; // tmppppp

@@ -143,7 +143,7 @@ TStyle* Style(){
   myStyle->SetTickLength( 0.02, "XY" );
 
   //turn off stats
-  myStyle->SetOptStat(0);
+  //myStyle->SetOptStat(0);
   //myStyle->SetOptFit(1111);
   
   //marker settings
