@@ -23,6 +23,9 @@ scurve:scurve.o
 tot_width:tot_width.o
 	$(CXX) $(ROOTLIBS) -o $@ $^
 
+autocalib:autocalib.o
+	$(CXX) $(ROOTLIBS) -o $@ $^
+
 .cpp.o:
 	$(CXX) $(ROOTFLAGS) -c $< -o $@
 qc_allch.o             : setting.h qc_allch.cpp
@@ -31,6 +34,7 @@ cal_eff.o              : setting.h cal_eff.cpp
 maketree.o             : setting.h maketree.cpp
 scurve.o               : setting.h scurve.cpp
 tot_width.o            : setting.h tot_width.cpp
+autocalib.o            : setting.h autocalib.cpp
 
 .PHONY: clean
 clean:
